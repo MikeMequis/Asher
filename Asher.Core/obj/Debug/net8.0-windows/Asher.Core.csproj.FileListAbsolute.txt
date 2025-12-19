@@ -10,3 +10,16 @@ C:\Users\Mobilemed\College\Asher - Screens\Asher.Core\obj\Debug\net8.0-windows\A
 C:\Users\Mobilemed\College\Asher - Screens\Asher.Core\obj\Debug\net8.0-windows\refint\Asher.Core.dll
 C:\Users\Mobilemed\College\Asher - Screens\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.pdb
 C:\Users\Mobilemed\College\Asher - Screens\Asher.Core\obj\Debug\net8.0-windows\ref\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\bin\Debug\net8.0-windows\Asher.Core.deps.json
+C:\VSProjects\Asher\Asher.Core\bin\Debug\net8.0-windows\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\bin\Debug\net8.0-windows\Asher.Core.pdb
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.csproj.AssemblyReference.cache
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.AssemblyInfoInputs.cache
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.AssemblyInfo.cs
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.csproj.CoreCompileInputs.cache
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.sourcelink.json
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\refint\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\Asher.Core.pdb
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0-windows\ref\Asher.Core.dll
