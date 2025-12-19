@@ -1,0 +1,22 @@
+C:\VSProjects\Asher\Asher.Services.PatchService\bin\Debug\net8.0-windows\Asher.Services.PatchService.deps.json
+C:\VSProjects\Asher\Asher.Services.PatchService\bin\Debug\net8.0-windows\Asher.Services.PatchService.dll
+C:\VSProjects\Asher\Asher.Services.PatchService\bin\Debug\net8.0-windows\Asher.Services.PatchService.pdb
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.GeneratedMSBuildEditorConfig.editorconfig
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.AssemblyInfoInputs.cache
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.AssemblyInfo.cs
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.csproj.CoreCompileInputs.cache
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.dll
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\refint\Asher.Services.PatchService.dll
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.pdb
+C:\VSProjects\Asher\Asher.Services.PatchService\obj\Debug\net8.0-windows\ref\Asher.Services.PatchService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\bin\Debug\net8.0-windows\Asher.Services.PatchService.deps.json
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\bin\Debug\net8.0-windows\Asher.Services.PatchService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\bin\Debug\net8.0-windows\Asher.Services.PatchService.pdb
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.AssemblyInfoInputs.cache
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.AssemblyInfo.cs
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.csproj.CoreCompileInputs.cache
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\refint\Asher.Services.PatchService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\Asher.Services.PatchService.pdb
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.PatchService\obj\Debug\net8.0-windows\ref\Asher.Services.PatchService.dll

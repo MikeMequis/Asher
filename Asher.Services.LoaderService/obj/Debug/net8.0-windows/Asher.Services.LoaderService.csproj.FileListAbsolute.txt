@@ -1,0 +1,22 @@
+C:\VSProjects\Asher\Asher.Services.LoaderService\bin\Debug\net8.0-windows\Asher.Services.LoaderService.deps.json
+C:\VSProjects\Asher\Asher.Services.LoaderService\bin\Debug\net8.0-windows\Asher.Services.LoaderService.dll
+C:\VSProjects\Asher\Asher.Services.LoaderService\bin\Debug\net8.0-windows\Asher.Services.LoaderService.pdb
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.GeneratedMSBuildEditorConfig.editorconfig
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.AssemblyInfoInputs.cache
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.AssemblyInfo.cs
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.csproj.CoreCompileInputs.cache
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.dll
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\refint\Asher.Services.LoaderService.dll
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.pdb
+C:\VSProjects\Asher\Asher.Services.LoaderService\obj\Debug\net8.0-windows\ref\Asher.Services.LoaderService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\bin\Debug\net8.0-windows\Asher.Services.LoaderService.deps.json
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\bin\Debug\net8.0-windows\Asher.Services.LoaderService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\bin\Debug\net8.0-windows\Asher.Services.LoaderService.pdb
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.AssemblyInfoInputs.cache
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.AssemblyInfo.cs
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.csproj.CoreCompileInputs.cache
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\refint\Asher.Services.LoaderService.dll
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\Asher.Services.LoaderService.pdb
+C:\Users\Mobilemed\College\Asher - Screens\Asher.Services.LoaderService\obj\Debug\net8.0-windows\ref\Asher.Services.LoaderService.dll

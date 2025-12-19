@@ -1,0 +1,132 @@
+﻿<UserControl x:Class="Asher.UserInterface.Views.PatchManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Asher.UserInterface.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:Asher.UserInterface.Converters"
+             mc:Ignorable="d"
+             xmlns:prism="http://prismlibrary.com/"
+             prism:ViewModelLocator.AutoWireViewModel="True">
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <StackPanel.Resources>
+                <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
+            </StackPanel.Resources>
+            <!-- Header -->
+            <materialDesign:Card Margin="0,0,0,24" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="Patch Manager"
+                               Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                               Margin="0,0,0,8"/>
+                    <TextBlock Text="Manage runtime patches and mods for Dust: An Elysian Tail"
+                               Style="{StaticResource MaterialDesignBody1TextBlock}"
+                               Opacity="0.7"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- Available Patches -->
+            <materialDesign:Card Margin="0,0,0,16" Padding="24">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Grid.Column="0" 
+                                   Text="Available Patches"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                        
+                        <Button Grid.Column="1"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                Content="Refresh Patches"
+                                Command="{Binding RefreshPatchesCommand}"/>
+                    </Grid>
+                    
+                    <!-- Patch List -->
+                    <ItemsControl ItemsSource="{Binding AvailablePatches}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <materialDesign:Card Margin="0,0,0,8" Padding="16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <materialDesign:PackIcon Grid.Column="0"
+                                                                 Kind="Puzzle"
+                                                                 Width="24" Height="24"
+                                                                 VerticalAlignment="Center"
+                                                                 Margin="0,0,16,0"/>
+                                        
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Name}"
+                                                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                                       Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding Description}"
+                                                       Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                                       Opacity="0.7"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        
+                                        <ToggleButton Grid.Column="2"
+                                                      Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                      IsChecked="{Binding IsEnabled}"
+                                                      VerticalAlignment="Center"/>
+                                    </Grid>
+                                </materialDesign:Card>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+                    <!-- Empty State -->
+                    <TextBlock Text="No patches found. Add patches to the patches folder to see them here."
+                               Style="{StaticResource MaterialDesignBody2TextBlock}"
+                               HorizontalAlignment="Center"
+                               Opacity="0.5"
+                               Margin="32"
+                               Visibility="{Binding AvailablePatches.Count, Converter={StaticResource CountToVisibilityConverter}}"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- Patch Information -->
+            <materialDesign:Card Padding="24">
+                <StackPanel>
+                    <TextBlock Text="Patch Information"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                               Margin="0,0,0,16"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                            <TextBlock Text="Active Patches"
+                                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding ActivePatchCount}"
+                                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                                       Foreground="{DynamicResource MaterialDesignPrimary}"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                            <TextBlock Text="Total Patches"
+                                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding TotalPatchCount}"
+                                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                                       Foreground="{DynamicResource MaterialDesignSecondary}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </materialDesign:Card>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

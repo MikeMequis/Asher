@@ -1,0 +1,9 @@
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.csproj.AssemblyReference.cache
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp_MarkupCompile.cache
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.Asher.Services.Resources.Strings.resources
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.Asher.Services.Resources.Strings.pt-BR.resources
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.csproj.GenerateResource.cache
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.AssemblyInfoInputs.cache
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.AssemblyInfo.cs
+C:\VSProjects\Asher\obj\Debug\net8.0-windows\PatchTestApp.csproj.CoreCompileInputs.cache

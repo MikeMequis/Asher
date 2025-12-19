@@ -1,0 +1,27 @@
+﻿<!--
+This project targets .NET 8.0 for UI and interactivity.
+External services (such as patching/game integration) are handled by .NET 4.8 components for compatibility with XNA-based games.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignColors" Version="5.3.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.0" />
+    <PackageReference Include="Prism.Unity" Version="9.0.537" />
+    <PackageReference Include="Prism.Wpf" Version="9.0.537" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Asher.Services\Asher.Services.csproj" />
+    <ProjectReference Include="..\Asher.UserInterface\Asher.UserInterface.csproj" />
+  </ItemGroup>
+
+</Project>
