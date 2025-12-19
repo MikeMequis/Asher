@@ -77,3 +77,9 @@ C:\Users\Mobilemed\College\Asher - Screens\Asher.App\obj\Debug\net8.0-windows\re
 C:\Users\Mobilemed\College\Asher - Screens\Asher.App\obj\Debug\net8.0-windows\Asher.App.pdb
 C:\Users\Mobilemed\College\Asher - Screens\Asher.App\obj\Debug\net8.0-windows\Asher.App.genruntimeconfig.cache
 C:\Users\Mobilemed\College\Asher - Screens\Asher.App\obj\Debug\net8.0-windows\ref\Asher.App.dll
+C:\VSProjects\Asher\Asher.App\bin\Debug\net8.0-windows\Asher.Core.dll
+C:\VSProjects\Asher\Asher.App\bin\Debug\net8.0-windows\Asher.Services.dll
+C:\VSProjects\Asher\Asher.App\bin\Debug\net8.0-windows\Asher.Services.pdb
+C:\VSProjects\Asher\Asher.App\bin\Debug\net8.0-windows\Asher.Core.pdb
+C:\VSProjects\Asher\Asher.App\obj\Debug\net8.0-windows\Asher.App_Content.g.cs
+C:\VSProjects\Asher\Asher.App\obj\Debug\net8.0-windows\Asher.App.sourcelink.json

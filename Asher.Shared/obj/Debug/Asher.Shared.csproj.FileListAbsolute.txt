@@ -7,3 +7,9 @@ C:\Users\Mobilemed\College\Asher - Screens\Asher.Shared\obj\Debug\Asher.Shared.c
 C:\Users\Mobilemed\College\Asher - Screens\Asher.Shared\obj\Debug\Asher.Shared.csproj.CoreCompileInputs.cache
 C:\Users\Mobilemed\College\Asher - Screens\Asher.Shared\obj\Debug\Asher.Shared.exe
 C:\Users\Mobilemed\College\Asher - Screens\Asher.Shared\obj\Debug\Asher.Shared.pdb
+C:\VSProjects\Asher\Asher.Shared\bin\Debug\Asher.Shared.exe.config
+C:\VSProjects\Asher\Asher.Shared\bin\Debug\Asher.Shared.exe
+C:\VSProjects\Asher\Asher.Shared\bin\Debug\Asher.Shared.pdb
+C:\VSProjects\Asher\Asher.Shared\obj\Debug\Asher.Shared.exe.config
+C:\VSProjects\Asher\Asher.Shared\obj\Debug\Asher.Shared.exe
+C:\VSProjects\Asher\Asher.Shared\obj\Debug\Asher.Shared.pdb
