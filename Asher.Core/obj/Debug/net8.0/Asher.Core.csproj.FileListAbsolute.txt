@@ -1,0 +1,12 @@
+C:\VSProjects\Asher\Asher.Core\bin\Debug\net8.0\Asher.Core.deps.json
+C:\VSProjects\Asher\Asher.Core\bin\Debug\net8.0\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\bin\Debug\net8.0\Asher.Core.pdb
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.AssemblyInfoInputs.cache
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.AssemblyInfo.cs
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.csproj.CoreCompileInputs.cache
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.sourcelink.json
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\refint\Asher.Core.dll
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\Asher.Core.pdb
+C:\VSProjects\Asher\Asher.Core\obj\Debug\net8.0\ref\Asher.Core.dll

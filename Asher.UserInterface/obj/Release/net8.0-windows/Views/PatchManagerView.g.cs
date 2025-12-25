@@ -9,7 +9,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using Asher.Core.Models;
+using Asher.Models;
 using Asher.UserInterface;
 using Asher.UserInterface.Behaviors;
 using Asher.UserInterface.Converters;

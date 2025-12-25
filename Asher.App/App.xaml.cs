@@ -1,6 +1,6 @@
-﻿using Asher.Services.Implementations;
+﻿using Asher.App.Modules.Bootstrap;
+using Asher.Services.Implementations;
 using Asher.Services.Interfaces;
-using Asher.Services.Services;
 using Asher.UserInterface;
 using Asher.UserInterface.Views;
 using System.Windows;
@@ -22,6 +22,7 @@ namespace Asher.App
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
         {
             moduleCatalog.AddModule<ViewsModule>();
+            moduleCatalog.AddModule<BootstrapModule>();
         }
     }
 }

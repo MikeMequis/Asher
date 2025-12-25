@@ -6,6 +6,5 @@
     <Import Project="$(NuGetPackageRoot)prism.core\9.0.537\buildTransitive\Prism.Core.targets" Condition="Exists('$(NuGetPackageRoot)prism.core\9.0.537\buildTransitive\Prism.Core.targets')" />
     <Import Project="$(NuGetPackageRoot)prism.container.unity\9.0.106\buildTransitive\Prism.Container.Unity.targets" Condition="Exists('$(NuGetPackageRoot)prism.container.unity\9.0.106\buildTransitive\Prism.Container.Unity.targets')" />
     <Import Project="$(NuGetPackageRoot)prism.unity\9.0.537\buildTransitive\Prism.Unity.targets" Condition="Exists('$(NuGetPackageRoot)prism.unity\9.0.537\buildTransitive\Prism.Unity.targets')" />
-    <Import Project="$(NuGetPackageRoot)materialdesignthemes\5.3.0\build\MaterialDesignThemes.targets" Condition="Exists('$(NuGetPackageRoot)materialdesignthemes\5.3.0\build\MaterialDesignThemes.targets')" />
   </ImportGroup>
 </Project>

@@ -6,7 +6,7 @@
         xmlns:prism="http://prismlibrary.com/"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:Asher.UserInterface"
-        xmlns:models="clr-namespace:Asher.Core.Models;assembly=Asher.Core"
+        xmlns:models="clr-namespace:Asher.Models;assembly=Asher.Models"
         xmlns:converters="clr-namespace:Asher.UserInterface.Converters"
         xmlns:behaviors="clr-namespace:Asher.UserInterface.Behaviors"
         prism:ViewModelLocator.AutoWireViewModel="True"

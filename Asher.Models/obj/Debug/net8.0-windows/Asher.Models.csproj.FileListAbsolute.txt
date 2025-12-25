@@ -1,0 +1,13 @@
+C:\VSProjects\Asher\Asher.Models\bin\Debug\net8.0-windows\Asher.Models.deps.json
+C:\VSProjects\Asher\Asher.Models\bin\Debug\net8.0-windows\Asher.Models.dll
+C:\VSProjects\Asher\Asher.Models\bin\Debug\net8.0-windows\Asher.Models.pdb
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.csproj.AssemblyReference.cache
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.GeneratedMSBuildEditorConfig.editorconfig
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.AssemblyInfoInputs.cache
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.AssemblyInfo.cs
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.csproj.CoreCompileInputs.cache
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.sourcelink.json
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.dll
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\refint\Asher.Models.dll
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\Asher.Models.pdb
+C:\VSProjects\Asher\Asher.Models\obj\Debug\net8.0-windows\ref\Asher.Models.dll

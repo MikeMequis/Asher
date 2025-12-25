@@ -9,11 +9,6 @@
       "Asher.Localization/1.0.0": {
         "runtime": {
           "Asher.Localization.dll": {}
-        },
-        "resources": {
-          "pt-BR/Asher.Localization.resources.dll": {
-            "locale": "pt-BR"
-          }
         }
       }
     }

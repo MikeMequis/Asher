@@ -1,7 +1,7 @@
-﻿using Asher.Core.Models;
+﻿using Asher.Models;
 using Asher.Services.Interfaces;
 
-namespace Asher.Services.Services
+namespace Asher.Services.Implementations
 {
     public class GameFolderService : IGameFolderService
     {

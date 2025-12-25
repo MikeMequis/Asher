@@ -1,7 +1,7 @@
 ﻿using Asher.Services.Interfaces;
-using Asher.Core.Models;
+using Asher.Models;
 
-namespace Asher.Services.Services
+namespace Asher.Services.Implementations
 {
     public class PatchManagerService : IPatchManagerService
     {

@@ -34,119 +34,14 @@
           "Microsoft.WindowsDesktop.App.WPF"
         ],
         "contentFiles": {
-          "contentFiles/any/net8.0-windows7.0/Resources/Noto/NotoSans-Bold.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Noto/NotoSans-BoldItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Noto/NotoSans-Italic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Noto/NotoSans-Regular.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Black.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-BlackItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Bold.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-BoldItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Italic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Light.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-LightItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Medium.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-MediumItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Regular.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-Thin.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/Roboto-ThinItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/RobotoCondensed-Bold.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/RobotoCondensed-BoldItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/RobotoCondensed-Italic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/RobotoCondensed-Light.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/RobotoCondensed-LightItalic.ttf": {
-            "buildAction": "Content",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          },
-          "contentFiles/any/net8.0-windows7.0/Resources/Roboto/RobotoCondensed-Regular.ttf": {
-            "buildAction": "Content",
+          "contentFiles/any/any/_._": {
+            "buildAction": "None",
             "codeLanguage": "any",
             "copyToOutput": false
           }
         },
         "build": {
-          "build/MaterialDesignThemes.targets": {}
+          "build/_._": {}
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.1": {
@@ -354,23 +249,6 @@
           }
         }
       },
-      "Asher.Core/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "dependencies": {
-          "MaterialDesignThemes": "5.3.0",
-          "Prism.Core": "9.0.537"
-        },
-        "compile": {
-          "bin/placeholder/Asher.Core.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Asher.Core.dll": {}
-        },
-        "frameworkReferences": [
-          "Microsoft.WindowsDesktop.App.WPF"
-        ]
-      },
       "Asher.Localization/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -379,33 +257,53 @@
         },
         "runtime": {
           "bin/placeholder/Asher.Localization.dll": {}
+        }
+      },
+      "Asher.Models/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "MaterialDesignThemes": "5.3.0",
+          "Prism.Core": "9.0.537"
+        },
+        "compile": {
+          "bin/placeholder/Asher.Models.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Asher.Models.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.WindowsDesktop.App.WPF"
         ]
       },
+      "Asher.Runtime/1.0.0": {
+        "type": "project",
+        "compile": {
+          "bin/placeholder/Asher.Runtime.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Asher.Runtime.dll": {}
+        }
+      },
       "Asher.Services/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
-          "Asher.Core": "1.0.0"
+          "Asher.Models": "1.0.0"
         },
         "compile": {
           "bin/placeholder/Asher.Services.dll": {}
         },
         "runtime": {
           "bin/placeholder/Asher.Services.dll": {}
-        },
-        "frameworkReferences": [
-          "Microsoft.WindowsDesktop.App.WindowsForms"
-        ]
+        }
       },
       "Asher.UserInterface/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
-          "Asher.Core": "1.0.0",
           "Asher.Localization": "1.0.0",
+          "Asher.Models": "1.0.0",
           "Asher.Services": "1.0.0",
           "MaterialDesignColors": "5.3.0",
           "MaterialDesignThemes": "5.3.0",
@@ -419,7 +317,7 @@
           "bin/placeholder/Asher.UserInterface.dll": {}
         },
         "frameworkReferences": [
-          "Microsoft.WindowsDesktop.App.WPF"
+          "Microsoft.WindowsDesktop.App"
         ]
       }
     }
@@ -875,15 +773,20 @@
         "unity.container.nuspec"
       ]
     },
-    "Asher.Core/1.0.0": {
-      "type": "project",
-      "path": "../Asher.Core/Asher.Core.csproj",
-      "msbuildProject": "../Asher.Core/Asher.Core.csproj"
-    },
     "Asher.Localization/1.0.0": {
       "type": "project",
       "path": "../Asher.Localization/Asher.Localization.csproj",
       "msbuildProject": "../Asher.Localization/Asher.Localization.csproj"
+    },
+    "Asher.Models/1.0.0": {
+      "type": "project",
+      "path": "../Asher.Models/Asher.Models.csproj",
+      "msbuildProject": "../Asher.Models/Asher.Models.csproj"
+    },
+    "Asher.Runtime/1.0.0": {
+      "type": "project",
+      "path": "../Asher.Runtime/Asher.Runtime.csproj",
+      "msbuildProject": "../Asher.Runtime/Asher.Runtime.csproj"
     },
     "Asher.Services/1.0.0": {
       "type": "project",
@@ -898,12 +801,10 @@
   },
   "projectFileDependencyGroups": {
     "net8.0-windows7.0": [
+      "Asher.Runtime >= 1.0.0",
       "Asher.Services >= 1.0.0",
       "Asher.UserInterface >= 1.0.0",
-      "MaterialDesignColors >= 5.3.0",
-      "MaterialDesignThemes >= 5.3.0",
-      "Prism.Unity >= 9.0.537",
-      "Prism.Wpf >= 9.0.537"
+      "Prism.Unity >= 9.0.537"
     ]
   },
   "packageFolders": {
@@ -938,6 +839,9 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "projectReferences": {
+            "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj": {
+              "projectPath": "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj"
+            },
             "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj": {
               "projectPath": "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj"
             },
@@ -963,19 +867,7 @@
       "net8.0-windows7.0": {
         "targetAlias": "net8.0-windows",
         "dependencies": {
-          "MaterialDesignColors": {
-            "target": "Package",
-            "version": "[5.3.0, )"
-          },
-          "MaterialDesignThemes": {
-            "target": "Package",
-            "version": "[5.3.0, )"
-          },
           "Prism.Unity": {
-            "target": "Package",
-            "version": "[9.0.537, )"
-          },
-          "Prism.Wpf": {
             "target": "Package",
             "version": "[9.0.537, )"
           }

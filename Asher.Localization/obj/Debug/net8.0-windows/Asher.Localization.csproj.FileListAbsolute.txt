@@ -1,33 +1,14 @@
 C:\VSProjects\Asher\Asher.Localization\bin\Debug\net8.0-windows\Asher.Localization.deps.json
 C:\VSProjects\Asher\Asher.Localization\bin\Debug\net8.0-windows\Asher.Localization.dll
 C:\VSProjects\Asher\Asher.Localization\bin\Debug\net8.0-windows\Asher.Localization.pdb
-C:\VSProjects\Asher\Asher.Localization\bin\Debug\net8.0-windows\pt-BR\Asher.Localization.resources.dll
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.Resources.Strings.resources
-C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.Resources.Strings.pt-BR.resources
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.csproj.GenerateResource.cache
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.GeneratedMSBuildEditorConfig.editorconfig
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.AssemblyInfoInputs.cache
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.AssemblyInfo.cs
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.csproj.CoreCompileInputs.cache
-C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\pt-BR\Asher.Localization.resources.dll
+C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.sourcelink.json
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.dll
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\refint\Asher.Localization.dll
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.pdb
 C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\ref\Asher.Localization.dll
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\bin\Debug\net8.0-windows\Asher.Localization.deps.json
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\bin\Debug\net8.0-windows\Asher.Localization.dll
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\bin\Debug\net8.0-windows\Asher.Localization.pdb
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\bin\Debug\net8.0-windows\pt-BR\Asher.Localization.resources.dll
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.Resources.Strings.resources
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.Resources.Strings.pt-BR.resources
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.csproj.GenerateResource.cache
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.AssemblyInfoInputs.cache
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.AssemblyInfo.cs
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.csproj.CoreCompileInputs.cache
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\pt-BR\Asher.Localization.resources.dll
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.dll
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\refint\Asher.Localization.dll
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.pdb
-C:\Users\Mobilemed\College\Asher - Screens\Asher.Localization\obj\Debug\net8.0-windows\ref\Asher.Localization.dll
-C:\VSProjects\Asher\Asher.Localization\obj\Debug\net8.0-windows\Asher.Localization.sourcelink.json
