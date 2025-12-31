@@ -4,79 +4,14 @@
     "C:\\VSProjects\\Asher\\Asher.UserInterface\\Asher.UserInterface.csproj": {}
   },
   "projects": {
-    "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj": {
+    "C:\\VSProjects\\Asher\\Asher.Core\\Asher.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj",
-        "projectName": "Asher.Localization",
-        "projectPath": "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj",
+        "projectUniqueName": "C:\\VSProjects\\Asher\\Asher.Core\\Asher.Core.csproj",
+        "projectName": "Asher.Core",
+        "projectPath": "C:\\VSProjects\\Asher\\Asher.Core\\Asher.Core.csproj",
         "packagesPath": "C:\\Users\\marce\\.nuget\\packages\\",
-        "outputPath": "C:\\VSProjects\\Asher\\Asher.Localization\\obj\\",
-        "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
-        "configFilePaths": [
-          "C:\\Users\\marce\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-        ],
-        "originalTargetFrameworks": [
-          "net8.0-windows"
-        ],
-        "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
-        },
-        "frameworks": {
-          "net8.0-windows7.0": {
-            "targetAlias": "net8.0-windows",
-            "projectReferences": {}
-          }
-        },
-        "warningProperties": {
-          "warnAsError": [
-            "NU1605"
-          ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
-      },
-      "frameworks": {
-        "net8.0-windows7.0": {
-          "targetAlias": "net8.0-windows",
-          "imports": [
-            "net461",
-            "net462",
-            "net47",
-            "net471",
-            "net472",
-            "net48",
-            "net481"
-          ],
-          "assetTargetFallback": true,
-          "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
-        }
-      }
-    },
-    "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj",
-        "projectName": "Asher.Models",
-        "projectPath": "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj",
-        "packagesPath": "C:\\Users\\marce\\.nuget\\packages\\",
-        "outputPath": "C:\\VSProjects\\Asher\\Asher.Models\\obj\\",
+        "outputPath": "C:\\VSProjects\\Asher\\Asher.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -147,6 +82,71 @@
         }
       }
     },
+    "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj",
+        "projectName": "Asher.Localization",
+        "projectPath": "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj",
+        "packagesPath": "C:\\Users\\marce\\.nuget\\packages\\",
+        "outputPath": "C:\\VSProjects\\Asher\\Asher.Localization\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\marce\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0-windows"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0-windows7.0": {
+            "targetAlias": "net8.0-windows",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0-windows7.0": {
+          "targetAlias": "net8.0-windows",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
     "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -175,8 +175,8 @@
           "net8.0-windows7.0": {
             "targetAlias": "net8.0-windows",
             "projectReferences": {
-              "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj": {
-                "projectPath": "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj"
+              "C:\\VSProjects\\Asher\\Asher.Core\\Asher.Core.csproj": {
+                "projectPath": "C:\\VSProjects\\Asher\\Asher.Core\\Asher.Core.csproj"
               }
             }
           }
@@ -246,9 +246,6 @@
             "projectReferences": {
               "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj": {
                 "projectPath": "C:\\VSProjects\\Asher\\Asher.Localization\\Asher.Localization.csproj"
-              },
-              "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj": {
-                "projectPath": "C:\\VSProjects\\Asher\\Asher.Models\\Asher.Models.csproj"
               },
               "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj": {
                 "projectPath": "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj"

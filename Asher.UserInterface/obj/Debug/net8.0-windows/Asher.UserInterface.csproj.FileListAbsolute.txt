@@ -45,10 +45,8 @@ C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.UserInter
 C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.UserInterface.dll
 C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.UserInterface.pdb
 C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Localization.dll
-C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Models.dll
 C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Services.dll
 C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Localization.pdb
-C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Models.pdb
 C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Services.pdb
 C:\VSProjects\Asher\Asher.UserInterface\obj\Debug\net8.0-windows\Views\ContentPatcherView.baml
 C:\VSProjects\Asher\Asher.UserInterface\obj\Debug\net8.0-windows\Views\HomeView.baml
@@ -66,3 +64,5 @@ C:\VSProjects\Asher\Asher.UserInterface\obj\Debug\net8.0-windows\Asher.UserInter
 C:\VSProjects\Asher\Asher.UserInterface\obj\Debug\net8.0-windows\refint\Asher.UserInterface.dll
 C:\VSProjects\Asher\Asher.UserInterface\obj\Debug\net8.0-windows\Asher.UserInterface.pdb
 C:\VSProjects\Asher\Asher.UserInterface\obj\Debug\net8.0-windows\ref\Asher.UserInterface.dll
+C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Core.dll
+C:\VSProjects\Asher\Asher.UserInterface\bin\Debug\net8.0-windows\Asher.Core.pdb

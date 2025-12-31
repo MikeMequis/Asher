@@ -249,6 +249,23 @@
           }
         }
       },
+      "Asher.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "MaterialDesignThemes": "5.3.0",
+          "Prism.Core": "9.0.537"
+        },
+        "compile": {
+          "bin/placeholder/Asher.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Asher.Core.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ]
+      },
       "Asher.Localization/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -258,23 +275,6 @@
         "runtime": {
           "bin/placeholder/Asher.Localization.dll": {}
         }
-      },
-      "Asher.Models/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "dependencies": {
-          "MaterialDesignThemes": "5.3.0",
-          "Prism.Core": "9.0.537"
-        },
-        "compile": {
-          "bin/placeholder/Asher.Models.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Asher.Models.dll": {}
-        },
-        "frameworkReferences": [
-          "Microsoft.WindowsDesktop.App.WPF"
-        ]
       },
       "Asher.Runtime/1.0.0": {
         "type": "project",
@@ -289,7 +289,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
-          "Asher.Models": "1.0.0"
+          "Asher.Core": "1.0.0"
         },
         "compile": {
           "bin/placeholder/Asher.Services.dll": {}
@@ -303,7 +303,6 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Asher.Localization": "1.0.0",
-          "Asher.Models": "1.0.0",
           "Asher.Services": "1.0.0",
           "MaterialDesignColors": "5.3.0",
           "MaterialDesignThemes": "5.3.0",
@@ -773,15 +772,15 @@
         "unity.container.nuspec"
       ]
     },
+    "Asher.Core/1.0.0": {
+      "type": "project",
+      "path": "../Asher.Core/Asher.Core.csproj",
+      "msbuildProject": "../Asher.Core/Asher.Core.csproj"
+    },
     "Asher.Localization/1.0.0": {
       "type": "project",
       "path": "../Asher.Localization/Asher.Localization.csproj",
       "msbuildProject": "../Asher.Localization/Asher.Localization.csproj"
-    },
-    "Asher.Models/1.0.0": {
-      "type": "project",
-      "path": "../Asher.Models/Asher.Models.csproj",
-      "msbuildProject": "../Asher.Models/Asher.Models.csproj"
     },
     "Asher.Runtime/1.0.0": {
       "type": "project",

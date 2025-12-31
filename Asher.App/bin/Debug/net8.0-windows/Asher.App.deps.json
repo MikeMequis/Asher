@@ -145,21 +145,21 @@
           }
         }
       },
-      "Asher.Localization/1.0.0": {
-        "runtime": {
-          "Asher.Localization.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        }
-      },
-      "Asher.Models/1.0.0": {
+      "Asher.Core/1.0.0": {
         "dependencies": {
           "MaterialDesignThemes": "5.3.0",
           "Prism.Core": "9.0.537"
         },
         "runtime": {
-          "Asher.Models.dll": {
+          "Asher.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Asher.Localization/1.0.0": {
+        "runtime": {
+          "Asher.Localization.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -175,7 +175,7 @@
       },
       "Asher.Services/1.0.0": {
         "dependencies": {
-          "Asher.Models": "1.0.0"
+          "Asher.Core": "1.0.0"
         },
         "runtime": {
           "Asher.Services.dll": {
@@ -187,7 +187,6 @@
       "Asher.UserInterface/1.0.0": {
         "dependencies": {
           "Asher.Localization": "1.0.0",
-          "Asher.Models": "1.0.0",
           "Asher.Services": "1.0.0",
           "MaterialDesignColors": "5.3.0",
           "MaterialDesignThemes": "5.3.0",
@@ -307,12 +306,12 @@
       "path": "unity.container/5.11.11",
       "hashPath": "unity.container.5.11.11.nupkg.sha512"
     },
-    "Asher.Localization/1.0.0": {
+    "Asher.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "Asher.Models/1.0.0": {
+    "Asher.Localization/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

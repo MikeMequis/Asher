@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v8.0": {
       "Asher.Services/1.0.0": {
         "dependencies": {
-          "Asher.Models": "1.0.0"
+          "Asher.Core": "1.0.0"
         },
         "runtime": {
           "Asher.Services.dll": {}
@@ -81,13 +81,13 @@
           }
         }
       },
-      "Asher.Models/1.0.0": {
+      "Asher.Core/1.0.0": {
         "dependencies": {
           "MaterialDesignThemes": "5.3.0",
           "Prism.Core": "9.0.537"
         },
         "runtime": {
-          "Asher.Models.dll": {
+          "Asher.Core.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -150,7 +150,7 @@
       "path": "prism.events/9.0.537",
       "hashPath": "prism.events.9.0.537.nupkg.sha512"
     },
-    "Asher.Models/1.0.0": {
+    "Asher.Core/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

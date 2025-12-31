@@ -42,7 +42,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Asher.Localization\Asher.Localization.csproj" />
-    <ProjectReference Include="..\Asher.Models\Asher.Models.csproj" />
     <ProjectReference Include="..\Asher.Services\Asher.Services.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿using Asher.Models;
+﻿using Asher.Core.Models;
 
 namespace Asher.Services.Interfaces
 {

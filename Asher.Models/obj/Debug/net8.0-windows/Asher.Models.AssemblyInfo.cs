@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Asher.Models")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1517a30b3a2192b6c5ee81953ae733f0367389f7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31cc5a68c291faf67386028991b59b5f38688434")]
 [assembly: System.Reflection.AssemblyProductAttribute("Asher.Models")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Asher.Models")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

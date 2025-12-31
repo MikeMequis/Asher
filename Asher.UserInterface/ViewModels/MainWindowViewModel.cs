@@ -1,4 +1,4 @@
-﻿using Asher.Models;
+﻿using Asher.Core.Models;
 using MaterialDesignThemes.Wpf;
 using System.Collections.ObjectModel;
 
