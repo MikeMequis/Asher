@@ -1,6 +1,0 @@
-C:\VSProjects\Asher\Asher.Bootstrap\bin\Debug\Asher.Bootstrap.dll
-C:\VSProjects\Asher\Asher.Bootstrap\bin\Debug\Asher.Bootstrap.pdb
-C:\VSProjects\Asher\Asher.Bootstrap\obj\Debug\Asher.Bootstrap.csproj.AssemblyReference.cache
-C:\VSProjects\Asher\Asher.Bootstrap\obj\Debug\Asher.Bootstrap.csproj.CoreCompileInputs.cache
-C:\VSProjects\Asher\Asher.Bootstrap\obj\Debug\Asher.Bootstrap.dll
-C:\VSProjects\Asher\Asher.Bootstrap\obj\Debug\Asher.Bootstrap.pdb

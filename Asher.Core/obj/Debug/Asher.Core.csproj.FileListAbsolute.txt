@@ -1,6 +1,0 @@
-C:\VSProjects\Asher\Asher.Core\bin\Debug\Asher.Core.dll
-C:\VSProjects\Asher\Asher.Core\bin\Debug\Asher.Core.pdb
-C:\VSProjects\Asher\Asher.Core\obj\Debug\Asher.Core.csproj.AssemblyReference.cache
-C:\VSProjects\Asher\Asher.Core\obj\Debug\Asher.Core.csproj.CoreCompileInputs.cache
-C:\VSProjects\Asher\Asher.Core\obj\Debug\Asher.Core.dll
-C:\VSProjects\Asher\Asher.Core\obj\Debug\Asher.Core.pdb

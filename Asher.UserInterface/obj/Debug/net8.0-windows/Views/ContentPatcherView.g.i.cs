@@ -64,7 +64,7 @@ namespace Asher.UserInterface.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Asher.UserInterface;component/views/contentpatcherview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Asher.UserInterface;V1.0.0.0;component/views/contentpatcherview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\ContentPatcherView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
