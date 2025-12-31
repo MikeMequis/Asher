@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Asher.UserInterface")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9577ec0c98e7092d1c42643306c517f17699b24b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb042361fc3221d4287cc3dffc030f5e08bfaf67")]
 [assembly: System.Reflection.AssemblyProductAttribute("Asher.UserInterface")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Asher.UserInterface")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
