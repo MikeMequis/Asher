@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Asher.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0501f1fcbb192e2b764cdc5bc2af5c73ad5aaa84")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c4aee2c003e0357349f1f92fa29a69e4366a7b72")]
 [assembly: System.Reflection.AssemblyProductAttribute("Asher.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Asher.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
