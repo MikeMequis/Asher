@@ -1,14 +1,9 @@
 using Asher.Services.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Asher.Services.Implementations
+namespace Asher.Launcher
 {
-    public class GameLauncher : IGameLauncher
+    public class GameLauncher
     {
         private readonly IDllInjectorService _dllInjectorService;
 
@@ -92,7 +87,7 @@ namespace Asher.Services.Implementations
                     if (gameProcess != null && !gameProcess.HasExited)
                     {
                         // Wait a bit more for the process to fully initialize
-                        await Task.Delay(1000);
+                        await Task.Delay(2000);
                         
                         // Inject the Bootstrap DLL
                         bool injected = _dllInjectorService.InjectDll(gameProcess, bootstrapTarget);
@@ -109,6 +104,32 @@ namespace Asher.Services.Implementations
                                 logPath,
                                 $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Injection attempt: {(injected ? "SUCCESS" : "FAILED")} for process {gameProcess.Id} ({gameProcess.ProcessName})\n"
                             );
+                            File.AppendAllText(
+                                logPath,
+                                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Bootstrap DLL path: {bootstrapTarget}\n"
+                            );
+                            File.AppendAllText(
+                                logPath,
+                                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Bootstrap DLL exists: {File.Exists(bootstrapTarget)}\n"
+                            );
+                            
+                            // Wait a bit more and check if logs were created
+                            await Task.Delay(2000);
+                            var bootstrapLog = Path.Combine(gameFolder, "AsherLogs", "bootstrap.log");
+                            if (File.Exists(bootstrapLog))
+                            {
+                                File.AppendAllText(
+                                    logPath,
+                                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Bootstrap log created - initialization successful!\n"
+                                );
+                            }
+                            else
+                            {
+                                File.AppendAllText(
+                                    logPath,
+                                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] WARNING: Bootstrap log not found - type may not have been accessed yet\n"
+                                );
+                            }
                         }
                         catch { }
                     }

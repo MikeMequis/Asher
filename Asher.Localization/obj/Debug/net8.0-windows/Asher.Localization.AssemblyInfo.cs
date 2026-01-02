@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Asher.Localization")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e504a32e732d47c1484c84fc74c67017cb5ca9c9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0501f1fcbb192e2b764cdc5bc2af5c73ad5aaa84")]
 [assembly: System.Reflection.AssemblyProductAttribute("Asher.Localization")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Asher.Localization")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

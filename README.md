@@ -10,13 +10,15 @@ This document unifies the full architecture and roadmap for the *Asher* modding 
 ```
 /Asher.sln
 │
-├── Asher.App/                          → WPF launcher (UI, .NET 8) ✅ IMPLEMENTED
+├── Asher.App/                          → WPF configuration UI (.NET 8) ✅ IMPLEMENTED
+│   └── Asher.App.exe                   → User configuration application (no game launch)
+├── Asher.Launcher/                     → Standalone game launcher (.NET 8) ✅ IMPLEMENTED
+│   └── Asher.Launcher.exe              → Game launcher with DLL injection
 ├── Asher.Bootstrap/                    → DLL injection bootstrap (.NET Framework 4.7.2) ✅ IMPLEMENTED
 ├── Asher.Core/                         → Shared models and data structures ✅ IMPLEMENTED
 ├── Asher.Localization/                 → Localization support ✅ IMPLEMENTED
 ├── Asher.Runtime/                      → Runtime mod loader (.NET Framework 4.7.2) ✅ FOUNDATION
 ├── Asher.Services/                     → Business logic services ✅ IMPLEMENTED
-│   ├── GameLauncher                    → Launches game with injection support
 │   ├── DllInjectorService             → DLL injection into game process
 │   ├── GameFolderService              → Game folder detection
 │   ├── HarmonyService                 → Harmony patch management
@@ -35,28 +37,33 @@ This document unifies the full architecture and roadmap for the *Asher* modding 
 
 | Project / Namespace                 | Status | Responsibility                                                  |
 |------------------------------------|--------|------------------------------------------------------------------|
-| `Asher.App`                        | ✅     | WPF Application Entry (UI Layer, Prism container setup)         |
-| `Asher.Bootstrap`                  | ✅     | DLL injection entry point, loads Runtime into game process      |
-| `Asher.Core`                       | ✅     | Shared models (GameFolderInfo, HarmonyPatchInfo, etc.)         |
-| `Asher.Localization`               | ✅     | Localization manager and string resources                       |
-| `Asher.Runtime`                    | 🟡     | Runtime mod loader foundation (logging implemented)              |
-| `Asher.Services`                   | ✅     | Business logic services (GameLauncher, DllInjector, etc.)       |
-| `Asher.UserInterface`              | ✅     | Prism MVVM modules, ViewModels, and Views                       |
-| `Asher.Runtime` (future)          | 📋     | Will load patches dynamically and apply Harmony patches        |
-| `Asher.Runtime` (future)          | 📋     | Will handle content patching (asset replacement)                |
+| `Asher.App`                        | ✅     | WPF Configuration UI (user settings, patch management, no game launch) |
+| `Asher.Launcher`                   | ✅     | Standalone executable for launching game with DLL injection           |
+| `Asher.Bootstrap`                  | ✅     | DLL injection entry point, loads Runtime into game process            |
+| `Asher.Core`                       | ✅     | Shared models (GameFolderInfo, HarmonyPatchInfo, etc.)               |
+| `Asher.Localization`               | ✅     | Localization manager and string resources                             |
+| `Asher.Runtime`                    | 🟡     | Runtime mod loader foundation (logging implemented)                  |
+| `Asher.Services`                   | ✅     | Business logic services (DllInjector, GameFolder, etc.)              |
+| `Asher.UserInterface`              | ✅     | Prism MVVM modules, ViewModels, and Views                             |
+| `Asher.Runtime` (future)          | 📋     | Will load patches dynamically and apply Harmony patches              |
+| `Asher.Runtime` (future)          | 📋     | Will handle content patching (asset replacement)                      |
 
 ---
 
 ## 🧠 Part 3: Runtime Patch Loading Flow
 
-### Current Implementation (✅ Working)
-1. User launches Asher App (.NET 8 WPF UI).
-2. App detects game folder automatically (Steam, GOG, Humble Bundle, or manual search).
+### Current Implementation (⚠️ Known Issue)
+1. User launches `Asher.Launcher.exe` to start the game with modding support.
+2. `Asher.Launcher` detects game folder automatically (Steam, GOG, Humble Bundle, or manual search).
 3. `GameLauncher` copies `Asher.Bootstrap.dll` and `Asher.Runtime.dll` to game folder.
 4. Game process (`DustAET.exe`) is started via Steam/launcher.
 5. `DllInjectorService` injects `Asher.Bootstrap.dll` into the game process.
-6. `AsherBootstrap` static constructor initializes and loads `Asher.Runtime.dll`.
-7. `AsherRuntime` initializes and logs to `AsherLogs/runtime.log`.
+6. **ISSUE**: `AsherBootstrap` static constructor does NOT run because .NET Framework managed DLLs loaded via `LoadLibrary` only execute static constructors when the type is accessed. The Bootstrap type is never accessed, so initialization never happens.
+7. **RESULT**: `AsherLogs` folder is never created and logs are never written.
+
+**Solution Required**: Implement a native proxy DLL (C++ DLL with `DllMain`) that uses CLR hosting to call `Bootstrap.EntryPoint()` after injection. See `IMPLEMENTATION_NOTES.md` for details.
+
+**Note:** `Asher.App.exe` is a separate application for user configuration and patch management. It does NOT launch the game.
 
 ### Future Implementation (📋 Planned)
 1. User selects patches in Asher Launcher UI.
