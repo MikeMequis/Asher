@@ -32,9 +32,6 @@
           "net8.0-windows7.0": {
             "targetAlias": "net8.0-windows",
             "projectReferences": {
-              "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj": {
-                "projectPath": "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj"
-              },
               "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj": {
                 "projectPath": "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj"
               },
@@ -229,22 +226,6 @@
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
-      }
-    },
-    "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj": {
-      "restore": {
-        "projectUniqueName": "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj",
-        "projectName": "Asher.Runtime",
-        "projectPath": "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj",
-        "UsingMicrosoftNETSdk": false,
-        "frameworks": {
-          "net472": {
-            "projectReferences": {}
-          }
-        }
-      },
-      "frameworks": {
-        "net472": {}
       }
     },
     "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj": {

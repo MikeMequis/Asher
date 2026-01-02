@@ -10,41 +10,60 @@ This document unifies the full architecture and roadmap for the *Asher* modding 
 ```
 /Asher.sln
 │
-├── Asher.App/                          → WPF launcher (UI, .NET 8)
-├── Asher.Modules.Main/                → Main Prism module
-├── Asher.Modules.PatchManager/        → UI for managing patches
-├── Asher.Services.PatchService/       → Applies Harmony patches
-├── Asher.Services.LoaderService/      → Launches game executable
-├── Asher.Services.ModManagement/      → Handles mod metadata and priorities
-├── Asher.Services.BackupService/      → Backup & restore utilities
-├── Asher.Runtime.ModLoader/           → Runtime patch injector (.NET Framework 4.7.2)
-├── Asher.Shared/                      → Shared models, interfaces, utils
-├── /patches/                          → Folder with patch .dll and content.json files
-├── /Asher.Config/                     → Stores selected patches and user settings
+├── Asher.App/                          → WPF launcher (UI, .NET 8) ✅ IMPLEMENTED
+├── Asher.Bootstrap/                    → DLL injection bootstrap (.NET Framework 4.7.2) ✅ IMPLEMENTED
+├── Asher.Core/                         → Shared models and data structures ✅ IMPLEMENTED
+├── Asher.Localization/                 → Localization support ✅ IMPLEMENTED
+├── Asher.Runtime/                      → Runtime mod loader (.NET Framework 4.7.2) ✅ FOUNDATION
+├── Asher.Services/                     → Business logic services ✅ IMPLEMENTED
+│   ├── GameLauncher                    → Launches game with injection support
+│   ├── DllInjectorService             → DLL injection into game process
+│   ├── GameFolderService              → Game folder detection
+│   ├── HarmonyService                 → Harmony patch management
+│   └── PatchManagerService            → Patch management
+├── Asher.UserInterface/                → Prism MVVM UI modules ✅ IMPLEMENTED
+│   ├── ViewModels/                     → MVVM view models
+│   ├── Views/                          → WPF views
+│   └── ViewsModule                    → Prism module registration
+├── /patches/                          → Folder with patch .dll and content.json files (PLANNED)
+└── /Asher.Config/                     → Stores selected patches and user settings (PLANNED)
 ```
 
 ---
 
 ## 🧩 Part 2: Responsibility Breakdown
 
-| Project / Namespace                 | Responsibility                                                  |
-|------------------------------------|------------------------------------------------------------------|
-| `Asher.App`                        | WPF Application Entry (UI Layer)                                |
-| `Asher.Modules.*`                  | Prism MVVM modules                                              |
-| `Asher.Services.PatchService`      | Applies patches using Harmony                                   |
-| `Asher.Services.ModManagement`     | Handles loading mods and patch priority                         |
-| `Asher.Services.LoaderService`     | Launches the game executable with patch support                 |
-| `Asher.Runtime.ModLoader`          | Runs inside the game process and injects behavior (Harmony)     |
+| Project / Namespace                 | Status | Responsibility                                                  |
+|------------------------------------|--------|------------------------------------------------------------------|
+| `Asher.App`                        | ✅     | WPF Application Entry (UI Layer, Prism container setup)         |
+| `Asher.Bootstrap`                  | ✅     | DLL injection entry point, loads Runtime into game process      |
+| `Asher.Core`                       | ✅     | Shared models (GameFolderInfo, HarmonyPatchInfo, etc.)         |
+| `Asher.Localization`               | ✅     | Localization manager and string resources                       |
+| `Asher.Runtime`                    | 🟡     | Runtime mod loader foundation (logging implemented)              |
+| `Asher.Services`                   | ✅     | Business logic services (GameLauncher, DllInjector, etc.)       |
+| `Asher.UserInterface`              | ✅     | Prism MVVM modules, ViewModels, and Views                       |
+| `Asher.Runtime` (future)          | 📋     | Will load patches dynamically and apply Harmony patches        |
+| `Asher.Runtime` (future)          | 📋     | Will handle content patching (asset replacement)                |
 
 ---
 
 ## 🧠 Part 3: Runtime Patch Loading Flow
 
-1. User selects patches in Asher Launcher (.NET 8 UI).
+### Current Implementation (✅ Working)
+1. User launches Asher App (.NET 8 WPF UI).
+2. App detects game folder automatically (Steam, GOG, Humble Bundle, or manual search).
+3. `GameLauncher` copies `Asher.Bootstrap.dll` and `Asher.Runtime.dll` to game folder.
+4. Game process (`DustAET.exe`) is started via Steam/launcher.
+5. `DllInjectorService` injects `Asher.Bootstrap.dll` into the game process.
+6. `AsherBootstrap` static constructor initializes and loads `Asher.Runtime.dll`.
+7. `AsherRuntime` initializes and logs to `AsherLogs/runtime.log`.
+
+### Future Implementation (📋 Planned)
+1. User selects patches in Asher Launcher UI.
 2. Selected patches are stored in `selected_patches.json`.
-3. Launcher starts the game (`DustAET.exe`) with the ModLoader present in the game folder.
-4. `ModLoader.dll` reads the patch list and loads each `.dll` dynamically.
-5. Harmony applies all `[HarmonyPatch]` attributes and modifies runtime behavior.
+3. `Asher.Runtime` reads the patch list and loads each `.dll` dynamically.
+4. Harmony applies all `[HarmonyPatch]` attributes and modifies runtime behavior.
+5. Content patching intercepts `ContentManager.Load<T>()` for asset replacement.
 
 ---
 
@@ -112,13 +131,23 @@ Inspired by SMAPI’s `Content Patcher`, this system replaces assets like textur
 
 ## ⚙️ Part 7: Implementation Roadmap
 
-### 🔧 Runtime Patching
-- [ ] Implement `HarmonyManager` in `Asher.Runtime.ModLoader`
+### ✅ Completed Foundation
+- [x] WPF launcher application with Prism MVVM
+- [x] Game folder detection (Steam, GOG, Humble Bundle, manual)
+- [x] DLL injection system (`DllInjectorService`)
+- [x] Bootstrap loader that runs inside game process
+- [x] Runtime foundation with logging
+- [x] Service layer architecture
+- [x] UI modules and navigation
+
+### 🔧 Runtime Patching (📋 Planned)
+- [ ] Implement `HarmonyManager` in `Asher.Runtime`
 - [ ] Create reflection-based loader for `.dll` and `mod.json`
 - [ ] Add patch discovery and error handling
 - [ ] Integrate patch selection UI
+- [ ] Load Harmony library into game process
 
-### 🔧 Content Interception
+### 🔧 Content Interception (📋 Planned)
 - [ ] Patch `ContentManager.Load<T>()` with Harmony
 - [ ] Parse `/patches/*/content.json`
 - [ ] Maintain patch registry mapping
@@ -128,13 +157,27 @@ Inspired by SMAPI’s `Content Patcher`, this system replaces assets like textur
 
 ---
 
-## 📁 Part 8: Folder Layout Example
+## 📁 Part 8: Folder Layout
 
+### Current Implementation
 ```
 /GameFolder/
 ├── DustAET.exe
-├── AsherModLoader.dll
-├── Harmony.Asher.dll
+├── Asher.Bootstrap.dll          ✅ Injected into game process
+├── Asher.Runtime.dll             ✅ Loaded by Bootstrap
+└── /AsherLogs/                   ✅ Created automatically
+    ├── bootstrap.log              ✅ Bootstrap initialization logs
+    ├── runtime.log                ✅ Runtime initialization logs
+    └── injection.log              ✅ DLL injection attempt logs
+```
+
+### Future Implementation (Planned)
+```
+/GameFolder/
+├── DustAET.exe
+├── Asher.Bootstrap.dll
+├── Asher.Runtime.dll
+├── Harmony.dll                    (for future patch support)
 ├── /patches/
 │   ├── DebugPatch/
 │   │   ├── DebugPatch.dll
@@ -142,11 +185,11 @@ Inspired by SMAPI’s `Content Patcher`, this system replaces assets like textur
 │   ├── TranslatedText/
 │   │   ├── content.json
 │   │   └── assets/dialogue.json
-│   ├── CustomFidget/
-│   │   ├── content.json
-│   │   └── assets/fidget_new.png
-├── /Asher.Config/
-│   └── selected_patches.json
+│   └── CustomFidget/
+│       ├── content.json
+│       └── assets/fidget_new.png
+└── /Asher.Config/
+    └── selected_patches.json
 ```
 
 ---

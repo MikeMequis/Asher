@@ -276,15 +276,6 @@
           "bin/placeholder/Asher.Localization.dll": {}
         }
       },
-      "Asher.Runtime/1.0.0": {
-        "type": "project",
-        "compile": {
-          "bin/placeholder/Asher.Runtime.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Asher.Runtime.dll": {}
-        }
-      },
       "Asher.Services/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -782,11 +773,6 @@
       "path": "../Asher.Localization/Asher.Localization.csproj",
       "msbuildProject": "../Asher.Localization/Asher.Localization.csproj"
     },
-    "Asher.Runtime/1.0.0": {
-      "type": "project",
-      "path": "../Asher.Runtime/Asher.Runtime.csproj",
-      "msbuildProject": "../Asher.Runtime/Asher.Runtime.csproj"
-    },
     "Asher.Services/1.0.0": {
       "type": "project",
       "path": "../Asher.Services/Asher.Services.csproj",
@@ -800,7 +786,6 @@
   },
   "projectFileDependencyGroups": {
     "net8.0-windows7.0": [
-      "Asher.Runtime >= 1.0.0",
       "Asher.Services >= 1.0.0",
       "Asher.UserInterface >= 1.0.0",
       "Prism.Unity >= 9.0.537"
@@ -838,9 +823,6 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "projectReferences": {
-            "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj": {
-              "projectPath": "C:\\VSProjects\\Asher\\Asher.Runtime\\Asher.Runtime.csproj"
-            },
             "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj": {
               "projectPath": "C:\\VSProjects\\Asher\\Asher.Services\\Asher.Services.csproj"
             },

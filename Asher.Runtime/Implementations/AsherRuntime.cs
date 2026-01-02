@@ -8,22 +8,39 @@ namespace Asher.Runtime.Implementations
     {
         public void Initialize(RuntimeContext context)
         {
-            Directory.CreateDirectory(context.LogPath);
+            try
+            {
+                if (!Directory.Exists(context.LogPath))
+                    Directory.CreateDirectory(context.LogPath);
 
-            var logFile = Path.Combine(
-                context.LogPath,
-                $"asher_{DateTime.Now:yyyyMMdd_HHmmss}.log"
-            );
+                var logFile = Path.Combine(
+                    context.LogPath,
+                    "runtime.log"
+                );
 
-            File.AppendAllText(
-                logFile,
-                "[Asher] Runtime inicializado com sucesso.\n"
-            );
+                File.AppendAllText(
+                    logFile,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [Asher] Runtime inicializado com sucesso.\n"
+                );
 
-            File.AppendAllText(
-                logFile,
-                $"[Asher] GamePath: {context.GamePath}\n"
-            );
+                File.AppendAllText(
+                    logFile,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [Asher] GamePath: {context.GamePath}\n"
+                );
+                
+                File.AppendAllText(
+                    logFile,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [Asher] LauncherPath: {context.LauncherPath}\n"
+                );
+            }
+            catch (Exception ex)
+            {
+                // Fallback log if log path is unavailable
+                File.AppendAllText(
+                    "asher_runtime_fatal.log",
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] FATAL ERROR IN RUNTIME: {ex}\n"
+                );
+            }
         }
     }
 }
