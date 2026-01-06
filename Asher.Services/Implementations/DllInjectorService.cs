@@ -2,6 +2,7 @@ using Asher.Services.Interfaces;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -32,6 +33,7 @@ namespace Asher.Services.Implementations
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+
 
         private const uint PROCESS_ALL_ACCESS = 0x1F0FFF;
         private const uint MEM_COMMIT = 0x1000;
@@ -90,6 +92,13 @@ namespace Asher.Services.Implementations
                 // Wait for the thread to complete
                 WaitForSingleObject(hThread, INFINITE);
 
+                // For .NET Framework managed DLLs, LoadLibrary loads the assembly but
+                // static constructors are only called when the type is first accessed.
+                // We need to ensure the Bootstrap type is accessed to trigger initialization.
+                // Wait a bit for the DLL to fully load, then try to trigger initialization
+                System.Threading.Thread.Sleep(1000);
+                TryTriggerManagedInitialization(process, dllPath);
+
                 return true;
             }
             catch (Exception)
@@ -132,6 +141,25 @@ namespace Asher.Services.Implementations
             {
                 return false;
             }
+        }
+
+        private void TryTriggerManagedInitialization(Process process, string dllPath)
+        {
+            // For .NET Framework managed DLLs, LoadLibrary loads the assembly but static constructors
+            // are only called when the type is first accessed.
+            //
+            // SOLUTION: We need to use CLR hosting to call Bootstrap.EntryPoint() in the target process.
+            // However, CLR hosting APIs work within the same process, not across process boundaries.
+            //
+            // The proper solution is to create a native proxy DLL (C++ DLL with DllMain) that:
+            // 1. Gets injected via LoadLibrary (DllMain runs automatically)
+            // 2. In DllMain, uses CLR hosting APIs to get ICLRRuntimeHost
+            // 3. Calls ExecuteInDefaultAppDomain to call Bootstrap.EntryPoint()
+            //
+            // For now, we rely on the Bootstrap's static constructor running when the type is accessed.
+            // This requires the game to access a type from the Bootstrap assembly, which may not happen.
+            //
+            // TODO: Implement native proxy DLL solution for guaranteed initialization.
         }
     }
 }

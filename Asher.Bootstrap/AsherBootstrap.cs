@@ -9,28 +9,58 @@ namespace Asher.Bootstrap
         private static bool _initialized = false;
         private static readonly object _lock = new object();
 
+        // Force initialization by accessing a static member
+        // This static field initializer runs when the type is first accessed
+        private static readonly bool _forceInit = ForceInitialization();
+
+        private static bool ForceInitialization()
+        {
+            try
+            {
+                EnsureInitialized();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AsherLogs", "bootstrap_force_init.log");
+                    var logDir = Path.GetDirectoryName(logPath);
+                    if (!Directory.Exists(logDir))
+                        Directory.CreateDirectory(logDir);
+                    File.AppendAllText(logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Force init error: {ex}\n");
+                }
+                catch { }
+                return false;
+            }
+        }
+
         static AsherBootstrap()
         {
             // Auto-initialize when the type is first accessed
-            // This is called when the DLL is loaded and the type is first referenced
             try
             {
                 EnsureInitialized();
             }
             catch (Exception ex)
             {
-                // Log to a safe location
                 try
                 {
                     var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AsherLogs", "bootstrap_static_ctor.log");
                     var logDir = Path.GetDirectoryName(logPath);
                     if (!Directory.Exists(logDir))
                         Directory.CreateDirectory(logDir);
-
                     File.AppendAllText(logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Static constructor error: {ex}\n");
                 }
                 catch { }
             }
+        }
+
+        // Public method that can be called via CLR hosting or reflection
+        // This ensures initialization happens even if static constructor doesn't run
+        public static void EntryPoint()
+        {
+            EnsureInitialized();
         }
 
         /// <summary>
@@ -61,19 +91,47 @@ namespace Asher.Bootstrap
                 if (!Directory.Exists(logDir))
                     Directory.CreateDirectory(logDir);
 
+                var bootstrapLog = Path.Combine(logDir, "bootstrap.log");
                 File.AppendAllText(
-                    Path.Combine(logDir, "bootstrap.log"),
+                    bootstrapLog,
                     $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Asher bootstrap inicializado no processo do jogo.\n"
+                );
+                File.AppendAllText(
+                    bootstrapLog,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Base Directory: {baseDir}\n"
+                );
+                File.AppendAllText(
+                    bootstrapLog,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Process ID: {System.Diagnostics.Process.GetCurrentProcess().Id}\n"
                 );
 
                 LoadRuntime(baseDir, logDir);
             }
             catch (Exception ex)
             {
-                File.AppendAllText(
-                    "asher_fatal.log",
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] FATAL ERROR: {ex}\n"
-                );
+                try
+                {
+                    var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    var logDir = Path.Combine(baseDir, "AsherLogs");
+                    if (!Directory.Exists(logDir))
+                        Directory.CreateDirectory(logDir);
+                    
+                    File.AppendAllText(
+                        Path.Combine(logDir, "bootstrap_error.log"),
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] FATAL ERROR: {ex}\n{ex.StackTrace}\n"
+                    );
+                }
+                catch { }
+                
+                // Fallback log
+                try
+                {
+                    File.AppendAllText(
+                        "asher_fatal.log",
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] FATAL ERROR: {ex}\n"
+                    );
+                }
+                catch { }
             }
         }
 
