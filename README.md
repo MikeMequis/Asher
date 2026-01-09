@@ -32,25 +32,25 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 ```
 /Asher.sln
 │
-├── Asher.App/ → WPF configuration UI (.NET 8)
-│ └── Asher.App.exe → Patch selection & user settings
+├── Asher.App/ 				→ WPF configuration UI (.NET 8)
+│ └── Asher.App.exe 		→ Patch selection & user settings
 │
-├── Asher.Launcher/ → Custom game launcher (.NET Framework 4.7.2)
-│ └── Asher.Launcher.exe → Launches the game and controls runtime
+├── Asher.Launcher/ 		→ Custom game launcher (.NET Framework 4.7.2)
+│ └── Asher.Launcher.exe 	→ Launches the game and controls runtime
 │
-├── Asher.Core/ → Shared models and abstractions
-├── Asher.Localization/ → Localization support
-├── Asher.Runtime/ → Runtime mod loader foundation (.NET Framework 4.7.2)
+├── Asher.Core/ 			→ Shared models and abstractions
+├── Asher.Localization/ 	→ Localization support
+├── Asher.Runtime/ 			→ Runtime mod loader foundation (.NET Framework 4.7.2)
 │
-├── Asher.Services/ → Core services
+├── Asher.Services/ 		→ Core services
 │ ├── GameFolderService
-│ ├── HarmonyService (WIP)
+│ ├── HarmonyService
 │ └── PatchManagerService
 │
-├── Asher.UserInterface/ → Prism MVVM UI modules
+├── Asher.UserInterface/ 	→ Prism MVVM UI modules
 │
-├── /patches/ → Mods and content patches (planned)
-└── /Asher.Config/ → User configuration data (planned)
+├── /patches/ 				→ Mods and content patches (planned)
+└── /Asher.Config/ 			→ User configuration data (planned)
 ```
 
 
@@ -58,10 +58,10 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 
 ## 🚀 Runtime Flow Overview
 
-1. User launches `Asher.Launcher.exe`
+1. User launches `DustAET.exe` (`Asher.Launcher.exe`)
 2. Launcher detects and validates the game installation
 3. Launcher prepares the runtime environment
-4. Launcher starts `DustAET.real.exe`
+4. Launcher starts `DustAET.real.exe` (original `DustAET.exe`)
 5. Asher Runtime initializes:
    - Logging
    - Mod discovery
@@ -85,7 +85,7 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 
 ---
 
-📁 Runtime Folder Layout (Build the solution and insert the files)
+## 📁 Runtime Folder Layout (Build the solution and insert the files)
 ```
 /GameFolder/
 ├── DustAET.exe (Renamed from Asher.Launcher.exe)
@@ -100,7 +100,7 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 
 ---
 
-📊 Project Status Overview
+## 📊 Project Status Overview
 | Area                   | Status         | Notes                                 |
 | ---------------------- | -------------- | ------------------------------------- |
 | Solution structure     | ✅ Done         | Multi-project architecture stabilized |
@@ -116,15 +116,15 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 
 ---
 
-🧩 Learning & Implementation Kanban (Summary)
-🟢 Completed
+## 🧩 Learning & Implementation Kanban (Summary)
+### 🟢 Completed
 Task 1 — Runtime Modding Foundations
 - Generics
 - Reflection
 - Harmony (Prefix / Postfix / Transpiler)
 - XNA Content Pipeline (conceptual level)
 
-Key decisions
+### Key decisions
 - Generics used for infrastructure, not game analysis
 - Reflection used for:
 	- Runtime inspection
@@ -133,7 +133,7 @@ Key decisions
 - Harmony chosen as the patch engine
 - No permanent binary or .xnb modification
 
-🟨 Current / Next Step
+### 🟨 Current / Next Step
 Task 2 — Reverse Engineering (dnSpy)
 - Map core Dust classes
 - Identify:
@@ -142,13 +142,13 @@ Task 2 — Reverse Engineering (dnSpy)
 	- ContentManager usage
 - Define ideal patch hooks
 
-🟥 Short-Term Backlog
+### 🟥 Short-Term Backlog
 - Task 3 — First runtime patch (Hello World)
 - Task 4 — External mod loader (.dll)
 - Task 5 — Content patcher core
 - Task 6 — Launcher ↔ UI integration
 
-🧠 Project Principles (Non-Negotiable)
+## 🧠 Project Principles (Non-Negotiable)
 - 🚫 No .xnb editing
 - 🚫 No permanent binary modification
 - ✅ 100% runtime patching
@@ -156,7 +156,7 @@ Task 2 — Reverse Engineering (dnSpy)
 - ✅ Modular and extensible
 - ✅ Inspired by SMAPI, adapted to Dust
 
-📘 References
+## 📘 References
 - Harmony — https://github.com/pardeike/Harmony
 - SMAPI — https://github.com/Pathoschild/SMAPI
 - SMAPI Content Patcher — https://stardewvalleywiki.com/Modding:Content_Patcher
