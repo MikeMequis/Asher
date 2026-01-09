@@ -2,7 +2,7 @@
 
 **Asher** is a launcher-based modding platform for *Dust: An Elysian Tail*, designed to support **runtime code patching** and **content replacement** in a safe, modular, and reversible way.
 
-Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes **stability, explicit initialization control, and clean debugging**, avoiding fragile early-injection patterns.
+Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes **explicit initialization order**, **runtime control**, and **clean debugging**, deliberately avoiding fragile early-injection patterns.
 
 ---
 
@@ -12,7 +12,7 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes **stability,
 - Asset replacement without modifying `.xnb` files
 - Modular and reversible mod loading
 - UI-based patch selection and configuration
-- Full compatibility with Steam / XNA / .NET Framework
+- Full compatibility with **Steam**, **XNA**, and **.NET Framework**
 
 ---
 
@@ -21,7 +21,9 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes **stability,
 Asher is built around a **custom launcher**, which guarantees correct initialization order and reliable runtime behavior.
 
 **Key principle:**  
-Injection is controlled and delayed — never performed blindly at process start.
+Injection and patching are **controlled and delayed**, never performed blindly at process startup.
+
+This design mirrors proven approaches used by SMAPI and other stable modding platforms.
 
 ---
 
@@ -30,42 +32,41 @@ Injection is controlled and delayed — never performed blindly at process start
 ```
 /Asher.sln
 │
-├── Asher.App/                          → WPF configuration UI (.NET 8)
-│   └── Asher.App.exe                   → Patch selection & user settings
+├── Asher.App/ → WPF configuration UI (.NET 8)
+│ └── Asher.App.exe → Patch selection & user settings
 │
-├── Asher.Launcher/                     → Custom game launcher (.NET 8)
-│   └── Asher.Launcher.exe              → Launches the game and controls injection
+├── Asher.Launcher/ → Custom game launcher (.NET Framework 4.7.2)
+│ └── Asher.Launcher.exe → Launches the game and controls runtime
 │
-├── Asher.Bootstrap/                    → Runtime bootstrap (.NET Framework 4.7.2)
-│                                         → Executes inside the game process
+├── Asher.Core/ → Shared models and abstractions
+├── Asher.Localization/ → Localization support
+├── Asher.Runtime/ → Runtime mod loader foundation (.NET Framework 4.7.2)
 │
-├── Asher.Core/                         → Shared models and abstractions
-├── Asher.Localization/                 → Localization support
-├── Asher.Runtime/                      → Runtime mod loader foundation
+├── Asher.Services/ → Core services
+│ ├── GameFolderService
+│ ├── HarmonyService (WIP)
+│ └── PatchManagerService
 │
-├── Asher.Services/                     → Core services
-│   ├── DllInjectorService
-│   ├── GameFolderService
-│   ├── HarmonyService
-│   └── PatchManagerService
+├── Asher.UserInterface/ → Prism MVVM UI modules
 │
-├── Asher.UserInterface/                → Prism MVVM UI modules
-│
-├── /patches/                           → Mods and content patches (planned)
-└── /Asher.Config/                      → User configuration data (planned)
+├── /patches/ → Mods and content patches (planned)
+└── /Asher.Config/ → User configuration data (planned)
 ```
+
 
 ---
 
 ## 🚀 Runtime Flow Overview
 
-1. User launches `Asher.Launcher.exe`.
-2. Launcher detects the game installation folder.
-3. Launcher validates required runtime files.
-4. Launcher starts `DustAET.exe` in a controlled state.
-5. After process stabilization, the launcher injects `Asher.Bootstrap`.
-6. Bootstrap loads `Asher.Runtime` inside the game process.
-7. Runtime initializes logging, mod discovery, and patch application.
+1. User launches `Asher.Launcher.exe`
+2. Launcher detects and validates the game installation
+3. Launcher prepares the runtime environment
+4. Launcher starts `DustAET.real.exe`
+5. Asher Runtime initializes:
+   - Logging
+   - Mod discovery
+   - Patch lifecycle
+6. Game continues execution normally, now under Asher control
 
 ---
 
@@ -84,32 +85,78 @@ Injection is controlled and delayed — never performed blindly at process start
 
 ---
 
-## 📁 Runtime Folder Layout
-
+📁 Runtime Folder Layout (Build the solution and insert the files)
 ```
 /GameFolder/
-├── DustAET.exe
-├── Asher.Bootstrap.dll
+├── DustAET.exe (Renamed from Asher.Launcher.exe)
+├── DustAET.real.exe (original .exe game file, renamed)
 ├── Asher.Runtime.dll
-└── /AsherLogs/
-    ├── bootstrap.log
-    ├── runtime.log
-    └── injection.log
+│
+├── /AsherLogs/ (generated automatically)
+│   └── runtime.log
+│
+└── /Mods/ (generated automatically)
 ```
 
 ---
 
-## ✅ Final Result
-
-A powerful and modular modding architecture for Dust: An Elysian Tail that supports:
-- Runtime patching via Harmony
-- Asset replacement via JSON and external files
-- Clean, reversible mod deployment
-- UI-based mod selection and management
+📊 Project Status Overview
+| Area                   | Status         | Notes                                 |
+| ---------------------- | -------------- | ------------------------------------- |
+| Solution structure     | ✅ Done         | Multi-project architecture stabilized |
+| Launcher-based runtime | ✅ Done         | Wrapper EXE approach validated        |
+| Steam compatibility    | ✅ Done         | Game launches normally via Steam      |
+| Runtime initialization | ✅ Done         | Logging and folders created correctly |
+| Injection approach     | ✅ Finalized    | Launcher-first (no blind injection)   |
+| Harmony integration    | 🔄 In progress | Runtime ready, patching next          |
+| Mod loader (.dll)      | 🔜 Planned     | External assemblies + metadata        |
+| Content patcher        | 🔜 Planned     | ContentManager interception           |
+| WPF UI integration     | 🔜 Planned     | Mod selection & priority              |
+| Public Mod API         | 🔜 Planned     | Stable developer-facing API           |
 
 ---
 
-## 📘 References
+🧩 Learning & Implementation Kanban (Summary)
+🟢 Completed
+Task 1 — Runtime Modding Foundations
+- Generics
+- Reflection
+- Harmony (Prefix / Postfix / Transpiler)
+- XNA Content Pipeline (conceptual level)
 
-- Harmony: https://github.com/pardeike/Harmony
-- SMAPI Content Patcher: https://stardewvalleywiki.com/Modding:Content_Patcher
+Key decisions
+- Generics used for infrastructure, not game analysis
+- Reflection used for:
+	- Runtime inspection
+	- Private member access
+	- Harmony support
+- Harmony chosen as the patch engine
+- No permanent binary or .xnb modification
+
+🟨 Current / Next Step
+Task 2 — Reverse Engineering (dnSpy)
+- Map core Dust classes
+- Identify:
+	- Game loop
+	- Initialization points
+	- ContentManager usage
+- Define ideal patch hooks
+
+🟥 Short-Term Backlog
+- Task 3 — First runtime patch (Hello World)
+- Task 4 — External mod loader (.dll)
+- Task 5 — Content patcher core
+- Task 6 — Launcher ↔ UI integration
+
+🧠 Project Principles (Non-Negotiable)
+- 🚫 No .xnb editing
+- 🚫 No permanent binary modification
+- ✅ 100% runtime patching
+- ✅ Fully reversible
+- ✅ Modular and extensible
+- ✅ Inspired by SMAPI, adapted to Dust
+
+📘 References
+- Harmony — https://github.com/pardeike/Harmony
+- SMAPI — https://github.com/Pathoschild/SMAPI
+- SMAPI Content Patcher — https://stardewvalleywiki.com/Modding:Content_Patcher

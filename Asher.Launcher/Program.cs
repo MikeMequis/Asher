@@ -1,49 +1,44 @@
-using Asher.Services.Implementations;
+﻿using Asher.Runtime;
+using Asher.Runtime.Core;
+using System.Reflection;
 
 namespace Asher.Launcher
 {
-    internal class Program
+    internal static class Program
     {
-        [STAThread]
         static void Main(string[] args)
         {
-            // Create services
-            var gameFolderService = new GameFolderService();
-            var dllInjectorService = new DllInjectorService();
-            var gameLauncher = new GameLauncher(dllInjectorService);
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var gameExe = Path.Combine(baseDir, "DustAET.real.exe");
 
-            // Detect game folder
-            var gameFolder = gameFolderService.DetectGameFolder();
+            if (!File.Exists(gameExe))
+                throw new FileNotFoundException("DustAET.real.exe não encontrado.");
 
-            if (!gameFolder.IsValid)
-            {
-                Console.WriteLine("Error: Game folder not found. Please ensure Dust: An Elysian Tail is installed.");
-                Console.WriteLine("Press any key to exit...");
-                Console.ReadKey();
-                return;
-            }
+            // 1️⃣ Inicializa Runtime ANTES do jogo
+            var context = new RuntimeContext(
+                gamePath: baseDir,
+                modsPath: Path.Combine(baseDir, "Mods"),
+                profileName: "default",
+                logPath: Path.Combine(baseDir, "AsherLogs")
+            );
 
-            var gameExePath = Path.Combine(gameFolder.Path, "DustAET.exe");
-            
-            if (!File.Exists(gameExePath))
-            {
-                Console.WriteLine($"Error: Game executable not found at: {gameExePath}");
-                Console.WriteLine("Press any key to exit...");
-                Console.ReadKey();
-                return;
-            }
+            RuntimeEntry.Init(context);
 
-            Console.WriteLine($"Launching game from: {gameFolder.Path}");
-            Console.WriteLine("Starting game with Asher modding support...");
+            // 2️⃣ Carrega o jogo como Assembly
+            var gameAssembly = Assembly.LoadFrom(gameExe);
 
-            // Launch the game
-            gameLauncher.Launch(gameExePath);
+            // 3️⃣ Localiza Program.Main
+            var programType = gameAssembly.GetType("Dust.Program");
+            var mainMethod = programType?.GetMethod(
+                "Main",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+            );
 
-            Console.WriteLine("Game launched. You can close this window.");
-            
-            // Keep the console open for a moment to show status, then exit
-            Task.Delay(3000).Wait();
+            if (mainMethod == null)
+                throw new InvalidOperationException("Dust.Program.Main não encontrado.");
+
+            // 4️⃣ Executa o jogo
+            mainMethod.Invoke(null, new object[] { args });
         }
     }
 }
-
