@@ -127,120 +127,130 @@ Folders are created automatically on first launch.
 
 ---
 
-## 🧩 Learning & Implementation Kanban (Summary)
-### 🟢 DONE — Consolidated Phases
-#### 🟢 Task 0 — Core Architecture & Bootstrap (implicit, now formalized)
-Status: ✔ Completed
+## 🧩 Learning & Implementation Kanban
 
-Deliverables achieved:
-- Stable multi-project solution architecture
-- Clear separation between:
-	- Launcher
-	- Runtime
-	- Core abstractions
-	- WPF UI (Prism / MVVM)
+### 🟢 Completed Phases
+
+#### 🟢 Task 0: Core Architecture & Bootstrap
+
+**Status:** ✔ Completed
+
+**Deliverables:**
+- Stable multi-project solution architecture with clear separation of concerns:
+  - Launcher
+  - Runtime
+  - Core abstractions
+  - WPF UI (Prism/MVVM)
 - Wrapper EXE approach validated:
-	- DustAET.exe → Asher Launcher
-	- DustAET.real.exe → original game executable
+  - `DustAET.exe` → Asher Launcher
+  - `DustAET.real.exe` → Original game executable
 - Full Steam compatibility preserved
 - Explicit runtime initialization order guaranteed
 
-#### 🟢 Task 1 — Runtime Modding Foundations
-Status: ✔ Completed
+---
 
-Concepts mastered:
+#### 🟢 Task 1: Runtime Modding Foundations
+
+**Status:** ✔ Completed
+
+**Concepts Mastered:**
 - Generics
 - Reflection
-- Harmony (Prefix / Postfix / Transpiler)
+- Harmony (Prefix/Postfix/Transpiler)
 
-Key decisions locked in:
-- Generics are used for Asher infrastructure, not for game analysis
-- Reflection is used for:
-	- Runtime inspection
-	- Private member access
-	- Harmony support
-- Harmony is the official runtime patch engine
-- No permanent modification of:
-	- Game binaries
-	- .xnb files
-- Practical outcome:
-	- Strong conceptual foundation
-	- Clear understanding of each tool’s responsibility
-	- No architectural uncertainty before moving forward
+**Key Decisions:**
+- Generics are used for Asher infrastructure, not game analysis
+- Reflection handles runtime inspection, private member access, and Harmony support
+- Harmony serves as the official runtime patch engine
+- No permanent modification of game binaries or `.xnb` files
 
-#### 🟢 Task 2 — Launcher-Based Runtime Control
-Status: ✔ Completed
-
-What was achieved:
-- Custom launcher fully controls game startup
-- Runtime initialization occurs before game execution
-- Logging, folders, and context are prepared deterministically
-- Runtime survives Steam launches transparently
-- Injection is delayed and explicit, never blind
-
-Result:
-- Asher fully owns the runtime lifecycle
-- Safe environment for future Harmony patches
+**Outcome:**
+- Strong conceptual foundation established
+- Clear understanding of each tool's responsibility
+- Zero architectural uncertainty moving forward
 
 ---
 
-### 🟨 DOING — Current Phase
-#### 🟨 Task 3 — Reverse Engineering (dnSpy)
-Status: 🔄 In Progress
+#### 🟢 Task 2: Launcher-Based Runtime Control
 
-Objective: Map the internal structure of Dust: An Elysian Tail with the goal of enabling real gameplay patches.
+**Status:** ✔ Completed
 
-Focus areas:
+**Achievements:**
+- Custom launcher controls game startup lifecycle
+- Runtime initialization occurs before game execution
+- Logging, folders, and context prepared deterministically
+- Runtime survives Steam launches transparently
+- Injection is delayed and explicit, never blind
+
+**Result:**
+- Asher fully owns the runtime lifecycle
+- Safe environment established for future Harmony patches
+
+---
+
+### 🟨 Current Phase
+
+#### 🟨 Task 3: Reverse Engineering (dnSpy)
+
+**Status:** 🔄 In Progress
+
+**Objective:**  
+Map the internal structure of *Dust: An Elysian Tail* to enable real gameplay patches.
+
+**Focus Areas:**
 - Main game loop
 - Game initialization sequence
 - Game-derived class structure
 - ContentManager usage
-- Core systems:
-	- Player
-	- UI
-	- Assets
-	- Global state
-	- 
-Expected deliverables:
+- Core systems: Player, UI, Assets, Global state
+
+**Expected Deliverables:**
 - List of key classes
 - Candidate methods for Harmony patches
-- Ideal hook points for:
-	- Debug flags
-	- Gameplay logic
-	- Content interception
+- Ideal hook points for debug flags, gameplay logic, and content interception
 
-📌 This phase will now use direct references to DustAET assemblies to enable Intellisense and safer patch development, similar to SMAPI’s approach.
+**Note:**  
+This phase uses direct references to DustAET assemblies to enable IntelliSense and safer patch development, similar to SMAPI's approach.
 
 ---
 
-### 🟥 BACKLOG — Short Term (Next ~2 Months)
-#### 🔴 Task 4 — First Runtime Patch (Hello World)
-- Inject Harmony successfully into the game
+### 🟥 Short-Term Backlog (Next ~2 Months)
+
+#### 🔴 Task 4: First Runtime Patch (Hello World)
+
+- Inject Harmony successfully into the game process
 - Create a minimal patch (log, flag, or debug output)
 - Confirm execution inside the game process
 
-#### 🔴 Task 5 — External Mod Loader (.dll)
-- Load external mod assemblies
-- Read mod.json
-- Initialize mods dynamically
-- Isolate failures per mod
+---
 
-#### 🔴 Task 6 — Content Patcher (Core)
-- Intercept ContentManager.Load<T>()
-- Resolve replacements via content.json
-- Support external assets:
-- Textures
-- Fonts
-- Data files
+#### 🔴 Task 5: External Mod Loader (.dll)
 
-#### 🔴 Task 7 — Launcher ↔ UI Integration (WPF)
-- Mod selection UI
-- Persistence (selected_patches.json)
-- Load order / priority
-- Runtime logs visible in UI
+- Load external mod assemblies dynamically
+- Read and parse `mod.json` files
+- Initialize mods with isolated failure handling per mod
 
 ---
 
+#### 🔴 Task 6: Content Patcher (Core)
+
+- Intercept `ContentManager.Load<T>()` calls
+- Resolve replacements via `content.json`
+- Support external assets:
+  - Textures
+  - Fonts
+  - Data files
+
+---
+
+#### 🔴 Task 7: Launcher ↔ UI Integration (WPF)
+
+- Mod selection UI
+- Persistence via `selected_patches.json`
+- Load order and priority management
+- Runtime logs visible in UI
+
+---
 ## 🧠 Project Principles (Non-Negotiable)
 
 - 🚫 No `.xnb` editing
