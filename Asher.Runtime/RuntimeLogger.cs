@@ -1,41 +1,77 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
-namespace Asher.Runtime.Logging
+namespace Asher.Runtime
 {
     internal static class RuntimeLogger
     {
         private static string _logFile = string.Empty;
+        private static readonly object _lockObj = new object();
+        private static bool _initialized = false;
 
         public static void Init(string logDir)
         {
-            Directory.CreateDirectory(logDir);
-            _logFile = Path.Combine(logDir, "runtime.log");
+            if (_initialized)
+                return;
 
-            Info("Logger inicializado");
+            try
+            {
+                Directory.CreateDirectory(logDir);
+                _logFile = Path.Combine(logDir, $"runtime_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+                _initialized = true;
+                Info("Logger initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                // Fallback - cannot log initialization failure
+                Console.Error.WriteLine($"Failed to initialize logger: {ex.Message}");
+            }
         }
 
         public static void Info(string message)
             => Write("INFO", message);
 
+        public static void Warning(string message)
+            => Write("WARN", message);
+
         public static void Error(string message)
             => Write("ERROR", message);
 
+        public static void Error(string message, Exception ex)
+            => Write("ERROR", $"{message} | Exception: {ex.Message}\n{ex.StackTrace}");
+
         public static void Fatal(Exception ex)
-            => Write("FATAL", ex.ToString());
+            => Write("FATAL", $"{ex.Message}\n{ex.StackTrace}");
+
+        public static void Flush() =>
+            Info("Log flush requested"); // Ensure all logs are written (placeholder for future buffering)
 
         private static void Write(string level, string message)
         {
+            if (!_initialized || string.IsNullOrEmpty(_logFile))
+                return;
+
             try
             {
-                File.AppendAllText(
-                    _logFile,
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{level}] {message}\n"
-                );
+                lock (_lockObj)
+                {
+                    var logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{level,-5}] [Thread:{Thread.CurrentThread.ManagedThreadId}] {message}\n";
+                    File.AppendAllText(_logFile, logEntry);
+                }
             }
             catch
             {
-                // silêncio absoluto
+                // Silent failure to prevent log cascades
+            }
+        }
+
+        public static void Shutdown()
+        {
+            if (_initialized)
+            {
+                Info("Logger shutting down");
+                _initialized = false;
             }
         }
     }
