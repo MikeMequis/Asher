@@ -44,6 +44,9 @@ namespace Asher.Runtime
         public static void Fatal(Exception ex)
             => Write("FATAL", $"{ex.Message}\n{ex.StackTrace}");
 
+        public static void Fatal(string message, Exception ex)
+            => Write("FATAL", $"{message} | Exception: {ex.Message}\n{ex.StackTrace}");
+
         public static void Flush() =>
             Info("Log flush requested"); // Ensure all logs are written (placeholder for future buffering)
 

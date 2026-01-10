@@ -14,7 +14,7 @@ namespace Asher.Launcher
             if (!File.Exists(gameExe))
                 throw new FileNotFoundException("DustAET.real.exe não encontrado.");
 
-            // 1️⃣ Inicializa Runtime ANTES do jogo
+            // 1️ - Inicializa Runtime (infra, logs, contexto)
             var context = new RuntimeContext(
                 gamePath: baseDir,
                 modsPath: Path.Combine(baseDir, "Mods"),
@@ -24,10 +24,13 @@ namespace Asher.Launcher
 
             RuntimeEntry.Init(context);
 
-            // 2️⃣ Carrega o jogo como Assembly
+            // 2 - Carrega o Assembly do jogo
             var gameAssembly = Assembly.LoadFrom(gameExe);
 
-            // 3️⃣ Localiza Program.Main
+            // 3️ - Notifica o Runtime
+            RuntimeEntry.OnGameAssemblyLoaded();
+
+            // 4️ - Localiza Dust.Program.Main
             var programType = gameAssembly.GetType("Dust.Program");
             var mainMethod = programType?.GetMethod(
                 "Main",
@@ -37,7 +40,7 @@ namespace Asher.Launcher
             if (mainMethod == null)
                 throw new InvalidOperationException("Dust.Program.Main não encontrado.");
 
-            // 4️⃣ Executa o jogo
+            // 5️ - Executa o jogo
             mainMethod.Invoke(null, new object[] { args });
         }
     }

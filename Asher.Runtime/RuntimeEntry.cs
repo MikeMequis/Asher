@@ -1,4 +1,5 @@
-﻿using Asher.Runtime.Core;
+﻿using Asher.Runtime.Bootstrap;
+using Asher.Runtime.Core;
 using System;
 
 namespace Asher.Runtime
@@ -69,6 +70,17 @@ namespace Asher.Runtime
                     RuntimeLogger.Shutdown();
                 }
             }
+        }
+
+        public static void OnGameAssemblyLoaded()
+        {
+            if (!_isInitialized)
+            {
+                RuntimeLogger.Warning("Game assembly loaded before runtime initialization.");
+                return;
+            }
+
+            HarmonyBootstrap.Initialize();
         }
     }
 }

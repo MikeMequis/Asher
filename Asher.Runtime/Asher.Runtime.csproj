@@ -31,6 +31,10 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,12 +45,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bootstrap\HarmonyBootstrap.cs" />
+    <Compile Include="Core\GameContext.cs" />
     <Compile Include="Core\RuntimeContext.cs" />
     <Compile Include="Core\RuntimeController.cs" />
     <Compile Include="Core\RuntimeResult.cs" />
+    <Compile Include="Lifecycle\GameLifecycle.cs" />
+    <Compile Include="Lifecycle\GameLifecycleState.cs" />
+    <Compile Include="Patching\Core\Game1CtorPatch.cs" />
+    <Compile Include="Patching\Core\GameInitializePatch.cs" />
+    <Compile Include="Patching\GameInitWatcherPatch.cs" />
+    <Compile Include="Patching\IPatch.cs" />
     <Compile Include="RuntimeEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RuntimeLogger.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
