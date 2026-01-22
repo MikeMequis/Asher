@@ -4,37 +4,38 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{BF3125F9-3CB6-43F8-804B-73D548C9E905}</ProjectGuid>
+    <ProjectGuid>{F1599195-1C95-49FF-8F40-A2493526C428}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <LangVersion>10.0</LangVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Asher.Runtime</RootNamespace>
-    <AssemblyName>Asher.Runtime</AssemblyName>
+    <RootNamespace>Asher.SDK</RootNamespace>
+    <AssemblyName>Asher.SDK</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <LangVersion>10</LangVersion>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
     <OutputPath>bin\x86\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
     <OutputPath>bin\x86\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,27 +46,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bootstrap\AssemblyLoader.cs" />
-    <Compile Include="Bootstrap\GameInitHook.cs" />
-    <Compile Include="Bootstrap\HarmonyBootstrap.cs" />
-    <Compile Include="Bootstrap\PreInitBootstrap.cs" />
-    <Compile Include="Core\GameContext.cs" />
-    <Compile Include="Core\RuntimeContext.cs" />
-    <Compile Include="Core\RuntimeController.cs" />
-    <Compile Include="Core\RuntimeResult.cs" />
-    <Compile Include="Lifecycle\GameLifecycle.cs" />
-    <Compile Include="Lifecycle\GameLifecycleState.cs" />
-    <Compile Include="PatchModuleLoader.cs" />
-    <Compile Include="RuntimeEntry.cs" />
+    <Compile Include="Logging\AsherLog.cs" />
+    <Compile Include="Logging\IAsherLogger.cs" />
+    <Compile Include="Patching\IAsherPatchModule.cs" />
+    <Compile Include="Patching\IAsherPreInitModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RuntimeLogger.cs" />
-    <Compile Include="RuntimeLoggerAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Asher.SDK\Asher.SDK.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

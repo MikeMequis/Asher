@@ -1,5 +1,7 @@
 ﻿using Asher.Runtime.Bootstrap;
 using Asher.Runtime.Core;
+using Asher.Runtime.Logging;
+using Asher.SDK.Logging;
 using System;
 
 namespace Asher.Runtime
@@ -16,6 +18,10 @@ namespace Asher.Runtime
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
+
+            AsherLog.Logger = new RuntimeLoggerAdapter();
+
+            RuntimeLogger.Info("Asher SDK Logger conectado ao Runtime.");
 
             lock (_lockObj)
             {

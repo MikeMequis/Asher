@@ -39,13 +39,23 @@ namespace Asher.Runtime
             => Write("ERROR", message);
 
         public static void Error(string message, Exception ex)
-            => Write("ERROR", $"{message} | Exception: {ex.Message}\n{ex.StackTrace}");
+        {
+            var fullMessage = $"{message} | Exception: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
+            Write("ERROR", fullMessage);
+
+            Console.Error.WriteLine($"[ERROR] {fullMessage}");
+        }
 
         public static void Fatal(Exception ex)
             => Write("FATAL", $"{ex.Message}\n{ex.StackTrace}");
 
         public static void Fatal(string message, Exception ex)
-            => Write("FATAL", $"{message} | Exception: {ex.Message}\n{ex.StackTrace}");
+        {
+            var fullMessage = $"{message} | Exception: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
+            Write("FATAL", fullMessage);
+
+            Console.Error.WriteLine($"[FATAL] {fullMessage}");
+        }
 
         public static void Flush() =>
             Info("Log flush requested"); // Ensure all logs are written (placeholder for future buffering)
