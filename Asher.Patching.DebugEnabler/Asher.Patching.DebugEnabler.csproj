@@ -52,10 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DebugLifecycleModule.cs" />
-    <Compile Include="DebugState.cs" />
-    <Compile Include="DebugPatchModule.cs" />
-    <Compile Include="DebugPreInitModule.cs" />
+    <Compile Include="DebugEnablerLifecycle.cs" />
+    <Compile Include="DebugEnablerPatch.cs" />
+    <Compile Include="DebugEnablerConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
