@@ -5,10 +5,10 @@ namespace Asher.Runtime.Core
 {
     public sealed class RuntimeController
     {
-        private bool _initialized;
         private RuntimeContext? _context;
         private readonly object _lockObj = new object();
 
+        private bool _initialized;
         public bool IsInitialized => _initialized;
 
         public void Init(RuntimeContext context)

@@ -54,9 +54,9 @@
     <Compile Include="Core\RuntimeContext.cs" />
     <Compile Include="Core\RuntimeController.cs" />
     <Compile Include="Core\RuntimeResult.cs" />
-    <Compile Include="Lifecycle\GameLifecycle.cs" />
     <Compile Include="Lifecycle\GameLifecycleState.cs" />
     <Compile Include="Bootstrap\PatchModuleLoader.cs" />
+    <Compile Include="Lifecycle\LifecycleEventBus.cs" />
     <Compile Include="RuntimeEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RuntimeLogger.cs" />

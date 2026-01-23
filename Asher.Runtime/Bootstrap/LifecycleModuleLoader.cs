@@ -10,6 +10,7 @@ namespace Asher.Runtime.Bootstrap
     {
         private static readonly List<IAsherLifecycleModule> _modules = new List<IAsherLifecycleModule>();
         private static bool _loaded = false;
+        public static bool HasModules => _modules.Count > 0;
 
         public static void Load()
         {
@@ -124,7 +125,5 @@ namespace Asher.Runtime.Bootstrap
                 }
             }
         }
-
-        public static bool HasModules => _modules.Count > 0;
     }
 }

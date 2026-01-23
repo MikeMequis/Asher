@@ -53,8 +53,7 @@ namespace Asher.Launcher
                 if (programType == null)
                     throw new InvalidOperationException("Tipo Dust.Program não encontrado.");
 
-                var mainMethod = programType.GetMethod(
-                    "Main",
+                var mainMethod = programType.GetMethod("Main",
                     BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
                 );
 

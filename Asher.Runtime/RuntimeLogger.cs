@@ -7,7 +7,7 @@ namespace Asher.Runtime
     internal static class RuntimeLogger
     {
         private static string _logFile = string.Empty;
-        private static readonly object _lockObj = new object();
+        private static readonly object _lockObj = new();
         private static bool _initialized = false;
 
         public static void Init(string logDir)
@@ -30,11 +30,9 @@ namespace Asher.Runtime
         }
 
         public static void Info(string message) => Write("INFO", message);
-
         public static void Warning(string message) => Write("WARN", message);
-
         public static void Error(string message) => Write("ERROR", message);
-
+        
         public static void Error(string message, Exception ex)
         {
             var fullMessage = $"{message} | Exception: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
@@ -44,7 +42,6 @@ namespace Asher.Runtime
         }
 
         public static void Fatal(Exception ex) => Write("FATAL", $"{ex.Message}\n{ex.StackTrace}");
-
         public static void Fatal(string message, Exception ex)
         {
             var fullMessage = $"{message} | Exception: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";

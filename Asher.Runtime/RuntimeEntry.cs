@@ -8,7 +8,7 @@ namespace Asher.Runtime
     public static class RuntimeEntry
     {
         private static RuntimeController? _controller;
-        private static readonly object _lockObj = new object();
+        private static readonly object _lockObj = new();
         private static bool _isInitialized = false;
 
         public static bool IsInitialized => _isInitialized;

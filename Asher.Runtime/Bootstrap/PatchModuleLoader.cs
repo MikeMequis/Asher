@@ -18,10 +18,9 @@ namespace Asher.Runtime.Bootstrap
 
             RuntimeLogger.Info("[PatchModuleLoader] Iniciando carregamento de módulos de patch...");
 
-            var harmony = new Harmony("com.asher.runtime.mods");
+            Harmony harmony = new("com.asher.runtime.mods");
 
-            var modules =
-                AppDomain.CurrentDomain.GetAssemblies()
+            var modules = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a =>
                 {
                     try { return a.GetTypes(); }

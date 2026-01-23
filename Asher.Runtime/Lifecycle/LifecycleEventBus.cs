@@ -3,38 +3,16 @@ using System.Collections.Generic;
 
 namespace Asher.Runtime.Lifecycle
 {
-    public static class GameLifecycle
-    {
-        private static GameLifecycleState _currentState = GameLifecycleState.None;
-
-        public static GameLifecycleState CurrentState
-        {
-            get => _currentState;
-            private set
-            {
-                if (_currentState == value)
-                    return;
-
-                var previous = _currentState;
-                _currentState = value;
-
-                RuntimeLogger.Info($"[Lifecycle] {previous} -> {value}");
-                OnStateChanged?.Invoke(previous, value);
-            }
-        }
-
-        public static event Action<GameLifecycleState, GameLifecycleState>? OnStateChanged;
-
-        internal static void SetState(GameLifecycleState state)
-        {
-            CurrentState = state;
-        }
-    }
-
+    /// <summary>
+    /// Event bus interno para comunicação de eventos do ciclo de vida.
+    /// </summary>
     internal static class LifecycleEventBus
     {
         private static readonly Dictionary<LifecycleEvent, List<Action>> _subscribers = new();
 
+        /// <summary>
+        /// Registra um handler para um evento específico
+        /// </summary>
         public static void Subscribe(LifecycleEvent evt, Action handler)
         {
             if (!_subscribers.ContainsKey(evt))
@@ -43,10 +21,15 @@ namespace Asher.Runtime.Lifecycle
             _subscribers[evt].Add(handler);
         }
 
+        /// <summary>
+        /// Dispara um evento para todos os subscribers
+        /// </summary>
         public static void Publish(LifecycleEvent evt)
         {
             if (!_subscribers.ContainsKey(evt))
                 return;
+
+            RuntimeLogger.Info($"[LifecycleEventBus] Publishing event: {evt}");
 
             foreach (var handler in _subscribers[evt])
             {
@@ -59,6 +42,14 @@ namespace Asher.Runtime.Lifecycle
                     RuntimeLogger.Error($"[LifecycleEventBus] Erro ao executar handler para {evt}", ex);
                 }
             }
+        }
+
+        /// <summary>
+        /// Retorna o número de subscribers para um evento
+        /// </summary>
+        public static int GetSubscriberCount(LifecycleEvent evt)
+        {
+            return _subscribers.ContainsKey(evt) ? _subscribers[evt].Count : 0;
         }
     }
 }

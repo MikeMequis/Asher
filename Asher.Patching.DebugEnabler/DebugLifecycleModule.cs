@@ -3,9 +3,6 @@ using Asher.SDK.Patching;
 
 namespace Asher.Patching.DebugEnabler
 {
-    /// <summary>
-    /// Exemplo de módulo que reage a eventos do ciclo de vida
-    /// </summary>
     public sealed class DebugLifecycleModule : AsherLifecycleModuleBase
     {
         public override string Name => "Debug Lifecycle Monitor";
