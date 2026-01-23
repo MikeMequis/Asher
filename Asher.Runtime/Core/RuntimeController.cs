@@ -45,49 +45,6 @@ namespace Asher.Runtime.Core
             }
         }
 
-        public RuntimeResult Execute(string operation, Action action)
-        {
-            if (!_initialized)
-                return RuntimeResult.Fail("Runtime not initialized");
-
-            try
-            {
-                RuntimeLogger.Info($"Executing operation: {operation}");
-                action?.Invoke();
-                RuntimeLogger.Info($"Operation completed: {operation}");
-                return RuntimeResult.Ok();
-            }
-            catch (Exception ex)
-            {
-                RuntimeLogger.Error($"Operation failed: {operation}", ex);
-                return RuntimeResult.Fail(ex);
-            }
-        }
-
-        public RuntimeResult ExecuteWithResult(string operation, Func<RuntimeResult> func)
-        {
-            if (!_initialized)
-                return RuntimeResult.Fail("Runtime not initialized");
-
-            try
-            {
-                RuntimeLogger.Info($"Executing operation: {operation}");
-                var result = func?.Invoke() ?? RuntimeResult.Fail("No function provided");
-
-                if (result.Success)
-                    RuntimeLogger.Info($"Operation completed successfully: {operation}");
-                else
-                    RuntimeLogger.Error($"Operation failed: {operation} - {result.ErrorMessage}");
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                RuntimeLogger.Error($"Operation threw exception: {operation}", ex);
-                return RuntimeResult.Fail(ex);
-            }
-        }
-
         private void Validate(RuntimeContext context)
         {
             RuntimeLogger.Info("Validating runtime context...");
@@ -104,7 +61,6 @@ namespace Asher.Runtime.Core
             RuntimeLogger.Info($"Profile: {context.ProfileName}");
             RuntimeLogger.Info($"LogPath: {context.LogPath}");
 
-            // Validate paths are not empty or whitespace
             if (string.IsNullOrWhiteSpace(context.GamePath))
                 throw new ArgumentException("GamePath cannot be empty", nameof(context.GamePath));
 
@@ -115,16 +71,12 @@ namespace Asher.Runtime.Core
         {
             RuntimeLogger.Info("Preparing directories...");
 
-            // Create mods directory if needed
             if (!Directory.Exists(context.ModsPath))
             {
                 Directory.CreateDirectory(context.ModsPath);
                 RuntimeLogger.Info($"Created mods directory: {context.ModsPath}");
             }
-            else
-                RuntimeLogger.Info($"Mods directory exists: {context.ModsPath}");
 
-            // Create subdirectories for organization
             var configPath = Path.Combine(context.ModsPath, "config");
             if (!Directory.Exists(configPath))
             {
@@ -154,6 +106,7 @@ namespace Asher.Runtime.Core
                 {
                     var configContent = File.ReadAllText(configFile);
                     RuntimeLogger.Info($"Configuration loaded from: {configFile}");
+                    // TODO: Parse configuration
                 }
                 catch (Exception ex)
                 {
@@ -175,10 +128,7 @@ namespace Asher.Runtime.Core
 
                 try
                 {
-                    RuntimeLogger.Info("Performing cleanup..."); // Perform cleanup operations
-
-                    RuntimeLogger.Flush(); // Flush any pending operations
-
+                    RuntimeLogger.Flush();
                     _initialized = false;
                     _context = null;
 

@@ -15,22 +15,16 @@ namespace Asher.Runtime.Core
             Data = data;
         }
 
-        public static RuntimeResult Ok()
-            => new RuntimeResult(true, null);
+        public static RuntimeResult Ok() => new RuntimeResult(true, null);
 
-        public static RuntimeResult Ok(object data)
-            => new RuntimeResult(true, null, data);
+        public static RuntimeResult Ok(object data) => new RuntimeResult(true, null, data);
 
-        public static RuntimeResult Fail(string error)
-            => new RuntimeResult(false, error);
+        public static RuntimeResult Fail(string error) => new RuntimeResult(false, error);
 
-        public static RuntimeResult Fail(Exception ex)
-            => new RuntimeResult(false, $"{ex.GetType().Name}: {ex.Message}");
+        public static RuntimeResult Fail(Exception ex) => new RuntimeResult(false, $"{ex.GetType().Name}: {ex.Message}");
 
-        public T? GetData<T>() where T : class
-            => Data as T;
+        public T? GetData<T>() where T : class => Data as T;
 
-        public override string ToString()
-            => Success ? "Success" : $"Failed: {ErrorMessage}";
+        public override string ToString() => Success ? "Success" : $"Failed: {ErrorMessage}";
     }
 }

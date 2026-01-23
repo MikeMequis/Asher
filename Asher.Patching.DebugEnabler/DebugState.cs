@@ -1,4 +1,4 @@
-﻿namespace Asher.Patching.Debug
+﻿namespace Asher.Patching.DebugEnabler
 {
     public static class DebugState
     {

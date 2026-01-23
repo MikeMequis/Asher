@@ -1,7 +1,7 @@
 ﻿using Asher.SDK.Patching;
 using Asher.SDK.Logging;
 
-namespace Asher.Patching.Debug
+namespace Asher.Patching.DebugEnabler
 {
     public sealed class DebugPreInitModule : IAsherPreInitModule
     {

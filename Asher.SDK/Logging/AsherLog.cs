@@ -8,13 +8,10 @@
     {
         public static IAsherLogger? Logger { get; set; }
 
-        public static void Info(string message)
-            => Logger?.Info(message);
+        public static void Info(string message) => Logger?.Info(message);
 
-        public static void Warning(string message)
-            => Logger?.Warning(message);
+        public static void Warning(string message) => Logger?.Warning(message);
 
-        public static void Error(string message)
-            => Logger?.Error(message);
+        public static void Error(string message) => Logger?.Error(message);
     }
 }

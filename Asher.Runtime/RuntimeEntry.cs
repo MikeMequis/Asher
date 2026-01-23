@@ -1,5 +1,4 @@
-﻿using Asher.Runtime.Bootstrap;
-using Asher.Runtime.Core;
+﻿using Asher.Runtime.Core;
 using Asher.Runtime.Logging;
 using Asher.SDK.Logging;
 using System;
@@ -20,7 +19,6 @@ namespace Asher.Runtime
                 throw new ArgumentNullException(nameof(context));
 
             AsherLog.Logger = new RuntimeLoggerAdapter();
-
             RuntimeLogger.Info("Asher SDK Logger conectado ao Runtime.");
 
             lock (_lockObj)
@@ -47,22 +45,6 @@ namespace Asher.Runtime
             }
         }
 
-        public static RuntimeResult Execute(string operation, Action action)
-        {
-            if (!_isInitialized || _controller == null)
-                return RuntimeResult.Fail("Runtime not initialized");
-
-            return _controller.Execute(operation, action);
-        }
-
-        public static RuntimeResult ExecuteWithResult(string operation, Func<RuntimeResult> func)
-        {
-            if (!_isInitialized || _controller == null)
-                return RuntimeResult.Fail("Runtime not initialized");
-
-            return _controller.ExecuteWithResult(operation, func);
-        }
-
         public static void Shutdown()
         {
             lock (_lockObj)
@@ -76,17 +58,6 @@ namespace Asher.Runtime
                     RuntimeLogger.Shutdown();
                 }
             }
-        }
-
-        public static void OnGameAssemblyLoaded()
-        {
-            if (!_isInitialized)
-            {
-                RuntimeLogger.Warning("Game assembly loaded before runtime initialization.");
-                return;
-            }
-
-            HarmonyBootstrap.Initialize();
         }
     }
 }

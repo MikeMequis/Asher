@@ -33,7 +33,6 @@ namespace Asher.Runtime.Bootstrap
                     RuntimeLogger.Warning($"[PreInit] ReflectionTypeLoadException em {asm.GetName().Name}");
                     types = e.Types.Where(t => t != null).ToArray()!;
 
-                    // Log loader exceptions
                     foreach (var ex in e.LoaderExceptions)
                     {
                         if (ex != null)

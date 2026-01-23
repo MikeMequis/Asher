@@ -29,14 +29,11 @@ namespace Asher.Runtime
             }
         }
 
-        public static void Info(string message)
-            => Write("INFO", message);
+        public static void Info(string message) => Write("INFO", message);
 
-        public static void Warning(string message)
-            => Write("WARN", message);
+        public static void Warning(string message) => Write("WARN", message);
 
-        public static void Error(string message)
-            => Write("ERROR", message);
+        public static void Error(string message) => Write("ERROR", message);
 
         public static void Error(string message, Exception ex)
         {
@@ -46,8 +43,7 @@ namespace Asher.Runtime
             Console.Error.WriteLine($"[ERROR] {fullMessage}");
         }
 
-        public static void Fatal(Exception ex)
-            => Write("FATAL", $"{ex.Message}\n{ex.StackTrace}");
+        public static void Fatal(Exception ex) => Write("FATAL", $"{ex.Message}\n{ex.StackTrace}");
 
         public static void Fatal(string message, Exception ex)
         {
@@ -57,8 +53,7 @@ namespace Asher.Runtime
             Console.Error.WriteLine($"[FATAL] {fullMessage}");
         }
 
-        public static void Flush() =>
-            Info("Log flush requested"); // Ensure all logs are written (placeholder for future buffering)
+        public static void Flush() => Info("Log flush requested"); // Ensure all logs are written (placeholder for future buffering)
 
         private static void Write(string level, string message)
         {

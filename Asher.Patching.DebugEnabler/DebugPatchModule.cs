@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Asher.Patching.Debug
+namespace Asher.Patching.DebugEnabler
 {
     public sealed class DebugPatchModule : IAsherPatchModule
     {
@@ -22,7 +22,6 @@ namespace Asher.Patching.Debug
 
             try
             {
-                // Busca o assembly DustAET
                 var dustAssembly = AppDomain.CurrentDomain.GetAssemblies()
                     .FirstOrDefault(a => a.GetName().Name == "DustAET");
 
@@ -32,7 +31,6 @@ namespace Asher.Patching.Debug
                     return;
                 }
 
-                // Busca o tipo Game1
                 var game1Type = dustAssembly.GetType("Dust.Game1");
 
                 if (game1Type == null)
@@ -41,7 +39,6 @@ namespace Asher.Patching.Debug
                     return;
                 }
 
-                // Busca o método Initialize
                 var initMethod = game1Type.GetMethod(
                     "Initialize",
                     System.Reflection.BindingFlags.Instance |
@@ -96,7 +93,6 @@ namespace Asher.Patching.Debug
                 {
                     AsherLog.Warning("[DebugPatch] Campo canDebug não encontrado!");
 
-                    // Lista campos disponíveis
                     AsherLog.Info("[DebugPatch] Campos estáticos disponíveis:");
                     foreach (var field in game1Type.GetFields(
                         System.Reflection.BindingFlags.Static |
@@ -113,7 +109,6 @@ namespace Asher.Patching.Debug
             }
         }
 
-        public IEnumerable<Type> GetPatchTypes()
-            => Array.Empty<Type>();
+        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }

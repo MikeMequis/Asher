@@ -16,7 +16,6 @@ namespace Asher.Runtime.Core
             ProfileName = string.IsNullOrWhiteSpace(profileName) ? "default" : profileName;
             LogPath = logPath ?? throw new ArgumentNullException(nameof(logPath));
 
-            // Validate paths
             if (string.IsNullOrWhiteSpace(GamePath))
                 throw new ArgumentException("GamePath cannot be empty or whitespace", nameof(gamePath));
 
