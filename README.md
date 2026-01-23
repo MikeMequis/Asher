@@ -294,7 +294,7 @@ Folders are created automatically on first launch.
 **What was achieved:**
 - Custom launcher fully controls game startup
 - Runtime initialization occurs before game execution
-- Logging, folders, and context are prepared deterministically
+- Logging, folders, and context prepared deterministically
 - Runtime survives Steam launches transparently
 - Injection is delayed and explicit, never blind
 
@@ -447,7 +447,6 @@ Debug flag marcada para ativação (PreInit).
 - Version compatibility checks
 
 ---
-
 ## 🧠 Project Principles (Non-Negotiable)
 
 - 🚫 No `.xnb` editing
