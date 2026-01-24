@@ -54,7 +54,7 @@
     <Compile Include="Core\RuntimeContext.cs" />
     <Compile Include="Core\RuntimeController.cs" />
     <Compile Include="Core\RuntimeResult.cs" />
-    <Compile Include="Lifecycle\GameLifecycleState.cs" />
+    <Compile Include="Lifecycle\LifecycleEvent.cs" />
     <Compile Include="Bootstrap\PatchModuleLoader.cs" />
     <Compile Include="Lifecycle\LifecycleEventBus.cs" />
     <Compile Include="RuntimeEntry.cs" />

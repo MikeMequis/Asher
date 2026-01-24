@@ -37,36 +37,38 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 │
 ├── Asher.Runtime/          → Runtime mod loader foundation (.NET Framework 4.8)
 │   ├── Bootstrap/
-│   │   ├── AssemblyLoader.cs           → Dynamic mod assembly loading
-│   │   ├── PreInitBootstrap.cs         → PreInit module discovery & execution
-│   │   ├── PatchModuleLoader.cs        → Harmony patch application
-│   │   ├── LifecycleModuleLoader.cs    → Lifecycle event registration
-│   │   ├── GameLifecycleHooks.cs       → Game lifecycle event hooks
-│   │   └── HarmonyLifecycleBootstrap.cs → Optional lifecycle hook injection
+│   │   ├── AssemblyLoader.cs            → Dynamic mod assembly loading
+│   │   ├── GameLifecycleHooks.cs        → Game lifecycle event hooks
+│   │   ├── HarmonyLifecycleBootstrap.cs → Optional lifecycle hook injection
+│   │   ├── PreInitBootstrap.cs          → PreInit module discovery & execution
+│   │   ├── PatchModuleLoader.cs         → Harmony patch application
+│   │   └── LifecycleModuleLoader.cs     → Lifecycle event registration
 │   ├── Core/
-│   │   ├── RuntimeContext.cs           → Configuration and paths
-│   │   ├── RuntimeController.cs        → Initialization and shutdown
-│   │   ├── RuntimeResult.cs            → Operation result wrapper
-│   │   └── GameContext.cs              → Game instance access (future)
+│   │   ├── GameContext.cs               → Game instance access
+│   │   ├── RuntimeContext.cs            → Configuration and paths
+│   │   ├── RuntimeController.cs         → Initialization and shutdown
+│   │   └── RuntimeResult.cs             → Operation result wrapper
 │   ├── Lifecycle/
-│   │   ├── GameLifecycle.cs            → Lifecycle state management
-│   │   └── GameLifecycleState.cs       → Lifecycle state enum
-│   ├── Logging/
-│   │   └── RuntimeLoggerAdapter.cs     → SDK logger bridge
-│   ├── RuntimeEntry.cs                 → Public runtime API
-│   └── RuntimeLogger.cs                → File-based logging system
+│   │   ├── LifecycleEvent.cs            → Lifecycle state enum
+│   │   └── GameLifecycleEventBus.cs     → Lifecycle state management
+│   ├── RuntimeEntry.cs                  → Public runtime API
+│   ├── RuntimeLogger.cs                 → File-based logging system
+|   └── RuntimeLoggerAdapter.cs          → SDK logger bridge
 │
 ├── Asher.SDK/              → API for mod developers (.NET Framework 4.8)
 │   ├── Logging/
-│   │   ├── IAsherLogger.cs             → Logger interface
-│   │   └── AsherLog.cs                 → Static logger facade
+│   │   ├── AsherLog.cs                  → Static logger facade
+│   │   └── IAsherLogger.cs              → Logger interface
 │   └── Patching/
-│       ├── IAsherPatchModule.cs        → Harmony patch module interface
-│       ├── IAsherPreInitModule.cs      → PreInit module interface
-│       └── IAsherLifecycleModule.cs    → Lifecycle event interface
+│       ├── AsherLifecycleModuleBase.cs  → Base class for lifecycle monitoring
+│       ├── IAsherLifecycleModule.cs     → Lifecycle event interface
+│       ├── IAsherPatchModule.cs         → Harmony patch module interface
+│       └── IAsherPreInitModule.cs       → PreInit module interface
 │
 ├── /Mods/                  → External mod assemblies (runtime-loaded)
-│   └── Asher.Patching.DebugEnabler.dll → First working mod (Debug Menu)
+|   ├── Asher.Patching.IntroSkipper.dll       → Skips ESRB rating, splashes, etc.
+│   ├── Asher.Patching.DebugEnabler.dll       → First working mod (Debug Menu)
+│   └── Asher.Patching.GraphicsDeprofiler.dll → Intel graphic adapter fix
 │
 └── /AsherLogs/             → Runtime logs
     └── runtime_YYYYMMDD_HHMMSS.log
@@ -121,82 +123,6 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
    │       └─> Notifies lifecycle modules
    └─> Game1.Update() + Draw() loop continues
 ```
-
----
-
-## 📦 Mod Structure Example
-
-### **Debug Enabler Mod** (First Working Implementation)
-
-```
-Asher.Patching.DebugEnabler/
-├── DebugState.cs              → Shared state between modules
-├── DebugPreInitModule.cs      → PreInit: sets EnableDebug flag
-├── DebugPatchModule.cs        → Patch: modifies canDebug field
-└── DebugLifecycleModule.cs    → Lifecycle: logs game events
-```
-
-**DebugPreInitModule.cs:**
-```csharp
-public sealed class DebugPreInitModule : IAsherPreInitModule
-{
-    public string Name => "Debug Enabler (PreInit)";
-    
-    public void Execute()
-    {
-        DebugState.EnableDebug = true;
-        AsherLog.Info("Debug flag marked for activation (PreInit).");
-    }
-}
-```
-
-**DebugPatchModule.cs:**
-```csharp
-public sealed class DebugPatchModule : IAsherPatchModule
-{
-    public string Name => "Debug Enabler";
-    
-    public void Apply(Harmony harmony)
-    {
-        if (!DebugState.EnableDebug) return;
-        
-        var game1Type = /* find Dust.Game1 */;
-        var initMethod = game1Type.GetMethod("Initialize", /*...*/);
-        
-        harmony.Patch(
-            initMethod,
-            postfix: new HarmonyMethod(typeof(DebugPatchModule), nameof(EnableDebug))
-        );
-    }
-    
-    static void EnableDebug(object __instance)
-    {
-        var canDebugField = __instance.GetType().GetField("canDebug", /*...*/);
-        canDebugField.SetValue(null, true);
-        AsherLog.Info("Debug enabled: canDebug = true");
-    }
-}
-```
-
-**DebugLifecycleModule.cs:**
-```csharp
-public sealed class DebugLifecycleModule : AsherLifecycleModuleBase
-{
-    public override string Name => "Debug Lifecycle Monitor";
-    
-    public override void OnGameInitialized()
-    {
-        AsherLog.Info("✓ Game1.Initialize completed!");
-    }
-    
-    public override void OnContentLoaded()
-    {
-        AsherLog.Info("✓ Game1.LoadContent completed!");
-    }
-}
-```
-
-**Result:** Debug menu accessible via **Tab** key in pause menu ✅
 
 ---
 
@@ -370,30 +296,62 @@ Debug flag marcada para ativação (PreInit).
 
 ### 🟨 DOING — Current Phase
 
-#### 🟨 Task 5 — Reverse Engineering & Mod Development
+#### 🟨 Task 5 — Patch Porting & Reverse Engineering
+
 **Status:** 🔄 In Progress
 
-**Objective:** Map the internal structure of Dust: An Elysian Tail to enable more gameplay patches.
+**Objective:**
+Port and modernize existing gameplay patches from **DustAetPatchingPlatform** into the **Asher runtime architecture**, ensuring safety, modularity, and full lifecycle control.
 
-**Current approach:**
-- Direct assembly references to `DustAET.real.exe` (similar to SMAPI)
-- Enables IntelliSense and type-safe patch development
-- dnSpy for deeper inspection when needed
+Instead of creating experimental or speculative patches, this phase focuses on **systematically converting known, proven patches** into Asher-compliant modules.
 
-**Focus areas:**
-- Player character mechanics
-- Combat system
-- Item/inventory management
-- UI systems
-- Save/load system
-- Asset loading pipeline (ContentManager)
+**Core strategy:**
+* Treat DustAetPatchingPlatform mods as **behavioral references**, not architectural templates
+* Preserve original gameplay intent while:
+  * Eliminating unsafe assumptions
+  * Removing hard-coded execution timing
+  * Integrating clean PreInit / Patch / Lifecycle separation
+* Ensure every converted patch:
+  * Is reversible
+  * Is configurable via PreInit
+  * Respects Asher’s controlled bootstrap sequence
 
-**Next mods to implement:**
-- Speed multiplier
-- Invincibility toggle
-- Item spawner
-- Custom UI elements
-- Asset replacement (textures, fonts)
+**Current workflow:**
+
+1. Analyze original patch behavior and assumptions
+2. Inspect game internals using **dnSpy** when required
+3. Identify the *correct lifecycle moment* to intervene
+4. Reimplement the patch using:
+   * `IAsherPreInitModule` for configuration
+   * `IAsherPatchModule` for Harmony patches
+   * Optional lifecycle hooks for timing safety
+5. Validate behavior with runtime logs and crash-free execution
+
+**Technical approach:**
+* Direct assembly reference to `DustAET.real.exe`
+  * Enables IntelliSense and type-safe development
+  * Mirrors SMAPI’s approach to Stardew Valley
+* Reflection used only where necessary
+* Harmony used exclusively for runtime patching
+* No reliance on fragile frame-based hacks unless unavoidable
+
+**Patches currently ported or in progress:**
+* ✅ **Debug Menu Enabler** (fully working reference implementation)
+* ✅ **Intro Skipper**
+  * Skips ESRB rating, splash screens, and startup videos
+  * Implemented via controlled state manipulation
+  * Avoids Draw-time crashes and race conditions
+* ✅ **Graphics Deprofiler**
+  * Bypasses HiDef GPU profile restrictions
+  * Automatically disabled on capable hardware
+  * Designed for legacy GPU compatibility
+
+**Focus areas moving forward:**
+* Player mechanics
+* Combat behavior
+* UI state manipulation
+* Save/load safety
+* Asset loading interception (future Content Patcher)
 
 ---
 
@@ -479,11 +437,12 @@ Debug flag marcada para ativação (PreInit).
   - Demonstrates all three module types
   - Serves as reference implementation for mod developers
 
-### **Runtime Stability**
-- ✅ Compatible with Steam launches
-- ✅ No game modifications required
-- ✅ Clean shutdown and error handling
-- ✅ Isolated mod failures (one mod crash doesn't kill runtime)
+### **Working Mods**
+* ✅ **Debug Menu Enabler**
+* ✅ **Intro Skipper**
+* ✅ **Graphics Deprofiler**
+
+All implemented as external, runtime-loaded mods.
 
 ---
 
@@ -495,20 +454,4 @@ Debug flag marcada para ativação (PreInit).
 - **DustAetPatchingPlatform** — https://github.com/GMMan/DustAetPatchingPlatform
   - Steam Forum Discussion — https://steamcommunity.com/app/236090/discussions/0/540744936409038540/
 
----
-
-## 🎯 Key Achievement
-
-**Asher has successfully transitioned from theoretical infrastructure to a working modding platform with proven runtime patching capabilities.**
-
-The Debug Enabler mod serves as:
-- ✅ Proof of concept for Harmony integration
-- ✅ Reference implementation for mod developers
-- ✅ Validation of the three-stage architecture
-- ✅ Foundation for more complex gameplay modifications
-
-**Next milestone:** Expand mod library with gameplay-focused patches (player stats, items, combat, etc.)
-
----
-
-*Last Updated: January 22, 2026*
+*Last Updated: January 23, 2026*
