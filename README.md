@@ -66,8 +66,8 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 │       └── IAsherPreInitModule.cs       → PreInit module interface
 │
 ├── /Mods/                  → External mod assemblies (runtime-loaded)
-|   ├── Asher.Patching.IntroSkipper.dll       → Skips ESRB rating, splashes, etc.
 │   ├── Asher.Patching.DebugEnabler.dll       → First working mod (Debug Menu)
+|   ├── Asher.Patching.IntroSkipper.dll       → Skips ESRB rating, splashes, etc.
 │   └── Asher.Patching.GraphicsDeprofiler.dll → Intel graphic adapter fix
 │
 └── /AsherLogs/             → Runtime logs
@@ -132,7 +132,6 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 /GameFolder/
 ├── DustAET.exe              (Asher.Launcher.exe wrapper)
 ├── DustAET.real.exe         (original game executable)
-├── Asher.Launcher.exe       (can coexist, optional)
 ├── Asher.Runtime.dll
 ├── Asher.SDK.dll
 ├── 0Harmony.dll
@@ -142,6 +141,8 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 │
 └── /Mods/
     ├── Asher.Patching.DebugEnabler.dll
+    ├── Asher.Patching.IntroSkipper.dll
+    └── Asher.Patching.GraphicsDeprofiler.dll
     ├── /config/
     │   └── runtime.cfg (future)
     └── /cache/
@@ -274,23 +275,9 @@ Folders are created automatically on first launch.
 - **Patch**: Harmony postfix on `Game1.Initialize()` sets `canDebug = true`
 - **Lifecycle**: Logs when `Initialize` and `LoadContent` complete
 
-**Log evidence (working):**
-```
-[PreInit] Módulo encontrado: Asher.Patching.DebugEnabler.DebugPreInitModule
-[PreInit] Executando módulo: Debug Enabler (PreInit)
-Debug flag marcada para ativação (PreInit).
-[PatchModuleLoader] Aplicando módulo: Debug Enabler
-[DebugPatch] ✓ Patch aplicado com sucesso!
-[DebugPatch] EnableDebug chamado!
-[DebugPatch] ✓ canDebug = true
-[LifecycleModuleLoader] Notificando módulos: GameInitialized
-[DebugLifecycle] ✓ Game1.Initialize concluído!
-```
-
 **Result:**
-- **First gameplay modification confirmed working** 🎉
-- Proof of concept for all modding capabilities
-- Foundation ready for complex mods
+- **First gameplay modification working with Harmony**
+- Proof of concept for modding capabilities
 
 ---
 
@@ -301,14 +288,10 @@ Debug flag marcada para ativação (PreInit).
 **Status:** 🔄 In Progress
 
 **Objective:**
-Port and modernize existing gameplay patches from **DustAetPatchingPlatform** into the **Asher runtime architecture**, ensuring safety, modularity, and full lifecycle control.
-
-Instead of creating experimental or speculative patches, this phase focuses on **systematically converting known, proven patches** into Asher-compliant modules.
+Port and modernize existing gameplay patches from **DustAetPatchingPlatform** into the **Asher runtime architecture**, ensuring safety, modularity, and full lifecycle control. This phase focuses on **systematically converting known, proven patches** into Asher-compliant modules.
 
 **Core strategy:**
-* Treat DustAetPatchingPlatform mods as **behavioral references**, not architectural templates
 * Preserve original gameplay intent while:
-  * Eliminating unsafe assumptions
   * Removing hard-coded execution timing
   * Integrating clean PreInit / Patch / Lifecycle separation
 * Ensure every converted patch:
@@ -317,41 +300,20 @@ Instead of creating experimental or speculative patches, this phase focuses on *
   * Respects Asher’s controlled bootstrap sequence
 
 **Current workflow:**
-
 1. Analyze original patch behavior and assumptions
 2. Inspect game internals using **dnSpy** when required
-3. Identify the *correct lifecycle moment* to intervene
+3. Identify the *lifecycle moment* to intervene
 4. Reimplement the patch using:
    * `IAsherPreInitModule` for configuration
    * `IAsherPatchModule` for Harmony patches
    * Optional lifecycle hooks for timing safety
-5. Validate behavior with runtime logs and crash-free execution
+5. Validate behavior with runtime logs and execution
 
 **Technical approach:**
 * Direct assembly reference to `DustAET.real.exe`
   * Enables IntelliSense and type-safe development
   * Mirrors SMAPI’s approach to Stardew Valley
-* Reflection used only where necessary
 * Harmony used exclusively for runtime patching
-* No reliance on fragile frame-based hacks unless unavoidable
-
-**Patches currently ported or in progress:**
-* ✅ **Debug Menu Enabler** (fully working reference implementation)
-* ✅ **Intro Skipper**
-  * Skips ESRB rating, splash screens, and startup videos
-  * Implemented via controlled state manipulation
-  * Avoids Draw-time crashes and race conditions
-* ✅ **Graphics Deprofiler**
-  * Bypasses HiDef GPU profile restrictions
-  * Automatically disabled on capable hardware
-  * Designed for legacy GPU compatibility
-
-**Focus areas moving forward:**
-* Player mechanics
-* Combat behavior
-* UI state manipulation
-* Save/load safety
-* Asset loading interception (future Content Patcher)
 
 ---
 
@@ -430,17 +392,13 @@ Instead of creating experimental or speculative patches, this phase focuses on *
 - ✅ Comprehensive logging system
 - ✅ Event-driven architecture
 
-### **First Working Mod**
-- ✅ **Debug Menu Enabler**
-  - Enables hidden debug menu in Dust: An Elysian Tail
-  - Accessible via Tab key in pause menu
-  - Demonstrates all three module types
-  - Serves as reference implementation for mod developers
-
 ### **Working Mods**
 * ✅ **Debug Menu Enabler**
+  * Enables Debug Menu by pressing Tab in Pause Menu        
 * ✅ **Intro Skipper**
+  * Skips ESRB rating, splash screens, and startup videos
 * ✅ **Graphics Deprofiler**
+  * Bypasses HiDef GPU profile restrictions
 
 All implemented as external, runtime-loaded mods.
 
