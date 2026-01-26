@@ -1,20 +1,12 @@
-﻿using Asher.SDK.Patching;
-using Asher.SDK.Logging;
+﻿using Asher.SDK.Patching.Core;
 
 namespace Asher.Patching.DebugEnabler
 {
     /// <summary>
-    /// Módulo PreInit para configurar o estado do debug antes dos patches.
+    /// Configuração do Debug Enabler.
     /// </summary>
-    public sealed class DebugEnablerConfig : IAsherPreInitModule
+    public sealed class DebugEnablerConfig : BaseAsherPatchConfig<DebugEnablerPatch>
     {
-        public string Name => "Debug Enabler Config";
-
-        public void Execute()
-        {
-            // Aqui você pode ler de um arquivo de config no futuro
-            DebugEnablerPatch.Enabled = true;
-            AsherLog.Info("[DebugEnabler] Debug menu será habilitado");
-        }
+        protected override string PatchName => "Debug Enabler";
     }
 }

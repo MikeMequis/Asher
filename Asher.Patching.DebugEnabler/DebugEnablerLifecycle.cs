@@ -1,24 +1,13 @@
-﻿using Asher.SDK.Logging;
-using Asher.SDK.Patching;
+﻿using Asher.SDK.Patching.Core;
 
 namespace Asher.Patching.DebugEnabler
 {
     /// <summary>
-    /// Monitora eventos do ciclo de vida do jogo.
-    /// OPCIONAL: Pode ser removido se você não precisa desses logs.
+    /// Monitor de lifecycle para Debug Enabler.
     /// </summary>
-    public sealed class DebugEnablerLifecycle : AsherLifecycleModuleBase
+    public sealed class DebugEnablerLifecycle : BaseAsherLifecycle
     {
-        public override string Name => "Debug Enabler Lifecycle";
-
-        public override void OnGameInitialized()
-        {
-            AsherLog.Info("[DebugEnabler] Game initialized - Debug menu should be active");
-        }
-
-        public override void OnContentLoaded()
-        {
-            AsherLog.Info("[DebugEnabler] Content loaded");
-        }
+        public override string Name => "Debug Enabler";
+        protected override bool EnableAutoLogging => false;
     }
 }

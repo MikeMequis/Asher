@@ -1,104 +1,105 @@
 ﻿<UserControl x:Class="Asher.UserInterface.Views.ContentPatcherView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Asher.UserInterface.Views"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:prism="http://prismlibrary.com/"
-             prism:ViewModelLocator.AutoWireViewModel="True">
-    
+             prism:ViewModelLocator.AutoWireViewModel="True"
+             mc:Ignorable="d">
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24">
-            <!-- Header -->
+            <!--  Header  -->
             <materialDesign:Card Margin="0,0,0,24" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Content Patcher"
+                    <TextBlock Margin="0,0,0,8"
                                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                               Margin="0,0,0,8"/>
-                    <TextBlock Text="Replace game assets and content without modifying original files"
+                               Text="Content Patcher" />
+                    <TextBlock Opacity="0.7"
                                Style="{StaticResource MaterialDesignBody1TextBlock}"
-                               Opacity="0.7"/>
+                               Text="Replace game assets and content without modifying original files" />
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Content Patching Section -->
+            <!--  Content Patching Section  -->
             <materialDesign:Card Margin="0,0,0,16" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Asset Replacement"
+                    <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Margin="0,0,0,16"/>
-                    
+                               Text="Asset Replacement" />
+
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        
-                        <!-- Original Asset -->
+
+                        <!--  Original Asset  -->
                         <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                            <TextBlock Text="Original Asset"
+                            <TextBlock Margin="0,0,0,8"
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                       Margin="0,0,0,8"/>
-                            <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                       Text="Original Asset" />
+                            <TextBox Margin="0,0,0,8"
                                      materialDesign:HintAssist.Hint="Asset path (e.g., Characters/Fidget)"
-                                     Text="{Binding OriginalAssetPath, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,0,8"/>
-                            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Text="{Binding OriginalAssetPath, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button HorizontalAlignment="Stretch"
                                     Content="Browse Original"
-                                    HorizontalAlignment="Stretch"/>
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
                         </StackPanel>
-                        
-                        <!-- Arrow -->
-                        <materialDesign:PackIcon Grid.Column="1" 
-                                                 Kind="ArrowRight"
-                                                 Width="24" Height="24"
+
+                        <!--  Arrow  -->
+                        <materialDesign:PackIcon Grid.Column="1"
+                                                 Width="24"
+                                                 Height="24"
+                                                 Margin="8,0"
                                                  VerticalAlignment="Center"
-                                                 Margin="8,0"/>
-                        
-                        <!-- Replacement Asset -->
+                                                 Kind="ArrowRight" />
+
+                        <!--  Replacement Asset  -->
                         <StackPanel Grid.Column="2" Margin="16,0,0,0">
-                            <TextBlock Text="Replacement Asset"
+                            <TextBlock Margin="0,0,0,8"
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                       Margin="0,0,0,8"/>
-                            <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                       Text="Replacement Asset" />
+                            <TextBox Margin="0,0,0,8"
                                      materialDesign:HintAssist.Hint="Replacement file path"
-                                     Text="{Binding ReplacementAssetPath, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,0,8"/>
-                            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Text="{Binding ReplacementAssetPath, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button HorizontalAlignment="Stretch"
                                     Content="Browse Replacement"
-                                    HorizontalAlignment="Stretch"/>
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
                         </StackPanel>
                     </Grid>
-                    
-                    <Button Style="{StaticResource MaterialDesignRaisedButton}"
-                            Content="Add Replacement"
-                            Command="{Binding AddReplacementCommand}"
+
+                    <Button Margin="0,16,0,0"
                             HorizontalAlignment="Right"
-                            Margin="0,16,0,0"/>
+                            Command="{Binding AddReplacementCommand}"
+                            Content="Add Replacement"
+                            Style="{StaticResource MaterialDesignRaisedButton}" />
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Active Replacements -->
+            <!--  Active Replacements  -->
             <materialDesign:Card Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Active Replacements"
+                    <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Margin="0,0,0,16"/>
-                    
-                    <TextBlock Text="No active replacements configured"
-                               Style="{StaticResource MaterialDesignBody2TextBlock}"
+                               Text="Active Replacements" />
+
+                    <TextBlock Margin="32"
                                HorizontalAlignment="Center"
                                Opacity="0.5"
-                               Margin="32"/>
-                    
-                    <TextBlock Text="Replacements will be applied when the game is launched"
-                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                               Style="{StaticResource MaterialDesignBody2TextBlock}"
+                               Text="No active replacements configured" />
+
+                    <TextBlock Margin="0,8,0,0"
                                HorizontalAlignment="Center"
                                Opacity="0.7"
-                               Margin="0,8,0,0"/>
+                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                               Text="Replacements will be applied when the game is launched" />
                 </StackPanel>
             </materialDesign:Card>
         </StackPanel>

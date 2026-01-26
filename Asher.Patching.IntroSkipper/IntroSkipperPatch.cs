@@ -1,4 +1,5 @@
 ﻿using Asher.SDK.Logging;
+using Asher.SDK.Patching;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -13,12 +14,9 @@ namespace Asher.Patching.IntroSkipper
     /// </summary>
     public sealed class IntroSkipperPatch : IAsherPatchModule
     {
-        /// <summary>
-        /// Define se o patch será aplicado. Configurado via PreInit.
-        /// </summary>
         public static bool Enabled { get; set; }
 
-        public string Name => "Intro Skipper (Option 1 - Startup Stage Skip)";
+        public string Name => "Intro Skipper";
 
         public void Apply(Harmony harmony)
         {
@@ -50,8 +48,6 @@ namespace Asher.Patching.IntroSkipper
                     prefix: new HarmonyMethod(
                         typeof(IntroSkipperPatch),
                         nameof(DrawStartupPrefix)));
-
-                AsherLog.Info("[IntroSkipper] ✓ Patch aplicado (Opção 1 - pulo de estágio)");
             }
             catch (Exception ex)
             {
@@ -63,7 +59,10 @@ namespace Asher.Patching.IntroSkipper
         {
             try
             {
-                var game1Type = typeof(Dust.Game1);
+                var game1Type = AppDomain.CurrentDomain
+                    .GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "DustAET")
+                    ?.GetType("Dust.Game1");
 
                 var stageField = game1Type.GetField(
                     "startUpStage",
@@ -78,7 +77,6 @@ namespace Asher.Patching.IntroSkipper
 
                 int currentStage = (int)stageField.GetValue(null);
 
-                // Se ainda está nos estágios da intro, pula tudo
                 if (currentStage < 6)
                 {
                     stageField.SetValue(null, 6);

@@ -1,4 +1,5 @@
 ﻿using Asher.SDK.Logging;
+using Asher.SDK.Patching;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,6 @@ namespace Asher.Patching.DebugEnabler
     /// </summary>
     public sealed class DebugEnablerPatch : IAsherPatchModule
     {
-        /// <summary>
-        /// Define se o patch será aplicado. Configurado via PreInit.
-        /// </summary>
         public static bool Enabled { get; set; }
 
         public string Name => "Debug Menu Enabler";
@@ -45,8 +43,6 @@ namespace Asher.Patching.DebugEnabler
 
                 harmony.Patch(initMethod,
                     postfix: new HarmonyMethod(typeof(DebugEnablerPatch), nameof(EnableDebugMenu)));
-
-                AsherLog.Info("[DebugEnabler] ✓ Debug menu habilitado");
             }
             catch (Exception ex)
             {

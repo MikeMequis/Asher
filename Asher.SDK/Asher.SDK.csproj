@@ -48,7 +48,8 @@
   <ItemGroup>
     <Compile Include="Logging\AsherLog.cs" />
     <Compile Include="Logging\IAsherLogger.cs" />
-    <Compile Include="Patching\AsherLifecycleModuleBase.cs" />
+    <Compile Include="Patching\Core\BaseAsherLifecycle.cs" />
+    <Compile Include="Patching\Core\BaseAsherPatchConfig.cs" />
     <Compile Include="Patching\IAsherLifecycleModule.cs" />
     <Compile Include="Patching\IAsherPatchModule.cs" />
     <Compile Include="Patching\IAsherPreInitModule.cs" />

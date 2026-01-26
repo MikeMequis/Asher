@@ -1,169 +1,182 @@
 ﻿<UserControl x:Class="Asher.UserInterface.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Asher.UserInterface.Views"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:prism="http://prismlibrary.com/"
-             prism:ViewModelLocator.AutoWireViewModel="True">
-    
+             prism:ViewModelLocator.AutoWireViewModel="True"
+             mc:Ignorable="d">
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24">
-            <!-- Header -->
+            <!--  Header  -->
             <materialDesign:Card Margin="0,0,0,24" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Settings"
+                    <TextBlock Margin="0,0,0,8"
                                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                               Margin="0,0,0,8"/>
-                    <TextBlock Text="Configure application preferences and game settings"
+                               Text="Settings" />
+                    <TextBlock Opacity="0.7"
                                Style="{StaticResource MaterialDesignBody1TextBlock}"
-                               Opacity="0.7"/>
+                               Text="Configure application preferences and game settings" />
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Game Settings -->
+            <!--  Game Settings  -->
             <materialDesign:Card Margin="0,0,0,16" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Game Settings"
+                    <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Margin="0,0,0,16"/>
-                    
+                               Text="Game Settings" />
+
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        
-                        <!-- Game Path -->
-                        <TextBlock Grid.Row="0" Grid.Column="0"
-                                   Text="Game Executable Path"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+
+                        <!--  Game Path  -->
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Margin="0,0,16,0"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,16,0"/>
-                        
-                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                            <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Text="Game Executable Path" />
+
+                        <StackPanel Grid.Row="0"
+                                    Grid.Column="1"
+                                    Orientation="Horizontal">
+                            <TextBox Width="300"
+                                     Margin="0,0,8,0"
                                      materialDesign:HintAssist.Hint="Path to DustAET.exe"
-                                     Text="{Binding GamePath, UpdateSourceTrigger=PropertyChanged}"
-                                     Width="300"
-                                     Margin="0,0,8,0"/>
-                            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     Text="{Binding GamePath, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Command="{Binding BrowseGamePathCommand}"
                                     Content="Browse"
-                                    Command="{Binding BrowseGamePathCommand}"/>
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
                         </StackPanel>
-                        
-                        <!-- Auto Launch -->
-                        <TextBlock Grid.Row="1" Grid.Column="0"
-                                   Text="Auto-launch with patches"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+
+                        <!--  Auto Launch  -->
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   Margin="0,16,16,0"
                                    VerticalAlignment="Center"
-                                   Margin="0,16,16,0"/>
-                        
-                        <ToggleButton Grid.Row="1" Grid.Column="1"
-                                      Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Text="Auto-launch with patches" />
+
+                        <ToggleButton Grid.Row="1"
+                                      Grid.Column="1"
+                                      Margin="0,16,0,0"
+                                      VerticalAlignment="Center"
                                       IsChecked="{Binding AutoLaunchEnabled}"
-                                      VerticalAlignment="Center"
-                                      Margin="0,16,0,0"/>
-                        
-                        <!-- Backup Enabled -->
-                        <TextBlock Grid.Row="2" Grid.Column="0"
-                                   Text="Enable automatic backups"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                      Style="{StaticResource MaterialDesignSwitchToggleButton}" />
+
+                        <!--  Backup Enabled  -->
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   Margin="0,16,16,0"
                                    VerticalAlignment="Center"
-                                   Margin="0,16,16,0"/>
-                        
-                        <ToggleButton Grid.Row="2" Grid.Column="1"
-                                      Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                      IsChecked="{Binding BackupEnabled}"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Text="Enable automatic backups" />
+
+                        <ToggleButton Grid.Row="2"
+                                      Grid.Column="1"
+                                      Margin="0,16,0,0"
                                       VerticalAlignment="Center"
-                                      Margin="0,16,0,0"/>
+                                      IsChecked="{Binding BackupEnabled}"
+                                      Style="{StaticResource MaterialDesignSwitchToggleButton}" />
                     </Grid>
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Application Settings -->
+            <!--  Application Settings  -->
             <materialDesign:Card Margin="0,0,0,16" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Application Settings"
+                    <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Margin="0,0,0,16"/>
-                    
+                               Text="Application Settings" />
+
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        
-                        <!-- Language -->
-                        <TextBlock Grid.Row="0" Grid.Column="0"
-                                   Text="Language"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+
+                        <!--  Language  -->
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Margin="0,0,16,0"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,16,0"/>
-                        
-                        <ComboBox Grid.Row="0" Grid.Column="1"
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Text="Language" />
+
+                        <ComboBox Grid.Row="0"
+                                  Grid.Column="1"
                                   Width="200"
                                   ItemsSource="{Binding AvailableLanguages}"
-                                  SelectedItem="{Binding SelectedLanguage}"/>
-                        
-                        <!-- Theme -->
-                        <TextBlock Grid.Row="1" Grid.Column="0"
-                                   Text="Theme"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                  SelectedItem="{Binding SelectedLanguage}"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+
+                        <!--  Theme  -->
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   Margin="0,16,16,0"
                                    VerticalAlignment="Center"
-                                   Margin="0,16,16,0"/>
-                        
-                        <ComboBox Grid.Row="1" Grid.Column="1"
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Text="Theme" />
+
+                        <ComboBox Grid.Row="1"
+                                  Grid.Column="1"
                                   Width="200"
+                                  Margin="0,16,0,0"
                                   ItemsSource="{Binding AvailableThemes}"
                                   SelectedItem="{Binding SelectedTheme}"
-                                  Margin="0,16,0,0"/>
-                        
-                        <!-- Check for Updates -->
-                        <TextBlock Grid.Row="2" Grid.Column="0"
-                                   Text="Check for updates on startup"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+
+                        <!--  Check for Updates  -->
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   Margin="0,16,16,0"
                                    VerticalAlignment="Center"
-                                   Margin="0,16,16,0"/>
-                        
-                        <ToggleButton Grid.Row="2" Grid.Column="1"
-                                      Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                                      IsChecked="{Binding CheckForUpdatesEnabled}"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   Text="Check for updates on startup" />
+
+                        <ToggleButton Grid.Row="2"
+                                      Grid.Column="1"
+                                      Margin="0,16,0,0"
                                       VerticalAlignment="Center"
-                                      Margin="0,16,0,0"/>
+                                      IsChecked="{Binding CheckForUpdatesEnabled}"
+                                      Style="{StaticResource MaterialDesignSwitchToggleButton}" />
                     </Grid>
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Actions -->
+            <!--  Actions  -->
             <materialDesign:Card Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Actions"
+                    <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Margin="0,0,0,16"/>
-                    
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
-                                Content="Reset to Defaults"
+                               Text="Actions" />
+
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <Button Margin="0,0,8,0"
                                 Command="{Binding ResetToDefaultsCommand}"
-                                Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                Content="Reset to Defaults"
+                                Style="{StaticResource MaterialDesignOutlinedButton}" />
+                        <Button Command="{Binding SaveSettingsCommand}"
                                 Content="Save Settings"
-                                Command="{Binding SaveSettingsCommand}"/>
+                                Style="{StaticResource MaterialDesignRaisedButton}" />
                     </StackPanel>
                 </StackPanel>
             </materialDesign:Card>

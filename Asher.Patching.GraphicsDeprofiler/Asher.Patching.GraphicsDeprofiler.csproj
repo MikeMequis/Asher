@@ -48,8 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GraphicsDeprofilerMonitor.cs" />
-    <Compile Include="GraphicsDeprofilerPreInit.cs" />
+    <Compile Include="GraphicsDeprofilerConfig.cs" />
+    <Compile Include="GraphicsDeprofilerLifecycle.cs" />
+    <Compile Include="GraphicsDeprofilerPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

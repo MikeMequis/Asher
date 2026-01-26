@@ -9,34 +9,37 @@ using System.Reflection;
 namespace Asher.Patching.GraphicsDeprofiler
 {
     /// <summary>
-    /// PATCH ANTECIPADO via PreInit para evitar JIT prematuro.
-    /// Aplica o patch ANTES de qualquer chamada a IsProfileSupported.
+    /// Este patch DEVE ser aplicado no PreInit, não no PatchModuleLoader normal.
     /// </summary>
-    public sealed class GraphicsDeprofilerPreInit : IAsherPreInitModule
+    public sealed class GraphicsDeprofilerPatch : IAsherPreInitModule
     {
-        public string Name => "Graphics Deprofiler (PreInit)";
+        /// <summary>
+        /// Define se o patch será aplicado.
+        /// Configurado via GraphicsDeprofilerConfig no PreInit.
+        /// </summary>
+        public static bool Enabled { get; set; }
+
+        public string Name => "Graphics Deprofiler Patch";
 
         public void Execute()
         {
+            if (!Enabled)
+            {
+                AsherLog.Info("[Deprofiler] Patch desabilitado - pulando aplicação");
+                return;
+            }
+
             try
             {
                 AsherLog.Info("[Deprofiler] Aplicando patch antecipado...");
 
-                // Cria instância Harmony ANTES de qualquer chamada ao método
                 var harmony = new Harmony("com.asher.deprofiler");
-
-                // Patcha TODOS os overloads de IsProfileSupported
                 int patchCount = PatchAllIsProfileSupportedMethods(harmony);
 
                 if (patchCount > 0)
-                {
                     AsherLog.Info($"[Deprofiler] ✓ {patchCount} método(s) patchado(s)");
-                    AsherLog.Warning("[Deprofiler] ⚠️ Bypass de HiDef ativo - podem ocorrer problemas gráficos");
-                }
                 else
-                {
                     AsherLog.Warning("[Deprofiler] Nenhum método encontrado para patch");
-                }
             }
             catch (Exception ex)
             {
@@ -49,29 +52,27 @@ namespace Asher.Patching.GraphicsDeprofiler
             int count = 0;
             var graphicsAdapterType = typeof(GraphicsAdapter);
 
-            // Lista TODOS os métodos chamados IsProfileSupported
+            // Busca TODOS os overloads de IsProfileSupported
             var allMethods = graphicsAdapterType.GetMethods(
-                BindingFlags.Instance |
-                BindingFlags.Public |
-                BindingFlags.NonPublic
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
             ).Where(m => m.Name == "IsProfileSupported");
 
             foreach (var method in allMethods)
             {
                 try
                 {
-                    // Log da assinatura encontrada
-                    var parameters = string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name));
-                    AsherLog.Info($"[Deprofiler] Encontrado: {method.Name}({parameters}) - {(method.IsPublic ? "public" : "internal")}");
+                    var parameters = string.Join(", ",
+                        method.GetParameters().Select(p => p.ParameterType.Name));
 
-                    // Aplica o prefix
+                    AsherLog.Info($"[Deprofiler] Patchando: {method.Name}({parameters}) - " +
+                        $"{(method.IsPublic ? "public" : "internal")}");
+
                     harmony.Patch(
                         method,
-                        prefix: new HarmonyMethod(typeof(GraphicsDeprofilerPreInit), nameof(AlwaysReturnTrue))
+                        prefix: new HarmonyMethod(typeof(GraphicsDeprofilerPatch), nameof(AlwaysReturnTrue))
                     );
 
                     count++;
-                    AsherLog.Info($"[Deprofiler] ✓ Patch aplicado em {method.Name}");
                 }
                 catch (Exception ex)
                 {
@@ -83,8 +84,7 @@ namespace Asher.Patching.GraphicsDeprofiler
         }
 
         /// <summary>
-        /// Prefix universal que força retorno true.
-        /// Funciona para qualquer assinatura de IsProfileSupported.
+        /// Prefix que força retorno true para qualquer perfil gráfico.
         /// </summary>
         private static bool AlwaysReturnTrue(ref bool __result)
         {

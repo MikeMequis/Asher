@@ -14,7 +14,6 @@ namespace Asher.App
         {
             containerRegistry.Register<MainWindow>();
             containerRegistry.RegisterSingleton<IGameFolderService, GameFolderService>();
-            containerRegistry.RegisterSingleton<IHarmonyService, HarmonyService>();
             containerRegistry.RegisterSingleton<IPatchManagerService, PatchManagerService>();
         }
 
