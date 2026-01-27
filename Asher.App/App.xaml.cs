@@ -15,6 +15,9 @@ namespace Asher.App
             containerRegistry.Register<MainWindow>();
             containerRegistry.RegisterSingleton<IGameFolderService, GameFolderService>();
             containerRegistry.RegisterSingleton<IPatchManagerService, PatchManagerService>();
+            containerRegistry.RegisterSingleton<IGameInstallationService, GameInstallationService>();
+            containerRegistry.RegisterSingleton<IInstallationStateService, InstallationStateService>();
+            containerRegistry.RegisterSingleton<INavigationItemsManager, NavigationItemsManager>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)

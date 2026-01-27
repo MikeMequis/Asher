@@ -8,6 +8,14 @@
         public const string Settings = "SettingsView";
     }
 
+    public static class InstallationNavigationNames
+    {
+        public const string Welcome = "WelcomeView";
+        public const string GameDetection = "GameDetectionView";
+        public const string InstallationProgress = "InstallationProgressView";
+        public const string InstallationResult = "InstallationResultView";
+    }
+
     public static class RegionNames
     {
         public const string Main = "MainRegion";

@@ -1,4 +1,5 @@
 ﻿using Asher.Core.Models;
+using Asher.Services.Interfaces;
 using MaterialDesignThemes.Wpf;
 using System.Collections.ObjectModel;
 
@@ -7,6 +8,7 @@ namespace Asher.UserInterface.ViewModels
     public class MainWindowViewModel : BaseViewModel
     {
         public ObservableCollection<NavigationItem> NavigationItems { get; } = new();
+        public ObservableCollection<NavigationItem> InstallationNavigationItems { get; } = new();
 
         private bool _isSidebarExpanded = true;
         public bool IsSidebarExpanded
@@ -23,11 +25,14 @@ namespace Asher.UserInterface.ViewModels
         }
 
         private readonly IRegionManager _regionManager;
+        private readonly INavigationItemsManager _navigationItemsManager;
 
-        public MainWindowViewModel(IRegionManager regionManager)
+        public MainWindowViewModel(IRegionManager regionManager,
+                                   INavigationItemsManager navigationItemsManager)
         {
             _regionManager = regionManager;
-            
+            _navigationItemsManager = navigationItemsManager;
+
             InitializeNavigationItems();
             NavigateToHome();
         }
@@ -35,7 +40,7 @@ namespace Asher.UserInterface.ViewModels
         public override Task InitAsync() => Task.CompletedTask;
 
         private DelegateCommand _toggleSidebarCommand;
-        public DelegateCommand ToggleSidebarCommand => 
+        public DelegateCommand ToggleSidebarCommand =>
             _toggleSidebarCommand ??= new DelegateCommand(ExecuteToggleSidebarCommand);
 
         private DelegateCommand<NavigationItem> _navigateCommand;
@@ -46,12 +51,12 @@ namespace Asher.UserInterface.ViewModels
 
         private void ExecuteNavigateCommand(NavigationItem? item)
         {
-            if (item == null) 
+            if (item == null)
                 return;
 
             foreach (var navItem in NavigationItems)
                 navItem.IsSelected = navItem == item;
-            
+
             SelectedNavigationItem = item;
 
             _regionManager.RequestNavigate(RegionNames.Main, item.NavigationPath);
@@ -59,39 +64,28 @@ namespace Asher.UserInterface.ViewModels
 
         private void InitializeNavigationItems()
         {
-            NavigationItems.Clear();
-
-            NavigationItems.Add(new NavigationItem
+            if (false)
             {
-                Name = "Home",
-                Label = "Home",
-                Icon = PackIconKind.Home,
-                NavigationPath = NavigationNames.Home
-            });
+                InstallationNavigationItems.Clear();
 
-            NavigationItems.Add(new NavigationItem
+                _navigationItemsManager.CreateOptions(InstallationNavigationItems,
+                    ("Home", "Home", PackIconKind.Home, InstallationNavigationNames.Welcome, true),
+                    ("ContentPatcher", "Content Patcher", PackIconKind.ContentPaste, InstallationNavigationNames.GameDetection, false),
+                    ("PatchManager", "Patch Manager", PackIconKind.Puzzle, InstallationNavigationNames.InstallationProgress, false),
+                    ("Settings", "Settings", PackIconKind.Settings, InstallationNavigationNames.InstallationResult, false)
+                    );
+            }
+            else
             {
-                Name = "ContentPatcher",
-                Label = "Content Patcher",
-                Icon = PackIconKind.ContentPaste,
-                NavigationPath = NavigationNames.ContentPatcher
-            });
+                NavigationItems.Clear();
 
-            NavigationItems.Add(new NavigationItem
-            {
-                Name = "PatchManager",
-                Label = "Patch Manager",
-                Icon = PackIconKind.Puzzle,
-                NavigationPath = NavigationNames.PatchManager
-            });
-
-            NavigationItems.Add(new NavigationItem
-            {
-                Name = "Settings",
-                Label = "Settings",
-                Icon = PackIconKind.Settings,
-                NavigationPath = NavigationNames.Settings
-            });
+                _navigationItemsManager.CreateOptions(NavigationItems,
+                        ("Home", "Home", PackIconKind.Home, NavigationNames.Home, true),
+                        ("ContentPatcher", "Content Patcher", PackIconKind.ContentPaste, NavigationNames.ContentPatcher, true),
+                        ("PatchManager", "Patch Manager", PackIconKind.Puzzle, NavigationNames.PatchManager, true),
+                        ("Settings", "Settings", PackIconKind.Settings, NavigationNames.Settings, true)
+                        );
+            }
         }
 
         private void NavigateToHome()

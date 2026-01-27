@@ -18,10 +18,17 @@ namespace Asher.UserInterface
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
+            //Config
             containerRegistry.RegisterForNavigation(typeof(HomeView), NavigationNames.Home);
             containerRegistry.RegisterForNavigation(typeof(ContentPatcherView), NavigationNames.ContentPatcher);
             containerRegistry.RegisterForNavigation(typeof(PatchManagerView), NavigationNames.PatchManager);
             containerRegistry.RegisterForNavigation(typeof(SettingsView), NavigationNames.Settings);
+
+            //Installation
+            containerRegistry.RegisterForNavigation(typeof(WelcomeView), InstallationNavigationNames.Welcome);
+            containerRegistry.RegisterForNavigation(typeof(GameDetectionView), InstallationNavigationNames.GameDetection);
+            containerRegistry.RegisterForNavigation(typeof(InstallationProgressView), InstallationNavigationNames.InstallationProgress);
+            containerRegistry.RegisterForNavigation(typeof(InstallationResultView), InstallationNavigationNames.InstallationResult);
         }
     }
 }

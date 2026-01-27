@@ -12,14 +12,12 @@ namespace Asher.Services.Implementations
         public GameFolderInfo DetectGameFolder()
         {
             // Try detection methods in order of likelihood
-            return TryGetPath(GetSteamDustPath())
-                ?? TryGetPath(GetGogDustPath())
-                ?? TryGetPath(GetHumbleDustPath())
+            return TryGetPath(GetSteamPath())
+                ?? TryGetPath(GetGogPath())
+                ?? TryGetPath(GetHumblePath())
                 ?? TryGetPath(SearchForDustFolder())
                 ?? CreateEmptyInfo();
         }
-
-
 
         public void CreatePatchesFolder(string folderPath)
         {
@@ -74,7 +72,7 @@ namespace Asher.Services.Implementations
             };
         }
 
-        private string GetSteamDustPath()
+        private string GetSteamPath()
         {
             var steamLocations = new[]
             {
@@ -97,7 +95,7 @@ namespace Asher.Services.Implementations
                 }
 
                 // Check default location
-                string defaultPath = Path.Combine(steamPath, "steamapps", "common", "DustAET");
+                string defaultPath = Path.Combine(steamPath, "steamapps", "common", "Dust An Elysian Tail");
                 if (Directory.Exists(defaultPath))
                     return defaultPath;
             }
@@ -114,7 +112,7 @@ namespace Asher.Services.Implementations
                     var parts = line.Split('"');
                     foreach (var part in parts.Where(p => p.Contains(":\\")))
                     {
-                        string candidate = Path.Combine(part, "steamapps", "common", "DustAET");
+                        string candidate = Path.Combine(part, "steamapps", "common", "Dust An Elysian Tail");
                         if (Directory.Exists(candidate))
                             return candidate;
                     }
@@ -124,7 +122,7 @@ namespace Asher.Services.Implementations
             return null;
         }
 
-        private string GetGogDustPath()
+        private string GetGogPath()
         {
             var gogLocations = new[]
             {
@@ -138,7 +136,7 @@ namespace Asher.Services.Implementations
             return FindGameInLocations(gogLocations);
         }
 
-        private string GetHumbleDustPath()
+        private string GetHumblePath()
         {
             var humbleLocations = new[]
             {
