@@ -13,17 +13,20 @@ namespace Asher.UserInterface.ViewModels
         private readonly IInstallationStateService _stateService;
         private readonly IRegionManager _regionManager;
         private readonly IShortcutService _shortcutService;
+        private readonly IManagerLaunchService _managerLaunchService;
 
         public InstallationResultViewModel(
             IEventAggregator eventAggregator,
             IInstallationStateService stateService,
             IRegionManager regionManager,
-            IShortcutService shortcutService)
+            IShortcutService shortcutService,
+            IManagerLaunchService managerLaunchService)
         {
             _eventAggregator = eventAggregator;
             _stateService = stateService;
             _regionManager = regionManager;
             _shortcutService = shortcutService;
+            _managerLaunchService = managerLaunchService;
         }
 
         private bool _isSuccess;
@@ -188,11 +191,16 @@ namespace Asher.UserInterface.ViewModels
 
                 if (CreateDesktopShortcut && !string.IsNullOrWhiteSpace(gameFolderPath))
                 {
-                    var managerExe = Path.Combine(
-                        AsherPaths.GetManagerFolderPath(gameFolderPath),
-                        "Asher.App.exe");
-
+                    var managerExe = _managerLaunchService.GetInstalledManagerPath(gameFolderPath);
                     _shortcutService.TryCreateDesktopShortcut(managerExe, "Asher", out _);
+                }
+
+                if (!string.IsNullOrWhiteSpace(gameFolderPath)
+                    && _managerLaunchService.ShouldRelaunchAfterInstall(gameFolderPath)
+                    && _managerLaunchService.TryRelaunchManager(gameFolderPath, out _))
+                {
+                    System.Windows.Application.Current.Shutdown();
+                    return;
                 }
             }
 

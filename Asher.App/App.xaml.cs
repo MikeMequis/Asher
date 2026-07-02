@@ -41,6 +41,7 @@ namespace Asher.App
             containerRegistry.RegisterSingleton<INavigationItemsManager, NavigationItemsManager>();
             containerRegistry.RegisterSingleton<IGameLaunchService, GameLaunchService>();
             containerRegistry.RegisterSingleton<IShortcutService, ShortcutService>();
+            containerRegistry.RegisterSingleton<IManagerLaunchService, ManagerLaunchService>();
             containerRegistry.RegisterSingleton<IThemeService, ThemeService>();
         }
 
