@@ -20,6 +20,7 @@ External services (such as patching/game integration) are handled by .NET 4.8 co
   <ItemGroup>
     <ProjectReference Include="..\Asher.Services\Asher.Services.csproj" />
     <ProjectReference Include="..\Asher.UserInterface\Asher.UserInterface.csproj" />
+    <ProjectReference Include="..\Asher.Localization\Asher.Localization.csproj" />
   </ItemGroup>
 
 </Project>

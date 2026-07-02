@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Bootstrap\AssemblyLoader.cs" />
     <Compile Include="Bootstrap\GameLifecycleHooks.cs" />
+    <Compile Include="Bootstrap\GameTitleBootstrap.cs" />
     <Compile Include="Bootstrap\HarmonyLifecycleBootstrap.cs" />
     <Compile Include="Bootstrap\LifecycleModuleLoader.cs" />
     <Compile Include="Bootstrap\PreInitBootstrap.cs" />

@@ -25,6 +25,8 @@ Injection and patching are **controlled and delayed**, never performed blindly a
 
 This design mirrors proven approaches used by SMAPI and other stable modding platforms.
 
+A companion **WPF manager app** (`Asher.App`) handles installation, mod management, and user settings without touching the game process directly.
+
 ---
 
 ## 🗂️ Solution Structure
@@ -32,13 +34,20 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 ```
 /Asher.sln
 │
-├── Asher.Launcher/         → Custom game launcher (.NET Framework 4.8)
-│   └── Program.cs          → Entry point and bootstrap orchestration
+├── Asher.App/                  → WPF installer & mod manager (.NET 8, x86)
+├── Asher.UserInterface/        → WPF views, view models, theming
+├── Asher.Services/             → Installation, launch, patch manager, shortcuts
+├── Asher.Core/                 → Paths, settings, shared models
+├── Asher.Localization/         → UI strings (en-US, pt-BR)
 │
-├── Asher.Runtime/          → Runtime mod loader foundation (.NET Framework 4.8)
+├── Asher.Launcher/             → Custom game launcher (.NET Framework 4.8)
+│   └── Program.cs              → Entry point and bootstrap orchestration
+│
+├── Asher.Runtime/              → Runtime mod loader foundation (.NET Framework 4.8)
 │   ├── Bootstrap/
 │   │   ├── AssemblyLoader.cs            → Dynamic mod assembly loading
 │   │   ├── GameLifecycleHooks.cs        → Game lifecycle event hooks
+│   │   ├── GameTitleBootstrap.cs        → Sets game window title
 │   │   ├── HarmonyLifecycleBootstrap.cs → Optional lifecycle hook injection
 │   │   ├── PreInitBootstrap.cs          → PreInit module discovery & execution
 │   │   ├── PatchModuleLoader.cs         → Harmony patch application
@@ -53,9 +62,9 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 │   │   └── GameLifecycleEventBus.cs     → Lifecycle state management
 │   ├── RuntimeEntry.cs                  → Public runtime API
 │   ├── RuntimeLogger.cs                 → File-based logging system
-|   └── RuntimeLoggerAdapter.cs          → SDK logger bridge
+│   └── RuntimeLoggerAdapter.cs          → SDK logger bridge
 │
-├── Asher.SDK/              → API for mod developers (.NET Framework 4.8)
+├── Asher.SDK/                  → API for mod developers (.NET Framework 4.8)
 │   ├── Logging/
 │   │   ├── AsherLog.cs                  → Static logger facade
 │   │   └── IAsherLogger.cs              → Logger interface
@@ -65,90 +74,157 @@ This design mirrors proven approaches used by SMAPI and other stable modding pla
 │       ├── IAsherPatchModule.cs         → Harmony patch module interface
 │       └── IAsherPreInitModule.cs       → PreInit module interface
 │
-├── /Mods/                  → External mod assemblies (runtime-loaded)
-│   ├── Asher.Patching.DebugEnabler.dll       → First working mod (Debug Menu)
-|   ├── Asher.Patching.IntroSkipper.dll       → Skips ESRB rating, splashes, etc.
-│   └── Asher.Patching.GraphicsDeprofiler.dll → Intel graphic adapter fix
+├── Asher.Patching.*/           → Built-in patch mods (DebugEnabler, IntroSkipper, etc.)
 │
-└── /AsherLogs/             → Runtime logs
-    └── runtime_YYYYMMDD_HHMMSS.log
+├── PrepareDistribution.ps1     → Bundles Distribution/ folder for install & deploy
+└── Distribution/               → Output folder (generated, not committed)
 ```
+
+---
+
+## 🖥️ Asher Manager App
+
+`Asher.App` is a WPF application built with **Prism**, **Material Design**, and a modular service layer.
+
+### Installation mode
+
+When Asher is not yet installed in a game folder, the app opens in **installation mode** and starts on the **Start** page:
+
+1. **Start** — welcome and begin installation
+2. **Detect Game** — auto-detect or browse for the Dust folder
+3. **Installing** — deploy runtime, launcher wrapper, and default mods
+4. **Complete** — summary with optional **desktop shortcut** creation
+
+On finish, the app switches to mod manager mode and navigates to **Home**. If the installer was run from `Distribution\`, the distribution app closes and the installed copy at `[Game]\Asher\Asher.App\Asher.App.exe` is launched automatically.
+
+### Mod manager mode
+
+When Asher is already installed (detected from settings or from running inside `[Game]\Asher\Asher.App\`), the app opens in **manager mode** and starts on **Home**:
+
+| Page | Description |
+|------|-------------|
+| **Home** | Quick actions — launch game, open Patch Manager, Settings |
+| **Content Patcher** | Asset replacement UI (planned functionality) |
+| **Patch Manager** | Enable/disable mods by moving DLLs between `Mods/` and `Mods/disabled/` |
+| **Settings** | Game path, language, theme, backups, auto-launch |
+
+### App features
+
+- **Localization** — English and Portuguese (Brazil); language changes refresh labels without resetting the current page
+- **Light / Dark theme** — full-window Material Design theming via Settings
+- **Settings persistence** — `settings.json` in AppData, game manager folder, and local app directory
+- **Game launch** — launches `DustAET.exe` (Asher launcher wrapper) from the detected game folder
+- **Desktop shortcut** — optional shortcut to `Asher.App.exe` after installation
+- **Legacy layout migration** — automatically moves old root-level `Asher.App`, `Asher.Backup`, and `patches` into `Asher/`
 
 ---
 
 ## 🚀 Runtime Flow Overview
 
-### **Initialization Sequence (Proven and Working)**
+### Initialization Sequence
 
 ```
-1. User launches DustAET.exe (Asher.Launcher.exe wrapper)
+1. User launches DustAET.exe via Steam or Asher Manager (Asher.Launcher wrapper)
    ↓
 2. Launcher validates game installation
    ↓
 3. RuntimeEntry.Init(context)
    ├─> RuntimeLogger initialized
-   ├─> Directories prepared (Mods/, AsherLogs/, config/, cache/)
+   ├─> Directories prepared (Asher/Mods/, Asher/AsherLogs/)
    └─> Configuration loaded
    ↓
 4. Assembly.LoadFrom(DustAET.real.exe)
    ↓
-5. AssemblyLoader.LoadAssembliesFrom("Mods/")
+5. AssemblyLoader.LoadAssembliesFrom("Asher/Mods/")
    └─> All *.dll files in Mods/ loaded dynamically
    ↓
 6. PreInitBootstrap.ExecutePreInitModules()
    └─> Scans all loaded assemblies for IAsherPreInitModule
    └─> Executes each module's Execute() method
-   └─> Example: DebugPreInitModule sets DebugState.EnableDebug = true
    ↓
-7. PatchModuleLoader.Load()
+7. GameTitleBootstrap.Apply(gameAssembly)
+   └─> Sets window title to "Dust - An Elysian Tail (Asher)"
+   ↓
+8. PatchModuleLoader.Load()
    ├─> Creates Harmony instance ("com.asher.runtime.mods")
    ├─> Scans for IAsherPatchModule implementations
    ├─> Applies each module's patches via Harmony
-   ├─> Example: DebugPatchModule patches Game1.Initialize
    ├─> LifecycleModuleLoader.Load()
-   │   └─> Registers IAsherLifecycleModule instances
    └─> HarmonyLifecycleBootstrap.InitializeIfNeeded()
-       └─> Applies lifecycle hooks only if modules require them
    ↓
-8. Dust.Program.Main(args) invoked via Reflection
+9. Dust.Program.Main(args) invoked via Reflection
    ↓
-9. Game executes normally with patches applied
-   ├─> Game1.Initialize() 
-   │   ├─> [Harmony Patch] DebugPatchModule.EnableDebug()
-   │   │   └─> Sets canDebug = true
-   │   └─> [Lifecycle Hook] GameLifecycleHooks.OnGameInitialized()
-   │       └─> Notifies lifecycle modules
-   ├─> Game1.LoadContent()
-   │   └─> [Lifecycle Hook] GameLifecycleHooks.OnContentLoaded()
-   │       └─> Notifies lifecycle modules
-   └─> Game1.Update() + Draw() loop continues
+10. Game executes normally with patches applied
 ```
+
+> **Important:** Launch the game through **Steam** or the manager's **Launch Game** button. Do not run `Asher.Launcher.exe` directly from the distribution folder — it must sit in the game root as `DustAET.exe` with `DustAET.exe.config` probing `Asher` and `Asher\Mods`.
 
 ---
 
-## 📁 Runtime Folder Layout
+## 📁 Installed Game Folder Layout
+
+After installation, the game directory looks like this:
 
 ```
 /GameFolder/
-├── DustAET.exe              (Asher.Launcher.exe wrapper)
-├── DustAET.real.exe         (original game executable)
-├── Asher.Runtime.dll
-├── Asher.SDK.dll
-├── 0Harmony.dll
+├── DustAET.exe                  (Asher.Launcher copy — Steam entry point)
+├── DustAET.exe.config           (assembly probing: Asher; Asher\Mods)
+├── DustAET.real.exe             (original game executable, renamed)
 │
-├── /AsherLogs/
-│   └── runtime_20260122_211759.log
-│
-└── /Mods/
-    ├── Asher.Patching.DebugEnabler.dll
-    ├── Asher.Patching.IntroSkipper.dll
-    └── Asher.Patching.GraphicsDeprofiler.dll
-    ├── /config/
-    │   └── runtime.cfg (future)
-    └── /cache/
+└── Asher/
+    ├── Asher.Runtime.dll
+    ├── Asher.SDK.dll
+    ├── 0Harmony.dll             (net472 build — required)
+    │
+    ├── Mods/                    (active runtime mods)
+    │   ├── Asher.Patching.DebugEnabler.dll
+    │   ├── Asher.Patching.IntroSkipper.dll
+    │   ├── Asher.Patching.GraphicsDeprofiler.dll
+    │   └── disabled/            (mods disabled via Patch Manager)
+    │
+    ├── AsherLogs/
+    │   └── runtime_YYYYMMDD_HHMMSS.log
+    │
+    ├── patches/                 (content patcher assets, future)
+    ├── Asher.Backup/            (original exe backup)
+    │
+    └── Asher.App/               (manager app + install payload)
+        ├── Asher.App.exe
+        ├── settings.json
+        ├── Asher.Launcher.exe
+        └── DefaultMods/
 ```
 
-Folders are created automatically on first launch.
+Folders are created automatically during installation.
+
+---
+
+## 🔧 Build & Distribution
+
+### Requirements
+
+- Visual Studio 2022 (or `dotnet` CLI)
+- **Platform: x86**
+- **Configuration: Release** (for distribution)
+
+### Steps
+
+1. Build the solution as **x86 Release** in Visual Studio
+2. Run the distribution script from the repo root:
+
+```powershell
+.\PrepareDistribution.ps1
+```
+
+3. Run `Distribution\Asher.App.exe` to install Asher into a game folder
+4. After install, use `[GameFolder]\Asher\Asher.App\Asher.App.exe` for day-to-day management
+5. Launch the game via **Steam** or the manager's **Launch Game** button
+
+### Distribution notes
+
+- `PrepareDistribution.ps1` explicitly bundles the **net472** `0Harmony.dll` — using the wrong Harmony build will cause `System.Runtime` version errors at launch
+- The script copies launcher, runtime, SDK, default mods, and the manager app into `Distribution/`
+- `Distribution/` is generated output and should not be committed
 
 ---
 
@@ -165,11 +241,15 @@ Folders are created automatically on first launch.
 | PreInit system            | ✅ Done     | Flag configuration before patches              |
 | Lifecycle hooks           | ✅ Done     | Optional event system for game lifecycle       |
 | Mod SDK                   | ✅ Done     | Clean interfaces for mod developers            |
-| **First gameplay patch**  | ✅ Done     | **Debug Menu Enabler working**                 |
-| External mod loader       | ✅ Done     | Dynamic .dll loading from Mods/ folder         |
-| Mod metadata (json)       | 🔜 Planned  | mod.json for description, dependencies, etc.   |
+| First gameplay patch      | ✅ Done     | Debug Menu Enabler working                     |
+| External mod loader       | ✅ Done     | Dynamic .dll loading from Asher/Mods/          |
+| **Installer / Manager UI**| ✅ Done     | WPF app with install wizard & mod manager      |
+| **Patch Manager UI**      | ✅ Done     | Enable/disable mods via folder move            |
+| **Localization**          | ✅ Done     | English and Portuguese (Brazil)                |
+| **Light / Dark theme**    | ✅ Done     | Full-window Material Design theming            |
+| **Game window title**     | ✅ Done     | Shows "Dust - An Elysian Tail (Asher)"         |
 | Content patcher           | 🔜 Planned  | XNA ContentManager interception                |
-| WPF UI integration        | 🔜 Planned  | Mod selection & priority UI                    |
+| Mod metadata (json)       | 🔜 Planned  | mod.json for description, dependencies, etc.   |
 | Public Mod API docs       | 🔜 Planned  | Developer documentation and examples           |
 
 ---
@@ -183,10 +263,7 @@ Folders are created automatically on first launch.
 
 **Deliverables achieved:**
 - Stable multi-project solution architecture
-- Clear separation between:
-  - Launcher (entry point)
-  - Runtime (core infrastructure)
-  - SDK (mod developer API)
+- Clear separation between Launcher, Runtime, SDK, and Manager App
 - Wrapper EXE approach validated:
   - `DustAET.exe` → Asher Launcher
   - `DustAET.real.exe` → original game executable
@@ -202,171 +279,87 @@ Folders are created automatically on first launch.
 - Harmony (Prefix / Postfix / Transpiler patterns)
 
 **Key decisions locked in:**
-- Generics are used for Asher infrastructure, not for game analysis
-- Reflection is used for:
-  - Runtime type inspection
-  - Private member access
-  - Harmony patch support
 - Harmony is the official runtime patch engine
 - No permanent modification of game binaries or `.xnb` files
-
-**Practical outcome:**
-- Strong conceptual foundation
-- Clear understanding of each tool's responsibility
-- No architectural uncertainty
 
 #### 🟢 Task 2 — Launcher-Based Runtime Control
 **Status:** ✔ Completed
 
-**What was achieved:**
 - Custom launcher fully controls game startup
 - Runtime initialization occurs before game execution
 - Logging, folders, and context prepared deterministically
 - Runtime survives Steam launches transparently
-- Injection is delayed and explicit, never blind
-
-**Result:**
-- Asher fully owns the runtime lifecycle
-- Safe environment for Harmony patches
 
 #### 🟢 Task 3 — Module System Architecture
 **Status:** ✔ Completed
 
-**What was implemented:**
-1. **PreInit System**
-   - `IAsherPreInitModule` interface
-   - `PreInitBootstrap` for module discovery and execution
-   - Enables configuration before patches are applied
-   - Example: Setting flags, initializing shared state
-
-2. **Patch System**
-   - `IAsherPatchModule` interface
-   - `PatchModuleLoader` for Harmony patch application
-   - Scans all loaded assemblies for patch modules
-   - Applies patches before game initialization
-
-3. **Lifecycle System**
-   - `IAsherLifecycleModule` interface
-   - `AsherLifecycleModuleBase` abstract class for easier implementation
-   - `LifecycleModuleLoader` for event registration
-   - `GameLifecycleHooks` for automatic event capture
-   - `HarmonyLifecycleBootstrap` for optional hook injection
-   - Event bus pattern for decoupled communication
-
-**Result:**
-- Complete modding API with three distinct extension points
-- Mods can hook into PreInit, Patching, and Lifecycle events
-- Clean separation of concerns
+1. **PreInit System** — configuration before patches
+2. **Patch System** — Harmony patch application via `IAsherPatchModule`
+3. **Lifecycle System** — optional game event hooks
 
 #### 🟢 Task 4 — First Runtime Patch (Debug Enabler)
 **Status:** ✔ Completed ✨
 
-**What was achieved:**
-- ✅ Harmony successfully injected into game process
-- ✅ First working gameplay patch: **Debug Menu Enabler**
-- ✅ Patch modifies `Dust.Game1.canDebug` field at runtime
-- ✅ Debug menu accessible via Tab key in pause menu
-- ✅ PreInit → Patch → Lifecycle flow validated
-- ✅ All three module types demonstrated in one mod
-- ✅ Comprehensive logging confirms execution flow
+- First working gameplay patch: **Debug Menu Enabler**
+- PreInit → Patch → Lifecycle flow validated
 
-**Implementation details:**
-- **PreInit**: Sets `DebugState.EnableDebug = true`
-- **Patch**: Harmony postfix on `Game1.Initialize()` sets `canDebug = true`
-- **Lifecycle**: Logs when `Initialize` and `LoadContent` complete
+#### 🟢 Task 5 — Installer & Manager App
+**Status:** ✔ Completed
 
-**Result:**
-- **First gameplay modification working with Harmony**
-- Proof of concept for modding capabilities
+**What was implemented:**
+- `Asher.App` WPF installer with guided setup flow
+- Game folder auto-detection (Steam, manual browse)
+- Deploys runtime, launcher wrapper, and default mods into `Asher/`
+- Mod manager with Home, Patch Manager, Settings, and Content Patcher shell
+- Patch enable/disable by moving DLLs between `Mods/` and `Mods/disabled/`
+- Launch game from manager
+- Settings: language, Light/Dark theme, game path, backups
+- Desktop shortcut option after installation
+- `AsherPaths` helpers and legacy layout migration
+- `PrepareDistribution.ps1` for repeatable builds
 
 ---
 
 ### 🟨 DOING — Current Phase
 
-#### 🟨 Task 5 — Patch Porting & Reverse Engineering
+#### 🟨 Task 6 — Patch Porting & Reverse Engineering
 
 **Status:** 🔄 In Progress
 
-**Objective:**
-Port and modernize existing gameplay patches from **DustAetPatchingPlatform** into the **Asher runtime architecture**, ensuring safety, modularity, and full lifecycle control. This phase focuses on **systematically converting known, proven patches** into Asher-compliant modules.
-
-**Core strategy:**
-* Preserve original gameplay intent while:
-  * Removing hard-coded execution timing
-  * Integrating clean PreInit / Patch / Lifecycle separation
-* Ensure every converted patch:
-  * Is reversible
-  * Is configurable via PreInit
-  * Respects Asher’s controlled bootstrap sequence
+Port and modernize existing gameplay patches from **DustAetPatchingPlatform** into the Asher runtime architecture.
 
 **Current workflow:**
-1. Analyze original patch behavior and assumptions
+1. Analyze original patch behavior
 2. Inspect game internals using **dnSpy** when required
-3. Identify the *lifecycle moment* to intervene
-4. Reimplement the patch using:
-   * `IAsherPreInitModule` for configuration
-   * `IAsherPatchModule` for Harmony patches
-   * Optional lifecycle hooks for timing safety
-5. Validate behavior with runtime logs and execution
-
-**Technical approach:**
-* Direct assembly reference to `DustAET.real.exe`
-  * Enables IntelliSense and type-safe development
-  * Mirrors SMAPI’s approach to Stardew Valley
-* Harmony used exclusively for runtime patching
+3. Reimplement using `IAsherPreInitModule`, `IAsherPatchModule`, and optional lifecycle hooks
+4. Validate with runtime logs
 
 ---
 
-### 🟥 BACKLOG — Short Term (Next ~2 Months)
+### 🟥 BACKLOG — Short Term
 
-#### 🔴 Task 6 — Mod Metadata System
+#### 🔴 Task 7 — Mod Metadata System
 - Design `mod.json` schema
 - Parse metadata on mod load
-- Display mod information in logs
-- Support for:
-  - Name, description, author
-  - Version and dependencies
-  - Load priority
-  - Enabled/disabled state
+- Load priority and dependency support
 
-#### 🔴 Task 7 — Content Patcher (Core)
+#### 🔴 Task 8 — Content Patcher (Core)
 - Intercept `ContentManager.Load<T>()`
 - Resolve replacements via `content.json`
-- Support external assets:
-  - Textures (`.png`)
-  - Fonts (`.spritefont`)
-  - Data files (`.json`, `.xml`)
-- Hot-reload capability for development
+- Support external assets (textures, fonts, data files)
 
-#### 🔴 Task 8 — Mod Configuration System
+#### 🔴 Task 9 — Mod Configuration System
 - `IAsherConfigModule` interface
 - Per-mod configuration files
-- JSON/XML support
-- Runtime reloading
 - UI integration for settings
-
-#### 🔴 Task 9 — WPF UI Integration
-**Components:**
-- Mod list view (installed mods)
-- Enable/disable toggles
-- Load order management (drag & drop)
-- Per-mod configuration panel
-- Runtime log viewer
-- Mod installation wizard
-
-**Persistence:**
-- `selected_mods.json` (enabled mods)
-- `load_order.json` (priority)
-- `mod_configs/` folder (per-mod settings)
 
 #### 🔴 Task 10 — Mod Dependency System
 - Declare dependencies in `mod.json`
 - Validate dependency graph on load
 - Automatic load order resolution
-- Optional dependencies support
-- Version compatibility checks
 
 ---
+
 ## 🧠 Project Principles (Non-Negotiable)
 
 - 🚫 No `.xnb` editing
@@ -382,25 +375,28 @@ Port and modernize existing gameplay patches from **DustAetPatchingPlatform** in
 
 ## 🎮 Confirmed Working Features
 
-### **Modding Capabilities**
-- ✅ Dynamic mod loading from `Mods/` folder
-- ✅ Three-stage mod lifecycle:
-  1. **PreInit** - Configuration before patches
-  2. **Patch** - Harmony runtime patching
-  3. **Lifecycle** - React to game events
+### Runtime & Modding
+- ✅ Dynamic mod loading from `Asher/Mods/`
+- ✅ Three-stage mod lifecycle: PreInit → Patch → Lifecycle
 - ✅ Clean SDK for mod developers
-- ✅ Comprehensive logging system
-- ✅ Event-driven architecture
+- ✅ Comprehensive logging in `Asher/AsherLogs/`
+- ✅ Game window title: **Dust - An Elysian Tail (Asher)**
 
-### **Working Mods**
-* ✅ **Debug Menu Enabler**
-  * Enables Debug Menu by pressing Tab in Pause Menu        
-* ✅ **Intro Skipper**
-  * Skips ESRB rating, splash screens, and startup videos
-* ✅ **Graphics Deprofiler**
-  * Bypasses HiDef GPU profile restrictions
+### Manager App
+- ✅ Guided installation into any valid Dust game folder
+- ✅ Patch Manager — toggle mods on/off without deleting files
+- ✅ Launch game from manager
+- ✅ English and Portuguese (Brazil) UI
+- ✅ Light and Dark theme (full window)
+- ✅ Desktop shortcut creation after install
+- ✅ Settings persisted across sessions
 
-All implemented as external, runtime-loaded mods.
+### Working Mods
+* ✅ **Debug Menu Enabler** — Tab in pause menu opens debug menu
+* ✅ **Intro Skipper** — Skips ESRB rating, splash screens, and startup videos
+* ✅ **Graphics Deprofiler** — Bypasses HiDef GPU profile restrictions
+
+All implemented as external, runtime-loaded mods in `Asher/Mods/`.
 
 ---
 
@@ -412,4 +408,4 @@ All implemented as external, runtime-loaded mods.
 - **DustAetPatchingPlatform** — https://github.com/GMMan/DustAetPatchingPlatform
   - Steam Forum Discussion — https://steamcommunity.com/app/236090/discussions/0/540744936409038540/
 
-*Last Updated: January 23, 2026*
+*Last Updated: July 2, 2026*

@@ -13,15 +13,22 @@ namespace Asher.UserInterface
 
         public void OnInitialized(IContainerProvider containerProvider)
         {
-            _regionManager.RegisterViewWithRegion(RegionNames.Main, typeof(HomeView));
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterForNavigation(typeof(HomeView), NavigationNames.Home);
-            containerRegistry.RegisterForNavigation(typeof(ContentPatcherView), NavigationNames.ContentPatcher);
-            containerRegistry.RegisterForNavigation(typeof(PatchManagerView), NavigationNames.PatchManager);
-            containerRegistry.RegisterForNavigation(typeof(SettingsView), NavigationNames.Settings);
+            // Views normais (após instalação)
+            containerRegistry.RegisterForNavigation<HomeView>(NavigationNames.Home);
+            containerRegistry.RegisterForNavigation<ContentPatcherView>(NavigationNames.ContentPatcher);
+            containerRegistry.RegisterForNavigation<PatchManagerView>(NavigationNames.PatchManager);
+            containerRegistry.RegisterForNavigation<SettingsView>(NavigationNames.Settings);
+            containerRegistry.RegisterForNavigation<UninstallProgressView>(NavigationNames.UninstallProgress);
+
+            // Views de instalação
+            containerRegistry.RegisterForNavigation<WelcomeView>(InstallationNavigationNames.Welcome);
+            containerRegistry.RegisterForNavigation<GameDetectionView>(InstallationNavigationNames.GameDetection);
+            containerRegistry.RegisterForNavigation<InstallationProgressView>(InstallationNavigationNames.InstallationProgress);
+            containerRegistry.RegisterForNavigation<InstallationResultView>(InstallationNavigationNames.InstallationResult);
         }
     }
 }

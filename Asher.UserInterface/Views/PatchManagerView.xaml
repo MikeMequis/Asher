@@ -20,10 +20,10 @@
                 <StackPanel>
                     <TextBlock Margin="0,0,0,8"
                                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                               Text="Patch Manager" />
+                               Text="{Binding Title}" />
                     <TextBlock Opacity="0.7"
                                Style="{StaticResource MaterialDesignBody1TextBlock}"
-                               Text="Manage runtime patches and mods for Dust: An Elysian Tail" />
+                               Text="{Binding Subtitle}" />
                 </StackPanel>
             </materialDesign:Card>
 
@@ -38,11 +38,11 @@
 
                         <TextBlock Grid.Column="0"
                                    Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                   Text="Available Patches" />
+                                   Text="{Binding AvailablePatchesLabel}" />
 
                         <Button Grid.Column="1"
                                 Command="{Binding RefreshPatchesCommand}"
-                                Content="Refresh Patches"
+                                Content="{Binding RefreshLabel}"
                                 Style="{StaticResource MaterialDesignRaisedButton}" />
                     </Grid>
 
@@ -77,7 +77,7 @@
 
                                         <ToggleButton Grid.Column="2"
                                                       VerticalAlignment="Center"
-                                                      IsChecked="{Binding IsEnabled}"
+                                                      IsChecked="{Binding IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                       Style="{StaticResource MaterialDesignSwitchToggleButton}" />
                                     </Grid>
                                 </materialDesign:Card>
@@ -90,7 +90,7 @@
                                HorizontalAlignment="Center"
                                Opacity="0.5"
                                Style="{StaticResource MaterialDesignBody2TextBlock}"
-                               Text="No patches found. Add patches to the patches folder to see them here."
+                               Text="{Binding EmptyState}"
                                Visibility="{Binding AvailablePatches.Count, Converter={StaticResource CountToVisibilityConverter}}" />
                 </StackPanel>
             </materialDesign:Card>
@@ -100,7 +100,7 @@
                 <StackPanel>
                     <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Text="Patch Information" />
+                               Text="{Binding PatchInfoLabel}" />
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -111,7 +111,7 @@
                         <StackPanel Grid.Column="0" Margin="0,0,16,0">
                             <TextBlock Margin="0,0,0,8"
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                       Text="Active Patches" />
+                                       Text="{Binding ActivePatchesLabel}" />
                             <TextBlock Foreground="{DynamicResource MaterialDesignPrimary}"
                                        Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                                        Text="{Binding ActivePatchCount}" />
@@ -120,7 +120,7 @@
                         <StackPanel Grid.Column="1" Margin="16,0,0,0">
                             <TextBlock Margin="0,0,0,8"
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                       Text="Total Patches" />
+                                       Text="{Binding TotalPatchesLabel}" />
                             <TextBlock Foreground="{DynamicResource MaterialDesignSecondary}"
                                        Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                                        Text="{Binding TotalPatchCount}" />

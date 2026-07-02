@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Nav_Home" xml:space="preserve"><value>Início</value></data>
+  <data name="Nav_ContentPatcher" xml:space="preserve"><value>Content Patcher</value></data>
+  <data name="Nav_PatchManager" xml:space="preserve"><value>Gerenciador de Patches</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Home_LaunchGame" xml:space="preserve"><value>Iniciar Jogo</value></data>
+  <data name="Home_LaunchGameDesc" xml:space="preserve"><value>Inicia o Dust com os patches do Asher</value></data>
+  <data name="Home_PatchManager" xml:space="preserve"><value>Gerenciador de Patches</value></data>
+  <data name="Home_PatchManagerDesc" xml:space="preserve"><value>Gerencie patches e mods em tempo de execução</value></data>
+  <data name="Home_ContentPatcher" xml:space="preserve"><value>Content Patcher</value></data>
+  <data name="Home_ContentPatcherDesc" xml:space="preserve"><value>Substitua assets do jogo em tempo de execução</value></data>
+  <data name="Home_Settings" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Home_SettingsDesc" xml:space="preserve"><value>Configure o Asher e preferências do jogo</value></data>
+  <data name="PatchManager_Title" xml:space="preserve"><value>Gerenciador de Patches</value></data>
+  <data name="PatchManager_Subtitle" xml:space="preserve"><value>Gerencie patches e mods do Dust: An Elysian Tail</value></data>
+  <data name="PatchManager_AvailablePatches" xml:space="preserve"><value>Patches Disponíveis</value></data>
+  <data name="PatchManager_Refresh" xml:space="preserve"><value>Atualizar Patches</value></data>
+  <data name="PatchManager_Empty" xml:space="preserve"><value>Nenhum patch encontrado. Adicione DLLs em Asher/Mods para vê-los aqui.</value></data>
+  <data name="PatchManager_PatchInfo" xml:space="preserve"><value>Informações dos Patches</value></data>
+  <data name="PatchManager_ActivePatches" xml:space="preserve"><value>Patches Ativos</value></data>
+  <data name="PatchManager_TotalPatches" xml:space="preserve"><value>Total de Patches</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>Configure preferências do aplicativo e do jogo</value></data>
+  <data name="Settings_GameSettings" xml:space="preserve"><value>Configurações do Jogo</value></data>
+  <data name="Settings_GamePath" xml:space="preserve"><value>Caminho do Executável do Jogo</value></data>
+  <data name="Settings_Browse" xml:space="preserve"><value>Procurar</value></data>
+  <data name="Settings_AutoLaunch" xml:space="preserve"><value>Iniciar automaticamente com patches</value></data>
+  <data name="Settings_Backup" xml:space="preserve"><value>Ativar backups automáticos</value></data>
+  <data name="Settings_AppSettings" xml:space="preserve"><value>Configurações do Aplicativo</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Settings_Theme" xml:space="preserve"><value>Tema</value></data>
+  <data name="Settings_CheckUpdates" xml:space="preserve"><value>Verificar atualizações ao iniciar</value></data>
+  <data name="Settings_Actions" xml:space="preserve"><value>Ações</value></data>
+  <data name="Settings_Reset" xml:space="preserve"><value>Restaurar Padrões</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Salvar Configurações</value></data>
+  <data name="Window_ManagerTitle" xml:space="preserve"><value>Asher - Gerenciador de Mods</value></data>
+  <data name="Window_InstallTitle" xml:space="preserve"><value>Asher - Instalação</value></data>
+  <data name="Install_Welcome" xml:space="preserve"><value>Início</value></data>
+  <data name="Install_Detect" xml:space="preserve"><value>Detectar Jogo</value></data>
+  <data name="Install_Installing" xml:space="preserve"><value>Instalando</value></data>
+  <data name="Install_Complete" xml:space="preserve"><value>Concluído</value></data>
+  <data name="InstallResult_SuccessTitle" xml:space="preserve"><value>Instalação Completa</value></data>
+  <data name="InstallResult_SuccessSubtitle" xml:space="preserve"><value>O Asher foi configurado com sucesso</value></data>
+  <data name="InstallResult_SuccessMessage" xml:space="preserve"><value>Você já pode começar a usar mods no Dust: An Elysian Tail!</value></data>
+  <data name="InstallResult_ReadyTitle" xml:space="preserve"><value>O Asher está pronto!</value></data>
+  <data name="InstallResult_ErrorTitle" xml:space="preserve"><value>Erro na Instalação</value></data>
+  <data name="InstallResult_ErrorSubtitle" xml:space="preserve"><value>Não foi possível completar a instalação</value></data>
+  <data name="InstallResult_ErrorHeading" xml:space="preserve"><value>Falha na instalação</value></data>
+  <data name="InstallResult_UnknownError" xml:space="preserve"><value>Ocorreu um erro desconhecido durante a instalação.</value></data>
+  <data name="InstallResult_ErrorDetails" xml:space="preserve"><value>Detalhes do erro:</value></data>
+  <data name="InstallResult_Finish" xml:space="preserve"><value>COMEÇAR A USAR</value></data>
+  <data name="InstallResult_Retry" xml:space="preserve"><value>TENTAR NOVAMENTE</value></data>
+  <data name="InstallResult_Cancel" xml:space="preserve"><value>CANCELAR</value></data>
+  <data name="InstallResult_CreateShortcut" xml:space="preserve"><value>Criar atalho na área de trabalho</value></data>
+  <data name="InstallResult_NextSteps" xml:space="preserve"><value>Próximos passos:</value></data>
+  <data name="InstallResult_StepMods" xml:space="preserve"><value>Adicione DLLs de mods na pasta Asher/Mods</value></data>
+  <data name="InstallResult_StepContentPatcher" xml:space="preserve"><value>Use o Content Patcher para gerenciar substituições de assets</value></data>
+  <data name="InstallResult_StepEnjoy" xml:space="preserve"><value>Aproveite seu jogo modificado!</value></data>
+  <data name="Settings_UninstallSection" xml:space="preserve"><value>Desinstalar / Restaurar</value></data>
+  <data name="Settings_UninstallDescription" xml:space="preserve"><value>Restaura o executável original a partir de Asher/Asher.Backup e remove os arquivos de runtime do Asher. Você poderá executar o assistente de instalação novamente depois.</value></data>
+  <data name="Settings_Uninstall" xml:space="preserve"><value>DESINSTALAR E RESTAURAR</value></data>
+  <data name="Settings_UninstallConfirmTitle" xml:space="preserve"><value>Restaurar jogo original?</value></data>
+  <data name="Settings_UninstallConfirmMessage" xml:space="preserve"><value>Isso restaurará o DustAET.exe a partir do backup, removerá os arquivos de runtime do Asher e retornará ao assistente de instalação. O gerenciador e a pasta de backup serão mantidos para reinstalação futura. Continuar?</value></data>
+  <data name="Uninstall_Title" xml:space="preserve"><value>Restaurando Jogo</value></data>
+  <data name="Uninstall_Subtitle" xml:space="preserve"><value>Removendo o Asher e restaurando o executável original do backup</value></data>
+  <data name="Uninstall_Info" xml:space="preserve"><value>Por favor, não feche o aplicativo durante a restauração</value></data>
+  <data name="Uninstall_Starting" xml:space="preserve"><value>Iniciando restauração...</value></data>
+  <data name="Uninstall_NotInstalled" xml:space="preserve"><value>O Asher não está instalado na pasta do jogo selecionada.</value></data>
+  <data name="Uninstall_NoBackup" xml:space="preserve"><value>Nenhum backup restaurável foi encontrado em Asher/Asher.Backup.</value></data>
+  <data name="Uninstall_Failed" xml:space="preserve"><value>Falha ao restaurar o jogo.</value></data>
+</root>

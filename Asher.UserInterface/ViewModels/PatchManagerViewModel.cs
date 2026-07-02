@@ -1,10 +1,17 @@
-﻿using System.Collections.ObjectModel;
+﻿using Asher.Core;
+using Asher.Core.Models;
+using Asher.Services.Interfaces;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 
 namespace Asher.UserInterface.ViewModels
 {
     public class PatchManagerViewModel : BaseViewModel
     {
-        public ObservableCollection<PatchInfo> AvailablePatches { get; } = new();
+        private readonly IPatchManagerService _patchManagerService;
+
+        public ObservableCollection<ManagedModInfo> AvailablePatches { get; } = new();
 
         private int _activePatchCount;
         public int ActivePatchCount
@@ -20,9 +27,18 @@ namespace Asher.UserInterface.ViewModels
             set => SetProperty(ref _totalPatchCount, value);
         }
 
-        public PatchManagerViewModel()
+        public string Title => this["PatchManager_Title"];
+        public string Subtitle => this["PatchManager_Subtitle"];
+        public string AvailablePatchesLabel => this["PatchManager_AvailablePatches"];
+        public string RefreshLabel => this["PatchManager_Refresh"];
+        public string EmptyState => this["PatchManager_Empty"];
+        public string ActivePatchesLabel => this["PatchManager_ActivePatches"];
+        public string TotalPatchesLabel => this["PatchManager_TotalPatches"];
+        public string PatchInfoLabel => this["PatchManager_PatchInfo"];
+
+        public PatchManagerViewModel(IPatchManagerService patchManagerService)
         {
-            LoadSamplePatches();
+            _patchManagerService = patchManagerService;
         }
 
         public override Task InitAsync() => Task.CompletedTask;
@@ -32,74 +48,55 @@ namespace Asher.UserInterface.ViewModels
             ExecuteRefreshPatchesCommand();
         }
 
-        private DelegateCommand _refreshPatchesCommand;
-        public DelegateCommand RefreshPatchesCommand => 
-            _refreshPatchesCommand ??= new DelegateCommand(ExecuteRefreshPatchesCommand);
-
-        private void ExecuteRefreshPatchesCommand()
+        protected override void OnLanguageChanged(object sender, CultureInfo newCulture)
         {
-            LoadSamplePatches();
+            base.OnLanguageChanged(sender, newCulture);
+            RaisePropertyChanged(nameof(Title));
+            RaisePropertyChanged(nameof(Subtitle));
+            RaisePropertyChanged(nameof(AvailablePatchesLabel));
+            RaisePropertyChanged(nameof(RefreshLabel));
+            RaisePropertyChanged(nameof(EmptyState));
+            RaisePropertyChanged(nameof(ActivePatchesLabel));
+            RaisePropertyChanged(nameof(TotalPatchesLabel));
+            RaisePropertyChanged(nameof(PatchInfoLabel));
         }
 
-        private void LoadSamplePatches()
+        private DelegateCommand? _refreshPatchesCommand;
+        public DelegateCommand RefreshPatchesCommand =>
+            _refreshPatchesCommand ??= new DelegateCommand(() => _ = LoadPatchesAsync());
+
+        private async Task LoadPatchesAsync()
         {
+            foreach (var patch in AvailablePatches)
+                patch.PropertyChanged -= OnPatchPropertyChanged;
+
             AvailablePatches.Clear();
 
-            // TODO: Implement actual patch discovery
-            // Sample patches for demonstration
-            AvailablePatches.Add(new PatchInfo
+            var mods = await _patchManagerService.GetModsAsync();
+            foreach (var mod in mods)
             {
-                Name = "Debug Enabler",
-                Description = "Enables the debug console on startup",
-                IsEnabled = true
-            });
-            
-            AvailablePatches.Add(new PatchInfo
-            {
-                Name = "Fullscreen Switch",
-                Description = "Adds fullscreen toggle functionality",
-                IsEnabled = false
-            });
-            
-            AvailablePatches.Add(new PatchInfo
-            {
-                Name = "Skip Intro",
-                Description = "Skips the intro sequence",
-                IsEnabled = true
-            });
+                mod.PropertyChanged += OnPatchPropertyChanged;
+                AvailablePatches.Add(mod);
+            }
 
             UpdatePatchCounts();
         }
+
+        private async void OnPatchPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not ManagedModInfo mod || e.PropertyName != nameof(ManagedModInfo.IsEnabled))
+                return;
+
+            await _patchManagerService.SetModEnabledAsync(mod.FileName, mod.IsEnabled);
+            UpdatePatchCounts();
+        }
+
+        private void ExecuteRefreshPatchesCommand() => _ = LoadPatchesAsync();
 
         private void UpdatePatchCounts()
         {
             TotalPatchCount = AvailablePatches.Count;
             ActivePatchCount = AvailablePatches.Count(p => p.IsEnabled);
-        }
-    }
-
-    public class PatchInfo : BindableBase
-    {
-        private string _name = string.Empty;
-        private string _description = string.Empty;
-        private bool _isEnabled;
-
-        public string Name
-        {
-            get => _name;
-            set => SetProperty(ref _name, value);
-        }
-
-        public string Description
-        {
-            get => _description;
-            set => SetProperty(ref _description, value);
-        }
-
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set => SetProperty(ref _isEnabled, value);
         }
     }
 }

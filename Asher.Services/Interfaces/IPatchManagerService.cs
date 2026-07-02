@@ -4,6 +4,8 @@ namespace Asher.Services.Interfaces
 {
     public interface IPatchManagerService
     {
+        Task<IReadOnlyList<ManagedModInfo>> GetModsAsync();
+        Task<bool> SetModEnabledAsync(string modFileName, bool enabled);
         Task<List<HarmonyPatchInfo>> GetAvailablePatchesAsync();
         Task<List<HarmonyPatchInfo>> GetInstalledPatchesAsync();
         Task<HarmonyValidationResult> ValidatePatchesAsync(List<HarmonyPatchInfo> patches);

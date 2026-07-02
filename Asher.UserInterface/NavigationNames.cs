@@ -6,6 +6,15 @@
         public const string ContentPatcher = "ContentPatcherView";
         public const string PatchManager = "PatchManagerView";
         public const string Settings = "SettingsView";
+        public const string UninstallProgress = "UninstallProgressView";
+    }
+
+    public static class InstallationNavigationNames
+    {
+        public const string Welcome = "WelcomeView";
+        public const string GameDetection = "GameDetectionView";
+        public const string InstallationProgress = "InstallationProgressView";
+        public const string InstallationResult = "InstallationResultView";
     }
 
     public static class RegionNames
