@@ -2,9 +2,7 @@
 using Asher.Localization;
 using Asher.Services.Interfaces;
 using Asher.UserInterface.Events;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 
 namespace Asher.UserInterface.ViewModels
 {
@@ -203,8 +201,11 @@ namespace Asher.UserInterface.ViewModels
                     && _managerDeployService.HasPendingPayload(gameFolderPath)
                     && _managerDeployService.IsRunningFromManagerOf(gameFolderPath))
                 {
-                    RestartCurrentManager();
-                    return;
+                    if (_managerLaunchService.TryRestartCurrentManager(out _))
+                    {
+                        System.Windows.Application.Current.Shutdown();
+                        return;
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(gameFolderPath)
@@ -227,25 +228,6 @@ namespace Asher.UserInterface.ViewModels
         private void ExecuteCancelInstallationCommand()
         {
             _regionManager.RequestNavigate(RegionNames.Main, InstallationNavigationNames.Welcome);
-        }
-
-        private void RestartCurrentManager()
-        {
-            var exePath = Process.GetCurrentProcess().MainModule?.FileName;
-            if (string.IsNullOrWhiteSpace(exePath))
-            {
-                _eventAggregator.GetEvent<InstallationCompleteEvent>().Publish();
-                return;
-            }
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = exePath,
-                WorkingDirectory = Path.GetDirectoryName(exePath),
-                UseShellExecute = true
-            });
-
-            System.Windows.Application.Current.Shutdown();
         }
     }
 }

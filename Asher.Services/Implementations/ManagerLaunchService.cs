@@ -54,5 +54,54 @@ namespace Asher.Services.Implementations
                 return false;
             }
         }
+
+        public bool TryRestartCurrentManager(out string? errorMessage)
+        {
+            errorMessage = null;
+
+            try
+            {
+                var exePath = Process.GetCurrentProcess().MainModule?.FileName;
+                if (string.IsNullOrWhiteSpace(exePath))
+                {
+                    errorMessage = "Não foi possível localizar o executável atual.";
+                    return false;
+                }
+
+                var workingDirectory = Path.GetDirectoryName(exePath) ?? AsherPaths.GetAppBaseDirectory();
+                var currentProcessId = Process.GetCurrentProcess().Id;
+                var restartScriptPath = Path.Combine(
+                    Path.GetTempPath(),
+                    $"asher-restart-{currentProcessId}.cmd");
+
+                File.WriteAllText(restartScriptPath,
+                    $"""
+                    @echo off
+                    :wait
+                    tasklist /FI "PID eq {currentProcessId}" 2>nul | find "{currentProcessId}" >nul
+                    if not errorlevel 1 (
+                        timeout /t 1 /nobreak >nul
+                        goto wait
+                    )
+                    start "" "{exePath}"
+                    del "%~f0"
+                    """);
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = restartScriptPath,
+                    WorkingDirectory = workingDirectory,
+                    CreateNoWindow = true,
+                    UseShellExecute = true
+                });
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
     }
 }
