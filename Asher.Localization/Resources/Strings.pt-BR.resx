@@ -40,4 +40,25 @@
   <data name="Settings_Save" xml:space="preserve"><value>Salvar Configurações</value></data>
   <data name="Window_ManagerTitle" xml:space="preserve"><value>Asher - Gerenciador de Mods</value></data>
   <data name="Window_InstallTitle" xml:space="preserve"><value>Asher - Instalação</value></data>
+  <data name="Install_Welcome" xml:space="preserve"><value>Início</value></data>
+  <data name="Install_Detect" xml:space="preserve"><value>Detectar Jogo</value></data>
+  <data name="Install_Installing" xml:space="preserve"><value>Instalando</value></data>
+  <data name="Install_Complete" xml:space="preserve"><value>Concluído</value></data>
+  <data name="InstallResult_SuccessTitle" xml:space="preserve"><value>Instalação Completa</value></data>
+  <data name="InstallResult_SuccessSubtitle" xml:space="preserve"><value>O Asher foi configurado com sucesso</value></data>
+  <data name="InstallResult_SuccessMessage" xml:space="preserve"><value>Você já pode começar a usar mods no Dust: An Elysian Tail!</value></data>
+  <data name="InstallResult_ReadyTitle" xml:space="preserve"><value>O Asher está pronto!</value></data>
+  <data name="InstallResult_ErrorTitle" xml:space="preserve"><value>Erro na Instalação</value></data>
+  <data name="InstallResult_ErrorSubtitle" xml:space="preserve"><value>Não foi possível completar a instalação</value></data>
+  <data name="InstallResult_ErrorHeading" xml:space="preserve"><value>Falha na instalação</value></data>
+  <data name="InstallResult_UnknownError" xml:space="preserve"><value>Ocorreu um erro desconhecido durante a instalação.</value></data>
+  <data name="InstallResult_ErrorDetails" xml:space="preserve"><value>Detalhes do erro:</value></data>
+  <data name="InstallResult_Finish" xml:space="preserve"><value>COMEÇAR A USAR</value></data>
+  <data name="InstallResult_Retry" xml:space="preserve"><value>TENTAR NOVAMENTE</value></data>
+  <data name="InstallResult_Cancel" xml:space="preserve"><value>CANCELAR</value></data>
+  <data name="InstallResult_CreateShortcut" xml:space="preserve"><value>Criar atalho na área de trabalho</value></data>
+  <data name="InstallResult_NextSteps" xml:space="preserve"><value>Próximos passos:</value></data>
+  <data name="InstallResult_StepMods" xml:space="preserve"><value>Adicione DLLs de mods na pasta Asher/Mods</value></data>
+  <data name="InstallResult_StepContentPatcher" xml:space="preserve"><value>Use o Content Patcher para gerenciar substituições de assets</value></data>
+  <data name="InstallResult_StepEnjoy" xml:space="preserve"><value>Aproveite seu jogo modificado!</value></data>
 </root>

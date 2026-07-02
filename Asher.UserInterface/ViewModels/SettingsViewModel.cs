@@ -1,6 +1,7 @@
 ﻿using Asher.Core;
 using Asher.Localization;
 using Asher.Services.Interfaces;
+using Asher.UserInterface.Services;
 using System.Collections.ObjectModel;
 using System.Globalization;
 
@@ -10,6 +11,7 @@ namespace Asher.UserInterface.ViewModels
     {
         private readonly IGameFolderService _gameFolderService;
         private readonly IGameLaunchService _gameLaunchService;
+        private readonly IThemeService _themeService;
         private bool _isApplyingSettings;
 
         private string _gamePath = string.Empty;
@@ -51,7 +53,14 @@ namespace Asher.UserInterface.ViewModels
         public string SelectedTheme
         {
             get => _selectedTheme;
-            set => SetProperty(ref _selectedTheme, value);
+            set
+            {
+                if (!SetProperty(ref _selectedTheme, value) || _isApplyingSettings)
+                    return;
+
+                ApplyTheme(value);
+                ExecuteSaveSettingsCommand();
+            }
         }
 
         private bool _checkForUpdatesEnabled = true;
@@ -89,10 +98,14 @@ namespace Asher.UserInterface.ViewModels
         public string ResetLabel => this["Settings_Reset"];
         public string SaveLabel => this["Settings_Save"];
 
-        public SettingsViewModel(IGameFolderService gameFolderService, IGameLaunchService gameLaunchService)
+        public SettingsViewModel(
+            IGameFolderService gameFolderService,
+            IGameLaunchService gameLaunchService,
+            IThemeService themeService)
         {
             _gameFolderService = gameFolderService;
             _gameLaunchService = gameLaunchService;
+            _themeService = themeService;
             InitializeSettings();
         }
 
@@ -164,6 +177,7 @@ namespace Asher.UserInterface.ViewModels
             _isApplyingSettings = false;
 
             ApplyLanguage(SelectedLanguage);
+            ApplyTheme(SelectedTheme);
             ExecuteSaveSettingsCommand();
         }
 
@@ -198,7 +212,14 @@ namespace Asher.UserInterface.ViewModels
                 ApplyLanguage(LocalizationManager.GetCultureDisplayName(
                     CultureInfo.GetCultureInfo(settings.Language)));
 
+            ApplyTheme(SelectedTheme);
+
             _isApplyingSettings = false;
+        }
+
+        private void ApplyTheme(string themeName)
+        {
+            _themeService.Apply(themeName);
         }
 
         private static void ApplyLanguage(string displayLanguage)

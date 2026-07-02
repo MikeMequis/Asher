@@ -40,4 +40,25 @@
   <data name="Settings_Save" xml:space="preserve"><value>Save Settings</value></data>
   <data name="Window_ManagerTitle" xml:space="preserve"><value>Asher - Mod Manager</value></data>
   <data name="Window_InstallTitle" xml:space="preserve"><value>Asher - Installation</value></data>
+  <data name="Install_Welcome" xml:space="preserve"><value>Start</value></data>
+  <data name="Install_Detect" xml:space="preserve"><value>Detect Game</value></data>
+  <data name="Install_Installing" xml:space="preserve"><value>Installing</value></data>
+  <data name="Install_Complete" xml:space="preserve"><value>Complete</value></data>
+  <data name="InstallResult_SuccessTitle" xml:space="preserve"><value>Installation Complete</value></data>
+  <data name="InstallResult_SuccessSubtitle" xml:space="preserve"><value>Asher was configured successfully</value></data>
+  <data name="InstallResult_SuccessMessage" xml:space="preserve"><value>You can now start using mods in Dust: An Elysian Tail!</value></data>
+  <data name="InstallResult_ReadyTitle" xml:space="preserve"><value>Asher is ready!</value></data>
+  <data name="InstallResult_ErrorTitle" xml:space="preserve"><value>Installation Error</value></data>
+  <data name="InstallResult_ErrorSubtitle" xml:space="preserve"><value>Could not complete the installation</value></data>
+  <data name="InstallResult_ErrorHeading" xml:space="preserve"><value>Installation failed</value></data>
+  <data name="InstallResult_UnknownError" xml:space="preserve"><value>An unknown error occurred during installation.</value></data>
+  <data name="InstallResult_ErrorDetails" xml:space="preserve"><value>Error details:</value></data>
+  <data name="InstallResult_Finish" xml:space="preserve"><value>START USING ASHER</value></data>
+  <data name="InstallResult_Retry" xml:space="preserve"><value>TRY AGAIN</value></data>
+  <data name="InstallResult_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="InstallResult_CreateShortcut" xml:space="preserve"><value>Create desktop shortcut</value></data>
+  <data name="InstallResult_NextSteps" xml:space="preserve"><value>Next steps:</value></data>
+  <data name="InstallResult_StepMods" xml:space="preserve"><value>Add mod DLLs to the Asher/Mods folder</value></data>
+  <data name="InstallResult_StepContentPatcher" xml:space="preserve"><value>Use Content Patcher to manage asset replacements</value></data>
+  <data name="InstallResult_StepEnjoy" xml:space="preserve"><value>Enjoy your modded game!</value></data>
 </root>

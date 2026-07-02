@@ -9,7 +9,6 @@
              mc:Ignorable="d">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24" VerticalAlignment="Center">
-            <!--  Header  -->
             <materialDesign:Card Margin="0,0,0,24" Padding="24">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,8"
@@ -21,10 +20,8 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <!--  Success Result  -->
             <materialDesign:Card Padding="32" Visibility="{Binding IsSuccess, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel HorizontalAlignment="Center">
-                    <!--  Success Icon  -->
                     <materialDesign:PackIcon Width="80"
                                               Height="80"
                                               Margin="0,0,0,24"
@@ -32,48 +29,11 @@
                                               Foreground="Green"
                                               Kind="CheckCircle" />
 
-                    <!--  Success Message  -->
                     <TextBlock Margin="0,0,0,16"
                                HorizontalAlignment="Center"
                                FontSize="20"
                                FontWeight="Medium"
-                               Text="O Asher está pronto!" />
-
-                    <TextBlock Margin="0,0,0,32"
-                               HorizontalAlignment="Center"
-                               Opacity="0.7"
-                               Text="{Binding ResultMessage}"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap" />
-
-                    <!--  Success Actions  -->
-                    <StackPanel>
-                        <Button Margin="0,0,0,8"
-                                HorizontalAlignment="Center"
-                                Command="{Binding FinishInstallationCommand}"
-                                Content="COMEÇAR A USAR"
-                                Style="{StaticResource MaterialDesignRaisedButton}" />
-                    </StackPanel>
-                </StackPanel>
-            </materialDesign:Card>
-
-            <!--  Error Result  -->
-            <materialDesign:Card Padding="32" Visibility="{Binding IsSuccess, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                <StackPanel>
-                    <!--  Error Icon  -->
-                    <materialDesign:PackIcon Width="80"
-                                              Height="80"
-                                              Margin="0,0,0,24"
-                                              HorizontalAlignment="Center"
-                                              Foreground="Red"
-                                              Kind="AlertCircle" />
-
-                    <!--  Error Message  -->
-                    <TextBlock Margin="0,0,0,16"
-                               HorizontalAlignment="Center"
-                               FontSize="20"
-                               FontWeight="Medium"
-                               Text="Falha na instalação" />
+                               Text="{Binding ReadyTitle}" />
 
                     <TextBlock Margin="0,0,0,24"
                                HorizontalAlignment="Center"
@@ -82,7 +42,44 @@
                                TextAlignment="Center"
                                TextWrapping="Wrap" />
 
-                    <!--  Error Details  -->
+                    <CheckBox Margin="0,0,0,16"
+                              HorizontalAlignment="Center"
+                              Content="{Binding CreateShortcutLabel}"
+                              IsChecked="{Binding CreateDesktopShortcut}"
+                              Style="{StaticResource MaterialDesignCheckBox}" />
+
+                    <StackPanel>
+                        <Button Margin="0,0,0,8"
+                                HorizontalAlignment="Center"
+                                Command="{Binding FinishInstallationCommand}"
+                                Content="{Binding FinishLabel}"
+                                Style="{StaticResource MaterialDesignRaisedButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Padding="32" Visibility="{Binding IsSuccess, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                <StackPanel>
+                    <materialDesign:PackIcon Width="80"
+                                              Height="80"
+                                              Margin="0,0,0,24"
+                                              HorizontalAlignment="Center"
+                                              Foreground="Red"
+                                              Kind="AlertCircle" />
+
+                    <TextBlock Margin="0,0,0,16"
+                               HorizontalAlignment="Center"
+                               FontSize="20"
+                               FontWeight="Medium"
+                               Text="{Binding ErrorHeading}" />
+
+                    <TextBlock Margin="0,0,0,24"
+                               HorizontalAlignment="Center"
+                               Opacity="0.7"
+                               Text="{Binding ResultMessage}"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+
                     <Border Margin="0,0,0,24"
                             Background="{DynamicResource MaterialDesignDivider}"
                             CornerRadius="4"
@@ -91,7 +88,7 @@
                         <StackPanel>
                             <TextBlock Margin="0,0,0,8"
                                        FontWeight="Medium"
-                                       Text="Detalhes do erro:" />
+                                       Text="{Binding ErrorDetailsLabel}" />
                             <TextBlock FontFamily="Consolas"
                                        Opacity="0.7"
                                        Text="{Binding ErrorDetails}"
@@ -99,41 +96,34 @@
                         </StackPanel>
                     </Border>
 
-                    <!--  Error Actions  -->
                     <StackPanel HorizontalAlignment="Center">
                         <Button Margin="0,0,0,8"
                                 Command="{Binding RetryInstallationCommand}"
-                                Content="TENTAR NOVAMENTE"
+                                Content="{Binding RetryLabel}"
                                 Style="{StaticResource MaterialDesignRaisedButton}" />
                         <Button Command="{Binding CancelInstallationCommand}"
-                                Content="CANCELAR"
+                                Content="{Binding CancelLabel}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}" />
                     </StackPanel>
                 </StackPanel>
             </materialDesign:Card>
 
-            <!--  Additional Info (Success only)  -->
             <materialDesign:Card Margin="0,16,0,0"
                                  Padding="16"
                                  Visibility="{Binding IsSuccess, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,12"
                                FontWeight="Medium"
-                               Text="Próximos passos:" />
+                               Text="{Binding NextStepsLabel}" />
                     <StackPanel Margin="8,0,0,0">
-                        <TextBlock Margin="0,0,0,4" Opacity="0.7">
-                            <Run Text="•" />
-                            <Run Text="Adicione mods na pasta" />
-                            <Run FontWeight="Medium" Text="patches" />
-                        </TextBlock>
-                        <TextBlock Margin="0,0,0,4" Opacity="0.7">
-                            <Run Text="•" />
-                            <Run Text="Use o Content Patcher para gerenciar patches" />
-                        </TextBlock>
-                        <TextBlock Opacity="0.7">
-                            <Run Text="•" />
-                            <Run Text="Aproveite seu jogo modificado!" />
-                        </TextBlock>
+                        <TextBlock Margin="0,0,0,4"
+                                   Opacity="0.7"
+                                   Text="{Binding StepModsLabel}" />
+                        <TextBlock Margin="0,0,0,4"
+                                   Opacity="0.7"
+                                   Text="{Binding StepContentPatcherLabel}" />
+                        <TextBlock Opacity="0.7"
+                                   Text="{Binding StepEnjoyLabel}" />
                     </StackPanel>
                 </StackPanel>
             </materialDesign:Card>

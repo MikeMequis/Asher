@@ -5,7 +5,14 @@ namespace Asher.Core.Models
     public class NavigationItem : BindableBase
     {
         public string Name { get; set; } = string.Empty;
-        public string Label { get; set; } = string.Empty;
+
+        private string _label = string.Empty;
+        public string Label
+        {
+            get => _label;
+            set => SetProperty(ref _label, value);
+        }
+
         public string NavigationPath { get; set; } = string.Empty;
         public PackIconKind Icon { get; set; }
 

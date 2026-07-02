@@ -6,6 +6,7 @@ using Asher.UserInterface.Events;
 using MaterialDesignThemes.Wpf;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 
 namespace Asher.UserInterface.ViewModels
 {
@@ -26,6 +27,7 @@ namespace Asher.UserInterface.ViewModels
         private readonly INavigationItemsManager _navigationItemsManager;
         private readonly IGameInstallationService _installationService;
         private AsherSettings _settings;
+        private string? _currentNavigationPath;
 
         public MainWindowViewModel(
             IRegionManager regionManager,
@@ -41,12 +43,10 @@ namespace Asher.UserInterface.ViewModels
             NavigationItems = new();
             InstallationNavigationItems = new();
 
-            // Carrega configurações
             _settings = AsherSettings.Load();
 
-            // Inscreve-se no evento de instalação completa
             _eventAggregator.GetEvent<InstallationCompleteEvent>().Subscribe(OnInstallationComplete);
-            LocalizationManager.LanguageChanged += OnLanguageChanged;
+            LocalizationManager.LanguageChanged += OnMainWindowLanguageChanged;
 
             InitializeNavigationItems();
         }
@@ -66,13 +66,13 @@ namespace Asher.UserInterface.ViewModels
             if (item == null)
                 return;
 
-            // Atualiza seleção nos items ativos
             var activeCollection = IsInstallationMode ? InstallationNavigationItems : NavigationItems;
 
             foreach (var navItem in activeCollection)
                 navItem.IsSelected = navItem == item;
 
             SelectedNavigationItem = item;
+            _currentNavigationPath = item.NavigationPath;
 
             _regionManager.RequestNavigate(RegionNames.Main, item.NavigationPath);
         }
@@ -118,27 +118,27 @@ namespace Asher.UserInterface.ViewModels
             {
                 IsInstallationMode = true;
                 WindowTitle = LocalizationManager.Instance["Window_InstallTitle"];
-                SetupInstallationNavigation();
+                SetupInstallationNavigation(navigateToStart: true);
             }
             else
             {
                 AsherPaths.MigrateLegacyLayout(resolvedGamePath!);
                 IsInstallationMode = false;
                 WindowTitle = LocalizationManager.Instance["Window_ManagerTitle"];
-                SetupNormalNavigation();
+                SetupNormalNavigation(navigateToHome: true);
             }
         }
 
-        private void OnLanguageChanged(object? sender, CultureInfo e)
+        private void OnMainWindowLanguageChanged(object? sender, CultureInfo e)
         {
             WindowTitle = IsInstallationMode
                 ? LocalizationManager.Instance["Window_InstallTitle"]
                 : LocalizationManager.Instance["Window_ManagerTitle"];
 
             if (IsInstallationMode)
-                SetupInstallationNavigation();
+                RefreshInstallationNavigationLabels();
             else
-                SetupNormalNavigation();
+                RefreshNormalNavigationLabels();
         }
 
         private string? ResolveInstalledGamePath()
@@ -160,45 +160,104 @@ namespace Asher.UserInterface.ViewModels
             return null;
         }
 
-        private void SetupInstallationNavigation()
+        private void SetupInstallationNavigation(bool navigateToStart)
         {
-            InstallationNavigationItems.Clear();
+            if (InstallationNavigationItems.Count == 0)
+            {
+                _navigationItemsManager.CreateOptions(InstallationNavigationItems,
+                    ("Welcome", LocalizationManager.Instance["Install_Welcome"], PackIconKind.Home, InstallationNavigationNames.Welcome, true),
+                    ("Detect", LocalizationManager.Instance["Install_Detect"], PackIconKind.Magnify, InstallationNavigationNames.GameDetection, false),
+                    ("Installing", LocalizationManager.Instance["Install_Installing"], PackIconKind.Download, InstallationNavigationNames.InstallationProgress, false),
+                    ("Complete", LocalizationManager.Instance["Install_Complete"], PackIconKind.CheckCircle, InstallationNavigationNames.InstallationResult, false)
+                );
+            }
+            else
+            {
+                RefreshInstallationNavigationLabels();
+            }
 
-            _navigationItemsManager.CreateOptions(InstallationNavigationItems,
-                ("Bem-vindo", "Bem-vindo", PackIconKind.Home, InstallationNavigationNames.Welcome, true),
-                ("Detectar Jogo", "Detectar Jogo", PackIconKind.Magnify, InstallationNavigationNames.GameDetection, false),
-                ("Instalando", "Instalando", PackIconKind.Download, InstallationNavigationNames.InstallationProgress, false),
-                ("Concluído", "Concluído", PackIconKind.CheckCircle, InstallationNavigationNames.InstallationResult, false)
-            );
-
-            // IMPORTANTE: Navega para a tela de boas-vindas
-            _regionManager.RequestNavigate(RegionNames.Main, InstallationNavigationNames.Welcome);
+            if (navigateToStart)
+            {
+                _currentNavigationPath = InstallationNavigationNames.Welcome;
+                RestoreNavigationSelection(InstallationNavigationItems, InstallationNavigationNames.Welcome);
+                _regionManager.RequestNavigate(RegionNames.Main, InstallationNavigationNames.Welcome);
+            }
+            else
+            {
+                RestoreNavigationSelection(InstallationNavigationItems, _currentNavigationPath);
+            }
         }
 
-        private void SetupNormalNavigation()
+        private void SetupNormalNavigation(bool navigateToHome)
         {
-            NavigationItems.Clear();
+            if (NavigationItems.Count == 0)
+            {
+                _navigationItemsManager.CreateOptions(NavigationItems,
+                    ("Home", LocalizationManager.Instance["Nav_Home"], PackIconKind.Home, NavigationNames.Home, true),
+                    ("ContentPatcher", LocalizationManager.Instance["Nav_ContentPatcher"], PackIconKind.ContentPaste, NavigationNames.ContentPatcher, true),
+                    ("PatchManager", LocalizationManager.Instance["Nav_PatchManager"], PackIconKind.Puzzle, NavigationNames.PatchManager, true),
+                    ("Settings", LocalizationManager.Instance["Nav_Settings"], PackIconKind.Settings, NavigationNames.Settings, true)
+                );
+            }
+            else
+            {
+                RefreshNormalNavigationLabels();
+            }
 
-            _navigationItemsManager.CreateOptions(NavigationItems,
-                ("Home", LocalizationManager.Instance["Nav_Home"], PackIconKind.Home, NavigationNames.Home, true),
-                ("ContentPatcher", LocalizationManager.Instance["Nav_ContentPatcher"], PackIconKind.ContentPaste, NavigationNames.ContentPatcher, true),
-                ("PatchManager", LocalizationManager.Instance["Nav_PatchManager"], PackIconKind.Puzzle, NavigationNames.PatchManager, true),
-                ("Settings", LocalizationManager.Instance["Nav_Settings"], PackIconKind.Settings, NavigationNames.Settings, true)
-            );
+            if (navigateToHome)
+            {
+                _currentNavigationPath = NavigationNames.Home;
+                RestoreNavigationSelection(NavigationItems, NavigationNames.Home);
+                _regionManager.RequestNavigate(RegionNames.Main, NavigationNames.Home);
+            }
+            else
+            {
+                RestoreNavigationSelection(NavigationItems, _currentNavigationPath);
+            }
+        }
 
-            // Navega para a home
-            _regionManager.RequestNavigate(RegionNames.Main, NavigationNames.Home);
+        private void RefreshInstallationNavigationLabels()
+        {
+            UpdateNavLabel(InstallationNavigationItems, InstallationNavigationNames.Welcome, "Install_Welcome");
+            UpdateNavLabel(InstallationNavigationItems, InstallationNavigationNames.GameDetection, "Install_Detect");
+            UpdateNavLabel(InstallationNavigationItems, InstallationNavigationNames.InstallationProgress, "Install_Installing");
+            UpdateNavLabel(InstallationNavigationItems, InstallationNavigationNames.InstallationResult, "Install_Complete");
+            RestoreNavigationSelection(InstallationNavigationItems, _currentNavigationPath);
+        }
+
+        private void RefreshNormalNavigationLabels()
+        {
+            UpdateNavLabel(NavigationItems, NavigationNames.Home, "Nav_Home");
+            UpdateNavLabel(NavigationItems, NavigationNames.ContentPatcher, "Nav_ContentPatcher");
+            UpdateNavLabel(NavigationItems, NavigationNames.PatchManager, "Nav_PatchManager");
+            UpdateNavLabel(NavigationItems, NavigationNames.Settings, "Nav_Settings");
+            RestoreNavigationSelection(NavigationItems, _currentNavigationPath);
+        }
+
+        private static void UpdateNavLabel(ObservableCollection<NavigationItem> items, string path, string resourceKey)
+        {
+            var item = items.FirstOrDefault(i => i.NavigationPath == path);
+            if (item != null)
+                item.Label = LocalizationManager.Instance[resourceKey];
+        }
+
+        private void RestoreNavigationSelection(ObservableCollection<NavigationItem> items, string? navigationPath)
+        {
+            if (string.IsNullOrWhiteSpace(navigationPath))
+                return;
+
+            foreach (var item in items)
+                item.IsSelected = item.NavigationPath == navigationPath;
+
+            SelectedNavigationItem = items.FirstOrDefault(i => i.NavigationPath == navigationPath) ?? SelectedNavigationItem;
         }
 
         private void OnInstallationComplete()
         {
-            // Quando a instalação é completada, muda para o modo normal
             IsInstallationMode = false;
             WindowTitle = LocalizationManager.Instance["Window_ManagerTitle"];
-            SetupNormalNavigation();
+            SetupNormalNavigation(navigateToHome: true);
 
-            // As configurações já devem ter sido salvas pelo InstallationResultViewModel
-            // Mas vamos recarregar para garantir
             _settings = AsherSettings.Load();
         }
     }

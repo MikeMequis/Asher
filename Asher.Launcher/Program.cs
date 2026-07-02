@@ -68,6 +68,7 @@ namespace Asher.Launcher
 
                 // 5 - Aplicar patches (Harmony)
                 AsherLog.Info("Aplicando patches de módulos...");
+                GameTitleBootstrap.Apply(gameAssembly);
                 PatchModuleLoader.Load();
                 AsherLog.Info("Patches aplicados com sucesso.");
 
