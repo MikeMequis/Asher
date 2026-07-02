@@ -1,5 +1,6 @@
 ﻿using Asher.Core.Models;
 using Asher.Services.Interfaces;
+using System.Reflection;
 
 namespace Asher.Services.Implementations
 {
@@ -352,6 +353,32 @@ namespace Asher.Services.Implementations
                     throw new FileNotFoundException($"Arquivo necessário não encontrado: {fileName}");
 
                 File.Copy(sourcePath, destPath, overwrite: true);
+            }
+
+            ValidateHarmonyAssembly(Path.Combine(asherFolder, "0Harmony.dll"));
+        }
+
+        private static void ValidateHarmonyAssembly(string harmonyPath)
+        {
+            try
+            {
+                foreach (var reference in Assembly.ReflectionOnlyLoadFrom(harmonyPath).GetReferencedAssemblies())
+                {
+                    if (reference.Name == "System.Runtime" && reference.Version.Major >= 5)
+                    {
+                        throw new InvalidOperationException(
+                            "0Harmony.dll incompatível: foi copiada de um target .NET moderno (net8/net10). " +
+                            "Use a versão net472 de packages\\Lib.Harmony.2.4.2\\lib\\net472 e execute PrepareDistribution.ps1 novamente.");
+                    }
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
+            catch
+            {
+                // Best-effort validation only.
             }
         }
 

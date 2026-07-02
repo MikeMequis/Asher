@@ -149,15 +149,29 @@ if ($sdkDlls) {
 # Procurar e copiar 0Harmony.dll
 Write-Host "[4/7] Procurando 0Harmony.dll..." -ForegroundColor Gray
 
-# Procurar em packages (para .NET Framework)
-$harmonyDll = Get-ChildItem -Path ".\packages" -Filter "0Harmony.dll" -Recurse -ErrorAction SilentlyContinue | 
-    Where-Object { $_.FullName -like "*\lib\*" } | 
-    Select-Object -First 1
+function Get-Net472HarmonyDll {
+    $preferredPaths = @(
+        ".\packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll",
+        ".\packages\Lib.Harmony.2.4.2\lib\net48\0Harmony.dll",
+        ".\packages\Lib.Harmony.2.4.2\lib\net452\0Harmony.dll"
+    )
+
+    foreach ($path in $preferredPaths) {
+        if (Test-Path $path) {
+            return Get-Item $path
+        }
+    }
+
+    return $null
+}
+
+# IMPORTANT: never pick the first recursive match - Lib.Harmony ships net10.0/net8.0 builds too.
+$harmonyDll = Get-Net472HarmonyDll
 
 if ($harmonyDll) {
     Copy-Item -Path $harmonyDll.FullName -Destination $OutputPath -Force
     $harmonySize = [math]::Round($harmonyDll.Length / 1KB, 2)
-    Write-Host "      [OK] 0Harmony.dll copiado de packages ($harmonySize KB)" -ForegroundColor Green
+    Write-Host "      [OK] 0Harmony.dll copiado de $($harmonyDll.FullName) ($harmonySize KB)" -ForegroundColor Green
 } else {
     # Tentar procurar no output da aplicacao
     $harmonyInApp = Join-Path $OutputPath "0Harmony.dll"
