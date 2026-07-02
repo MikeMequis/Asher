@@ -47,6 +47,7 @@ namespace Asher.UserInterface.ViewModels
             _settings = AsherSettings.Load();
 
             _eventAggregator.GetEvent<InstallationCompleteEvent>().Subscribe(OnInstallationComplete);
+            _eventAggregator.GetEvent<UninstallCompleteEvent>().Subscribe(OnUninstallComplete);
             LocalizationManager.LanguageChanged += OnMainWindowLanguageChanged;
 
             InitializeNavigationItems();
@@ -297,6 +298,14 @@ namespace Asher.UserInterface.ViewModels
             SetupNormalNavigation(navigateToHome: true);
 
             _settings = AsherSettings.Load();
+        }
+
+        private void OnUninstallComplete()
+        {
+            IsInstallationMode = true;
+            WindowTitle = LocalizationManager.Instance["Window_InstallTitle"];
+            _settings = AsherSettings.Load();
+            SetupInstallationNavigation(navigateToStart: true);
         }
     }
 }

@@ -153,6 +153,24 @@
                 </StackPanel>
             </materialDesign:Card>
 
+            <materialDesign:Card Margin="0,0,0,16" Padding="24"
+                                 Visibility="{Binding CanUninstall, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,8"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                               Text="{Binding UninstallSectionLabel}" />
+                    <TextBlock Margin="0,0,0,16"
+                               Opacity="0.7"
+                               Style="{StaticResource MaterialDesignBody2TextBlock}"
+                               Text="{Binding UninstallDescription}"
+                               TextWrapping="Wrap" />
+                    <Button HorizontalAlignment="Left"
+                            Command="{Binding UninstallCommand}"
+                            Content="{Binding UninstallLabel}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}" />
+                </StackPanel>
+            </materialDesign:Card>
+
             <materialDesign:Card Padding="24">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,16"

@@ -61,4 +61,16 @@
   <data name="InstallResult_StepMods" xml:space="preserve"><value>Add mod DLLs to the Asher/Mods folder</value></data>
   <data name="InstallResult_StepContentPatcher" xml:space="preserve"><value>Use Content Patcher to manage asset replacements</value></data>
   <data name="InstallResult_StepEnjoy" xml:space="preserve"><value>Enjoy your modded game!</value></data>
+  <data name="Settings_UninstallSection" xml:space="preserve"><value>Uninstall / Restore</value></data>
+  <data name="Settings_UninstallDescription" xml:space="preserve"><value>Restore the original game executable from Asher/Asher.Backup and remove Asher runtime files. You can run the installation wizard again afterward.</value></data>
+  <data name="Settings_Uninstall" xml:space="preserve"><value>UNINSTALL &amp; RESTORE</value></data>
+  <data name="Settings_UninstallConfirmTitle" xml:space="preserve"><value>Restore original game?</value></data>
+  <data name="Settings_UninstallConfirmMessage" xml:space="preserve"><value>This will restore DustAET.exe from the backup, remove Asher runtime files, and return to the installation wizard. The manager app and backup folder will be kept so you can reinstall later. Continue?</value></data>
+  <data name="Uninstall_Title" xml:space="preserve"><value>Restoring Game</value></data>
+  <data name="Uninstall_Subtitle" xml:space="preserve"><value>Removing Asher and restoring the original executable from backup</value></data>
+  <data name="Uninstall_Info" xml:space="preserve"><value>Please do not close the application during restoration</value></data>
+  <data name="Uninstall_Starting" xml:space="preserve"><value>Starting restoration...</value></data>
+  <data name="Uninstall_NotInstalled" xml:space="preserve"><value>Asher is not installed in the selected game folder.</value></data>
+  <data name="Uninstall_NoBackup" xml:space="preserve"><value>No restorable backup was found in Asher/Asher.Backup.</value></data>
+  <data name="Uninstall_Failed" xml:space="preserve"><value>Failed to restore the game.</value></data>
 </root>

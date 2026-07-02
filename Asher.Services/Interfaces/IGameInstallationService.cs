@@ -10,5 +10,6 @@ namespace Asher.Services.Interfaces
         Task<InstallationResult> InstallAsync(GameFolderInfo gameInfo, IProgress<InstallationProgress> progress);
         Task<InstallationResult> UninstallAsync(string gameFolderPath, IProgress<InstallationProgress> progress);
         bool IsInstalled(string gameFolderPath);
+        bool HasRestorableBackup(string gameFolderPath);
     }
 }

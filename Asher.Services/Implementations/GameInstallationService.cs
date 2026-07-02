@@ -221,72 +221,54 @@ namespace Asher.Services.Implementations
                     };
                 }
 
-                // Passo 1: Remover launcher
+                if (!HasRestorableBackup(gameFolderPath))
+                {
+                    return new InstallationResult
+                    {
+                        Success = false,
+                        Message = "Nenhum backup restaurável foi encontrado em Asher/Asher.Backup"
+                    };
+                }
+
                 progress?.Report(new InstallationProgress
                 {
-                    Percentage = 20,
+                    Percentage = 10,
                     Message = "Removendo Asher Launcher...",
-                    Details = "Deletando DustAET.exe modificado"
+                    Details = "Preparando restauração do executável original"
                 });
 
-                await Task.Run(() =>
-                {
-                    var launcherPath = Path.Combine(gameFolderPath, OriginalExeName);
-                    if (File.Exists(launcherPath))
-                        File.Delete(launcherPath);
+                await Task.Run(() => RemoveLauncherFiles(gameFolderPath));
 
-                    var launcherConfigPath = launcherPath + ".config";
-                    if (File.Exists(launcherConfigPath))
-                        File.Delete(launcherConfigPath);
-                });
-
-                // Passo 2: Restaurar executável original
                 progress?.Report(new InstallationProgress
                 {
-                    Percentage = 40,
+                    Percentage = 35,
                     Message = "Restaurando executável original...",
-                    Details = "DustAET.real.exe → DustAET.exe"
+                    Details = $"Restaurando {OriginalExeName} a partir do backup"
                 });
 
-                await Task.Run(() =>
-                {
-                    var backupExe = Path.Combine(gameFolderPath, BackupExeName);
-                    var originalExe = Path.Combine(gameFolderPath, OriginalExeName);
+                await Task.Run(() => RestoreOriginalExecutable(gameFolderPath));
 
-                    if (File.Exists(backupExe))
-                        File.Move(backupExe, originalExe);
-                });
-
-                // Passo 3: Remover pasta Asher (opcional - manter logs?)
                 progress?.Report(new InstallationProgress
                 {
-                    Percentage = 70,
-                    Message = "Limpando arquivos do Asher...",
-                    Details = "Removendo pasta Asher/"
+                    Percentage = 65,
+                    Message = "Removendo arquivos do runtime...",
+                    Details = "Limpando mods, logs e DLLs do Asher"
                 });
 
-                await Task.Run(() =>
-                {
-                    var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
-                    if (Directory.Exists(asherFolder))
-                        Directory.Delete(asherFolder, true);
-
-                    var managerFolder = AsherPaths.GetManagerFolderPath(gameFolderPath);
-                    if (Directory.Exists(managerFolder))
-                        Directory.Delete(managerFolder, true);
-                });
+                await Task.Run(() => CleanRuntimeFiles(gameFolderPath));
 
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 100,
-                    Message = "Desinstalação concluída",
-                    Details = "Jogo restaurado ao estado original"
+                    Message = "Restauração concluída",
+                    Details = "O jogo foi restaurado ao estado original"
                 });
 
                 return new InstallationResult
                 {
                     Success = true,
-                    Message = "Asher desinstalado com sucesso"
+                    Message = "Asher removido e jogo restaurado com sucesso",
+                    GameFolderPath = gameFolderPath
                 };
             }
             catch (Exception ex)
@@ -294,10 +276,25 @@ namespace Asher.Services.Implementations
                 return new InstallationResult
                 {
                     Success = false,
-                    Message = $"Erro durante desinstalação: {ex.Message}",
+                    Message = $"Erro durante a desinstalação: {ex.Message}",
                     Error = ex
                 };
             }
+        }
+
+        public bool HasRestorableBackup(string gameFolderPath)
+        {
+            if (string.IsNullOrWhiteSpace(gameFolderPath))
+                return false;
+
+            var backupCopyPath = Path.Combine(
+                AsherPaths.GetBackupFolderPath(gameFolderPath),
+                OriginalExeName);
+
+            if (File.Exists(backupCopyPath))
+                return true;
+
+            return File.Exists(Path.Combine(gameFolderPath, BackupExeName));
         }
 
         public bool IsInstalled(string gameFolderPath)
@@ -467,6 +464,79 @@ namespace Asher.Services.Implementations
             Directory.CreateDirectory(destinationFolder);
 
             CopyManagerDirectory(sourceFolder, destinationFolder);
+        }
+
+        private static void RemoveLauncherFiles(string gameFolderPath)
+        {
+            var launcherPath = Path.Combine(gameFolderPath, OriginalExeName);
+            if (File.Exists(launcherPath))
+                File.Delete(launcherPath);
+
+            var launcherConfigPath = launcherPath + ".config";
+            if (File.Exists(launcherConfigPath))
+                File.Delete(launcherConfigPath);
+        }
+
+        private static void RestoreOriginalExecutable(string gameFolderPath)
+        {
+            var restoredExePath = Path.Combine(gameFolderPath, OriginalExeName);
+            var backupCopyPath = Path.Combine(
+                AsherPaths.GetBackupFolderPath(gameFolderPath),
+                OriginalExeName);
+            var renamedOriginalPath = Path.Combine(gameFolderPath, BackupExeName);
+
+            if (File.Exists(backupCopyPath))
+            {
+                File.Copy(backupCopyPath, restoredExePath, overwrite: true);
+            }
+            else if (File.Exists(renamedOriginalPath))
+            {
+                if (File.Exists(restoredExePath))
+                    File.Delete(restoredExePath);
+
+                File.Move(renamedOriginalPath, restoredExePath);
+            }
+            else
+            {
+                throw new FileNotFoundException(
+                    "Nenhum backup restaurável encontrado em Asher.Backup ou DustAET.real.exe");
+            }
+
+            if (File.Exists(renamedOriginalPath))
+                File.Delete(renamedOriginalPath);
+        }
+
+        private static void CleanRuntimeFiles(string gameFolderPath)
+        {
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return;
+
+            foreach (var file in Directory.GetFiles(asherFolder))
+                File.Delete(file);
+
+            foreach (var directory in Directory.GetDirectories(asherFolder))
+            {
+                var directoryName = Path.GetFileName(directory);
+                if (directoryName.Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase)
+                    || directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                Directory.Delete(directory, true);
+            }
+
+            var legacyManagerPath = Path.Combine(gameFolderPath, ManagerFolderName);
+            var installedManagerPath = AsherPaths.GetManagerFolderPath(gameFolderPath);
+            if (Directory.Exists(legacyManagerPath)
+                && !string.Equals(
+                    Path.GetFullPath(legacyManagerPath),
+                    Path.GetFullPath(installedManagerPath),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.Delete(legacyManagerPath, true);
+            }
         }
 
         private static void CopyManagerDirectory(string sourceFolder, string destinationFolder)

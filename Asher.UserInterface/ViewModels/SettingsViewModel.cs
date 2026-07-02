@@ -11,6 +11,8 @@ namespace Asher.UserInterface.ViewModels
     {
         private readonly IGameFolderService _gameFolderService;
         private readonly IGameLaunchService _gameLaunchService;
+        private readonly IGameInstallationService _installationService;
+        private readonly IRegionManager _regionManager;
         private readonly IThemeService _themeService;
         private bool _isApplyingSettings;
 
@@ -97,14 +99,30 @@ namespace Asher.UserInterface.ViewModels
         public string ActionsLabel => this["Settings_Actions"];
         public string ResetLabel => this["Settings_Reset"];
         public string SaveLabel => this["Settings_Save"];
+        public string UninstallSectionLabel => this["Settings_UninstallSection"];
+        public string UninstallDescription => this["Settings_UninstallDescription"];
+        public string UninstallLabel => this["Settings_Uninstall"];
+        public string UninstallConfirmTitle => this["Settings_UninstallConfirmTitle"];
+        public string UninstallConfirmMessage => this["Settings_UninstallConfirmMessage"];
+
+        private bool _canUninstall;
+        public bool CanUninstall
+        {
+            get => _canUninstall;
+            set => SetProperty(ref _canUninstall, value);
+        }
 
         public SettingsViewModel(
             IGameFolderService gameFolderService,
             IGameLaunchService gameLaunchService,
+            IGameInstallationService installationService,
+            IRegionManager regionManager,
             IThemeService themeService)
         {
             _gameFolderService = gameFolderService;
             _gameLaunchService = gameLaunchService;
+            _installationService = installationService;
+            _regionManager = regionManager;
             _themeService = themeService;
             InitializeSettings();
         }
@@ -132,6 +150,11 @@ namespace Asher.UserInterface.ViewModels
             RaisePropertyChanged(nameof(ActionsLabel));
             RaisePropertyChanged(nameof(ResetLabel));
             RaisePropertyChanged(nameof(SaveLabel));
+            RaisePropertyChanged(nameof(UninstallSectionLabel));
+            RaisePropertyChanged(nameof(UninstallDescription));
+            RaisePropertyChanged(nameof(UninstallLabel));
+            RaisePropertyChanged(nameof(UninstallConfirmTitle));
+            RaisePropertyChanged(nameof(UninstallConfirmMessage));
         }
 
         private DelegateCommand? _browseGamePathCommand;
@@ -145,6 +168,11 @@ namespace Asher.UserInterface.ViewModels
         private DelegateCommand? _saveSettingsCommand;
         public DelegateCommand SaveSettingsCommand =>
             _saveSettingsCommand ??= new DelegateCommand(ExecuteSaveSettingsCommand);
+
+        private DelegateCommand? _uninstallCommand;
+        public DelegateCommand UninstallCommand =>
+            _uninstallCommand ??= new DelegateCommand(ExecuteUninstallCommand, () => CanUninstall)
+                .ObservesProperty(() => CanUninstall);
 
         private void ExecuteBrowseGamePathCommand()
         {
@@ -181,6 +209,20 @@ namespace Asher.UserInterface.ViewModels
             ExecuteSaveSettingsCommand();
         }
 
+        private void ExecuteUninstallCommand()
+        {
+            var confirm = System.Windows.MessageBox.Show(
+                UninstallConfirmMessage,
+                UninstallConfirmTitle,
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning);
+
+            if (confirm != System.Windows.MessageBoxResult.Yes)
+                return;
+
+            _regionManager.RequestNavigate(RegionNames.Main, NavigationNames.UninstallProgress);
+        }
+
         private void ExecuteSaveSettingsCommand()
         {
             var settings = AsherSettings.Load();
@@ -213,8 +255,17 @@ namespace Asher.UserInterface.ViewModels
                     CultureInfo.GetCultureInfo(settings.Language)));
 
             ApplyTheme(SelectedTheme);
+            UpdateUninstallAvailability();
 
             _isApplyingSettings = false;
+        }
+
+        private void UpdateUninstallAvailability()
+        {
+            var gameFolderPath = _gameLaunchService.ResolveGameFolderPath() ?? GamePath;
+            CanUninstall = !string.IsNullOrWhiteSpace(gameFolderPath)
+                && _installationService.IsInstalled(gameFolderPath)
+                && _installationService.HasRestorableBackup(gameFolderPath);
         }
 
         private void ApplyTheme(string themeName)

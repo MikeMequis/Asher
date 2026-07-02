@@ -22,6 +22,7 @@ namespace Asher.UserInterface
             containerRegistry.RegisterForNavigation<ContentPatcherView>(NavigationNames.ContentPatcher);
             containerRegistry.RegisterForNavigation<PatchManagerView>(NavigationNames.PatchManager);
             containerRegistry.RegisterForNavigation<SettingsView>(NavigationNames.Settings);
+            containerRegistry.RegisterForNavigation<UninstallProgressView>(NavigationNames.UninstallProgress);
 
             // Views de instalação
             containerRegistry.RegisterForNavigation<WelcomeView>(InstallationNavigationNames.Welcome);

@@ -6,6 +6,7 @@
         public const string ContentPatcher = "ContentPatcherView";
         public const string PatchManager = "PatchManagerView";
         public const string Settings = "SettingsView";
+        public const string UninstallProgress = "UninstallProgressView";
     }
 
     public static class InstallationNavigationNames
