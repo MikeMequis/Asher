@@ -15,6 +15,8 @@ namespace Asher.App
         {
             var settings = AsherSettings.Load();
             LocalizationManager.Initialize(settings.Language);
+            new ThemeService().Apply(
+                string.IsNullOrWhiteSpace(settings.Theme) ? "Light" : settings.Theme);
             base.OnStartup(e);
         }
 

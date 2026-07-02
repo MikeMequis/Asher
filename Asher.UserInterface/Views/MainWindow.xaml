@@ -13,9 +13,12 @@
         Width="1200"
         Height="700"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Background="White"
+        Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        Foreground="Black"
+        Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
 
@@ -33,14 +36,14 @@
             <Setter Property="Padding" Value="16,0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                    <Setter Property="Background" Value="#E0E0E0" />
-                    <Setter Property="Foreground" Value="Black" />
+                    <Setter Property="Background" Value="{DynamicResource MaterialDesignDivider}" />
+                    <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
                 </DataTrigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F5F5F5" />
+                    <Setter Property="Background" Value="{DynamicResource MaterialDesignCardBackground}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -138,8 +141,8 @@
                 Grid.Column="0"
                 Width="250"
                 behaviors:SidebarAnimationBehavior.IsExpanded="{Binding IsSidebarExpanded}"
-                Background="#F5F5F5"
-                BorderBrush="#E0E0E0"
+                Background="{DynamicResource MaterialDesignBackground}"
+                BorderBrush="{DynamicResource MaterialDesignDivider}"
                 BorderThickness="0,0,1,0">
 
             <Border.RenderTransform>
@@ -174,7 +177,7 @@
                 <!--  Header  -->
                 <Border Grid.Row="0"
                         Padding="16,12"
-                        Background="#E3F2FD">
+                        Background="{DynamicResource PrimaryHueLightBrush}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -278,14 +281,16 @@
                 <!--  Footer  -->
                 <Border Grid.Row="2"
                         Padding="16,8"
-                        Background="#E3F2FD">
+                        Background="{DynamicResource PrimaryHueLightBrush}">
                     <TextBlock Style="{StaticResource FooterTextStyle}" Text="v1.0.0" />
                 </Border>
             </Grid>
         </Border>
 
         <!--  Main Content Area  -->
-        <Grid Grid.Column="1" Margin="0">
+        <Grid Grid.Column="1"
+              Background="{DynamicResource MaterialDesignPaper}"
+              Margin="0">
             <ContentControl prism:RegionManager.RegionName="{x:Static local:RegionNames.Main}" />
         </Grid>
     </Grid>

@@ -28,6 +28,7 @@ namespace Asher.UserInterface.ViewModels
         private readonly IGameInstallationService _installationService;
         private AsherSettings _settings;
         private string? _currentNavigationPath;
+        private bool _startupNavigationPending;
 
         public MainWindowViewModel(
             IRegionManager regionManager,
@@ -118,14 +119,51 @@ namespace Asher.UserInterface.ViewModels
             {
                 IsInstallationMode = true;
                 WindowTitle = LocalizationManager.Instance["Window_InstallTitle"];
-                SetupInstallationNavigation(navigateToStart: true);
+                SetupInstallationNavigation(navigateToStart: false);
+                _startupNavigationPending = true;
             }
             else
             {
                 AsherPaths.MigrateLegacyLayout(resolvedGamePath!);
                 IsInstallationMode = false;
                 WindowTitle = LocalizationManager.Instance["Window_ManagerTitle"];
-                SetupNormalNavigation(navigateToHome: true);
+                SetupNormalNavigation(navigateToHome: false);
+                _startupNavigationPending = true;
+            }
+
+            if (_startupNavigationPending)
+            {
+                if (IsInstallationMode)
+                {
+                    _currentNavigationPath = InstallationNavigationNames.Welcome;
+                    RestoreNavigationSelection(InstallationNavigationItems, InstallationNavigationNames.Welcome);
+                }
+                else
+                {
+                    _currentNavigationPath = NavigationNames.Home;
+                    RestoreNavigationSelection(NavigationItems, NavigationNames.Home);
+                }
+            }
+        }
+
+        public void PerformStartupNavigation()
+        {
+            if (!_startupNavigationPending)
+                return;
+
+            _startupNavigationPending = false;
+
+            if (IsInstallationMode)
+            {
+                _currentNavigationPath = InstallationNavigationNames.Welcome;
+                RestoreNavigationSelection(InstallationNavigationItems, InstallationNavigationNames.Welcome);
+                _regionManager.RequestNavigate(RegionNames.Main, InstallationNavigationNames.Welcome);
+            }
+            else
+            {
+                _currentNavigationPath = NavigationNames.Home;
+                RestoreNavigationSelection(NavigationItems, NavigationNames.Home);
+                _regionManager.RequestNavigate(RegionNames.Main, NavigationNames.Home);
             }
         }
 
