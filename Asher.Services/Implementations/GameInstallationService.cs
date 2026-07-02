@@ -92,7 +92,15 @@ namespace Asher.Services.Implementations
                     Details = "Configurando diretórios do Asher"
                 });
 
-                await Task.Run(() => CreateFolderStructure(gamePath));
+                await Task.Run(() =>
+                {
+                    CreateFolderStructure(gamePath);
+
+                    if (HasRequiredRuntimeFiles(GetAsherInstallationPath()))
+                        CacheInstallPayloadFromSource(gamePath, GetAsherInstallationPath());
+                    else
+                        TryPopulateInstallPayloadIfMissing(gamePath);
+                });
 
                 progress?.Report(new InstallationProgress
                 {
@@ -191,6 +199,7 @@ namespace Asher.Services.Implementations
                 });
 
                 await Task.Run(() => DeployManagerApp(gamePath));
+                await Task.Run(() => CacheInstallPayload(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
@@ -356,7 +365,7 @@ namespace Asher.Services.Implementations
         private void CopyRuntimeFiles(string gamePath)
         {
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
-            var sourceFolder = GetAsherInstallationPath();
+            var sourceFolder = ResolveInstallSourceFolder(gamePath);
 
             foreach (var fileName in RequiredRuntimeFiles)
             {
@@ -364,7 +373,7 @@ namespace Asher.Services.Implementations
                 var destPath = Path.Combine(asherFolder, fileName);
 
                 if (!File.Exists(sourcePath))
-                    throw new FileNotFoundException($"Arquivo necessário não encontrado: {fileName}");
+                    throw new FileNotFoundException($"Arquivo necessário não encontrado: {fileName}", sourcePath);
 
                 File.Copy(sourcePath, destPath, overwrite: true);
             }
@@ -399,9 +408,10 @@ namespace Asher.Services.Implementations
         private void CopyDefaultMods(string gamePath)
         {
             var modsFolder = AsherPaths.GetModsFolderPath(gamePath);
-            var sourceFolder = Path.Combine(GetAsherInstallationPath(), AsherPaths.DefaultModsFolderName);
+            var sourceFolder = Path.Combine(
+                ResolveInstallSourceFolder(gamePath),
+                AsherPaths.DefaultModsFolderName);
 
-            // Se não houver pasta de mods padrão, apenas continua
             if (!Directory.Exists(sourceFolder))
                 return;
 
@@ -428,7 +438,7 @@ namespace Asher.Services.Implementations
 
         private void InstallLauncher(string gamePath)
         {
-            var sourceFolder = GetAsherInstallationPath();
+            var sourceFolder = ResolveInstallSourceFolder(gamePath);
             var launcherSource = Path.Combine(sourceFolder, LauncherExeName);
             var launcherDest = Path.Combine(gamePath, OriginalExeName);
 
@@ -534,7 +544,8 @@ namespace Asher.Services.Implementations
             {
                 var directoryName = Path.GetFileName(directory);
                 if (directoryName.Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase))
+                    || directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
+                    || directoryName.Equals(AsherPaths.InstallPayloadFolderName, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -554,9 +565,111 @@ namespace Asher.Services.Implementations
             }
         }
 
-        private string GetAsherInstallationPath()
+        private string GetAsherInstallationPath() =>
+            AppDomain.CurrentDomain.BaseDirectory;
+
+        private string ResolveInstallSourceFolder(string gamePath)
         {
-            return AppDomain.CurrentDomain.BaseDirectory;
+            foreach (var candidate in GetInstallSourceCandidates(gamePath))
+            {
+                if (HasRequiredRuntimeFiles(candidate))
+                    return candidate;
+            }
+
+            throw new FileNotFoundException(
+                "Arquivos de instalação do Asher não encontrados. " +
+                "Execute a instalação a partir da pasta Distribution ou reinstale após uma instalação completa anterior.");
+        }
+
+        private IEnumerable<string> GetInstallSourceCandidates(string gamePath)
+        {
+            yield return GetAsherInstallationPath();
+            yield return AsherPaths.GetInstallPayloadPath(gamePath);
+            yield return Path.Combine(AsherPaths.GetManagerFolderPath(gamePath), AsherPaths.InstallPayloadFolderName);
+            yield return AsherPaths.GetRuntimeFolderPath(gamePath);
+        }
+
+        private static bool HasRequiredRuntimeFiles(string folder) =>
+            RequiredRuntimeFiles.All(fileName => File.Exists(Path.Combine(folder, fileName)));
+
+        private void TryPopulateInstallPayloadIfMissing(string gamePath)
+        {
+            var payloadPath = AsherPaths.GetInstallPayloadPath(gamePath);
+            if (HasRequiredRuntimeFiles(payloadPath))
+                return;
+
+            foreach (var candidate in GetInstallSourceCandidates(gamePath))
+            {
+                if (string.Equals(
+                    Path.GetFullPath(candidate),
+                    Path.GetFullPath(payloadPath),
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (HasRequiredRuntimeFiles(candidate))
+                {
+                    CacheInstallPayloadFromSource(gamePath, candidate);
+                    return;
+                }
+            }
+        }
+
+        private void CacheInstallPayload(string gamePath) =>
+            CacheInstallPayloadFromSource(gamePath, AsherPaths.GetRuntimeFolderPath(gamePath));
+
+        private void CacheInstallPayloadFromSource(string gamePath, string sourceFolder)
+        {
+            var payloadPath = AsherPaths.GetInstallPayloadPath(gamePath);
+            Directory.CreateDirectory(payloadPath);
+
+            foreach (var fileName in RequiredRuntimeFiles)
+            {
+                var sourcePath = Path.Combine(sourceFolder, fileName);
+                if (File.Exists(sourcePath))
+                    File.Copy(sourcePath, Path.Combine(payloadPath, fileName), overwrite: true);
+            }
+
+            var launcherSource = Path.Combine(sourceFolder, LauncherExeName);
+            if (File.Exists(launcherSource))
+            {
+                File.Copy(launcherSource, Path.Combine(payloadPath, LauncherExeName), overwrite: true);
+
+                var launcherConfigSource = launcherSource + ".config";
+                if (File.Exists(launcherConfigSource))
+                {
+                    File.Copy(
+                        launcherConfigSource,
+                        Path.Combine(payloadPath, LauncherExeName) + ".config",
+                        overwrite: true);
+                }
+            }
+
+            var defaultModsSource = Path.Combine(sourceFolder, AsherPaths.DefaultModsFolderName);
+            var defaultModsDest = Path.Combine(payloadPath, AsherPaths.DefaultModsFolderName);
+            if (Directory.Exists(defaultModsSource))
+            {
+                if (Directory.Exists(defaultModsDest))
+                    Directory.Delete(defaultModsDest, true);
+
+                CopyDirectoryRecursive(defaultModsSource, defaultModsDest);
+            }
+        }
+
+        private static void CopyDirectoryRecursive(string sourceFolder, string destinationFolder)
+        {
+            Directory.CreateDirectory(destinationFolder);
+
+            foreach (var file in Directory.GetFiles(sourceFolder))
+                File.Copy(file, Path.Combine(destinationFolder, Path.GetFileName(file)), overwrite: true);
+
+            foreach (var directory in Directory.GetDirectories(sourceFolder))
+            {
+                CopyDirectoryRecursive(
+                    directory,
+                    Path.Combine(destinationFolder, Path.GetFileName(directory)));
+            }
         }
 
         #endregion

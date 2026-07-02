@@ -149,7 +149,8 @@ namespace Asher.Services.Implementations
                     || directoryName.Equals(AsherPaths.BackupFolderName, StringComparison.OrdinalIgnoreCase)
                     || directoryName.Equals(AsherPaths.ManagerFolderName, StringComparison.OrdinalIgnoreCase)
                     || directoryName.Equals(PayloadFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(AsherPaths.DefaultModsFolderName, StringComparison.OrdinalIgnoreCase))
+                    || directoryName.Equals(AsherPaths.DefaultModsFolderName, StringComparison.OrdinalIgnoreCase)
+                    || directoryName.Equals(AsherPaths.InstallPayloadFolderName, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
