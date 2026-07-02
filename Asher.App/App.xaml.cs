@@ -1,4 +1,6 @@
-﻿using Asher.Services.Implementations;
+﻿using Asher.Core;
+using Asher.Localization;
+using Asher.Services.Implementations;
 using Asher.Services.Interfaces;
 using Asher.UserInterface;
 using Asher.UserInterface.Views;
@@ -8,6 +10,13 @@ namespace Asher.App
 {
     public partial class App : PrismApplication
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            var settings = AsherSettings.Load();
+            LocalizationManager.Initialize(settings.Language);
+            base.OnStartup(e);
+        }
+
         protected override Window CreateShell() => Container.Resolve<MainWindow>();
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)

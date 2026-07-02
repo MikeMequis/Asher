@@ -8,15 +8,10 @@ namespace Asher.UserInterface.ViewModels
     {
         protected BaseViewModel()
         {
-            SubscribeToLanguageChanges();
-        }
-
-        private void SubscribeToLanguageChanges()
-        {
             LocalizationManager.LanguageChanged += OnLanguageChanged;
         }
 
-        private void OnLanguageChanged(object sender, CultureInfo newCulture)
+        protected virtual void OnLanguageChanged(object? sender, CultureInfo newCulture)
         {
             RaisePropertyChanged("Item[]");
         }

@@ -7,7 +7,10 @@ namespace Asher.Core
         public const string RuntimeFolderName = "Asher";
         public const string ManagerFolderName = "Asher.App";
         public const string BackupFolderName = "Asher.Backup";
+        public const string PatchesFolderName = "patches";
         public const string DefaultModsFolderName = "DefaultMods";
+        public const string ModsFolderName = "Mods";
+        public const string DisabledModsFolderName = "disabled";
         public const string SettingsFileName = "settings.json";
 
         public const string GameExecutableName = "DustAET.exe";
@@ -20,8 +23,23 @@ namespace Asher.Core
         public static string GetLocalSettingsPath() =>
             Path.Combine(GetAppBaseDirectory(), SettingsFileName);
 
+        public static string GetRuntimeFolderPath(string gameFolderPath) =>
+            Path.Combine(gameFolderPath, RuntimeFolderName);
+
         public static string GetManagerFolderPath(string gameFolderPath) =>
-            Path.Combine(gameFolderPath, ManagerFolderName);
+            Path.Combine(GetRuntimeFolderPath(gameFolderPath), ManagerFolderName);
+
+        public static string GetBackupFolderPath(string gameFolderPath) =>
+            Path.Combine(GetRuntimeFolderPath(gameFolderPath), BackupFolderName);
+
+        public static string GetPatchesFolderPath(string gameFolderPath) =>
+            Path.Combine(GetRuntimeFolderPath(gameFolderPath), PatchesFolderName);
+
+        public static string GetModsFolderPath(string gameFolderPath) =>
+            Path.Combine(GetRuntimeFolderPath(gameFolderPath), ModsFolderName);
+
+        public static string GetDisabledModsFolderPath(string gameFolderPath) =>
+            Path.Combine(GetModsFolderPath(gameFolderPath), DisabledModsFolderName);
 
         public static string? TryGetGameFolderFromManagerLocation()
         {
@@ -29,8 +47,17 @@ namespace Asher.Core
             if (!Path.GetFileName(baseDir).Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var parent = Directory.GetParent(baseDir)?.FullName;
-            return parent != null && IsValidGameFolder(parent) ? parent : null;
+            var parentDir = Directory.GetParent(baseDir)?.FullName;
+            if (parentDir == null)
+                return null;
+
+            if (Path.GetFileName(parentDir).Equals(RuntimeFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                var gameDir = Directory.GetParent(parentDir)?.FullName;
+                return gameDir != null && IsValidGameFolder(gameDir) ? gameDir : null;
+            }
+
+            return IsValidGameFolder(parentDir) ? parentDir : null;
         }
 
         public static bool IsValidGameFolder(string gameFolderPath)
@@ -40,7 +67,7 @@ namespace Asher.Core
 
             return File.Exists(Path.Combine(gameFolderPath, GameExecutableName))
                 || (File.Exists(Path.Combine(gameFolderPath, RealGameExecutableName))
-                    && Directory.Exists(Path.Combine(gameFolderPath, RuntimeFolderName)));
+                    && Directory.Exists(GetRuntimeFolderPath(gameFolderPath)));
         }
 
         public static bool IsAsherInstalledIn(string gameFolderPath)
@@ -49,7 +76,33 @@ namespace Asher.Core
                 return false;
 
             return File.Exists(Path.Combine(gameFolderPath, RealGameExecutableName))
-                && Directory.Exists(Path.Combine(gameFolderPath, RuntimeFolderName));
+                && Directory.Exists(GetRuntimeFolderPath(gameFolderPath));
+        }
+
+        public static void MigrateLegacyLayout(string gameFolderPath)
+        {
+            Directory.CreateDirectory(GetRuntimeFolderPath(gameFolderPath));
+
+            TryMoveDirectory(
+                Path.Combine(gameFolderPath, ManagerFolderName),
+                GetManagerFolderPath(gameFolderPath));
+
+            TryMoveDirectory(
+                Path.Combine(gameFolderPath, BackupFolderName),
+                GetBackupFolderPath(gameFolderPath));
+
+            TryMoveDirectory(
+                Path.Combine(gameFolderPath, PatchesFolderName),
+                GetPatchesFolderPath(gameFolderPath));
+        }
+
+        private static void TryMoveDirectory(string source, string destination)
+        {
+            if (!Directory.Exists(source) || Directory.Exists(destination))
+                return;
+
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            Directory.Move(source, destination);
         }
     }
 }

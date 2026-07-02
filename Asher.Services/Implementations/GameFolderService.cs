@@ -7,7 +7,7 @@ namespace Asher.Services.Implementations
     public class GameFolderService : IGameFolderService
     {
         private static readonly string[] DustFolderNames = { "DustAET", "Dust An Elysian Tail", "Dust: An Elysian Tail" };
-        private const string PatchesFolderName = "patches";
+        private const string PatchesFolderName = AsherPaths.PatchesFolderName;
 
         public GameFolderInfo DetectGameFolder()
         {
@@ -33,7 +33,7 @@ namespace Asher.Services.Implementations
 
         public void CreatePatchesFolder(string folderPath)
         {
-            var patchesPath = Path.Combine(folderPath, PatchesFolderName);
+            var patchesPath = AsherPaths.GetPatchesFolderPath(folderPath);
             if (!Directory.Exists(patchesPath))
                 Directory.CreateDirectory(patchesPath);
         }
@@ -63,7 +63,7 @@ namespace Asher.Services.Implementations
                 catch { }
             }
 
-            string patchesFolderPath = Path.Combine(folderPath, PatchesFolderName);
+            string patchesFolderPath = AsherPaths.GetPatchesFolderPath(folderPath);
 
             return new GameFolderInfo
             {

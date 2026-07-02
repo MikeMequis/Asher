@@ -19,6 +19,11 @@ namespace Asher.Core
         public DateTime? InstallationDate { get; set; }
         public string GameVersion { get; set; } = string.Empty;
         public bool FirstRun { get; set; } = true;
+        public string Language { get; set; } = "en-US";
+        public bool AutoLaunchEnabled { get; set; } = true;
+        public bool BackupEnabled { get; set; } = true;
+        public string Theme { get; set; } = "Light";
+        public bool CheckForUpdatesEnabled { get; set; } = true;
 
         public static AsherSettings Load()
         {

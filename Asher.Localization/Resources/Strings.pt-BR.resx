@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Nav_Home" xml:space="preserve"><value>Início</value></data>
+  <data name="Nav_ContentPatcher" xml:space="preserve"><value>Content Patcher</value></data>
+  <data name="Nav_PatchManager" xml:space="preserve"><value>Gerenciador de Patches</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Home_LaunchGame" xml:space="preserve"><value>Iniciar Jogo</value></data>
+  <data name="Home_LaunchGameDesc" xml:space="preserve"><value>Inicia o Dust com os patches do Asher</value></data>
+  <data name="Home_PatchManager" xml:space="preserve"><value>Gerenciador de Patches</value></data>
+  <data name="Home_PatchManagerDesc" xml:space="preserve"><value>Gerencie patches e mods em tempo de execução</value></data>
+  <data name="Home_ContentPatcher" xml:space="preserve"><value>Content Patcher</value></data>
+  <data name="Home_ContentPatcherDesc" xml:space="preserve"><value>Substitua assets do jogo em tempo de execução</value></data>
+  <data name="Home_Settings" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Home_SettingsDesc" xml:space="preserve"><value>Configure o Asher e preferências do jogo</value></data>
+  <data name="PatchManager_Title" xml:space="preserve"><value>Gerenciador de Patches</value></data>
+  <data name="PatchManager_Subtitle" xml:space="preserve"><value>Gerencie patches e mods do Dust: An Elysian Tail</value></data>
+  <data name="PatchManager_AvailablePatches" xml:space="preserve"><value>Patches Disponíveis</value></data>
+  <data name="PatchManager_Refresh" xml:space="preserve"><value>Atualizar Patches</value></data>
+  <data name="PatchManager_Empty" xml:space="preserve"><value>Nenhum patch encontrado. Adicione DLLs em Asher/Mods para vê-los aqui.</value></data>
+  <data name="PatchManager_PatchInfo" xml:space="preserve"><value>Informações dos Patches</value></data>
+  <data name="PatchManager_ActivePatches" xml:space="preserve"><value>Patches Ativos</value></data>
+  <data name="PatchManager_TotalPatches" xml:space="preserve"><value>Total de Patches</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>Configure preferências do aplicativo e do jogo</value></data>
+  <data name="Settings_GameSettings" xml:space="preserve"><value>Configurações do Jogo</value></data>
+  <data name="Settings_GamePath" xml:space="preserve"><value>Caminho do Executável do Jogo</value></data>
+  <data name="Settings_Browse" xml:space="preserve"><value>Procurar</value></data>
+  <data name="Settings_AutoLaunch" xml:space="preserve"><value>Iniciar automaticamente com patches</value></data>
+  <data name="Settings_Backup" xml:space="preserve"><value>Ativar backups automáticos</value></data>
+  <data name="Settings_AppSettings" xml:space="preserve"><value>Configurações do Aplicativo</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Settings_Theme" xml:space="preserve"><value>Tema</value></data>
+  <data name="Settings_CheckUpdates" xml:space="preserve"><value>Verificar atualizações ao iniciar</value></data>
+  <data name="Settings_Actions" xml:space="preserve"><value>Ações</value></data>
+  <data name="Settings_Reset" xml:space="preserve"><value>Restaurar Padrões</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Salvar Configurações</value></data>
+  <data name="Window_ManagerTitle" xml:space="preserve"><value>Asher - Gerenciador de Mods</value></data>
+  <data name="Window_InstallTitle" xml:space="preserve"><value>Asher - Instalação</value></data>
+</root>

@@ -1,9 +1,11 @@
 ﻿using Asher.Core;
 using Asher.Core.Models;
+using Asher.Localization;
 using Asher.Services.Interfaces;
 using Asher.UserInterface.Events;
 using MaterialDesignThemes.Wpf;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace Asher.UserInterface.ViewModels
 {
@@ -44,6 +46,7 @@ namespace Asher.UserInterface.ViewModels
 
             // Inscreve-se no evento de instalação completa
             _eventAggregator.GetEvent<InstallationCompleteEvent>().Subscribe(OnInstallationComplete);
+            LocalizationManager.LanguageChanged += OnLanguageChanged;
 
             InitializeNavigationItems();
         }
@@ -114,26 +117,43 @@ namespace Asher.UserInterface.ViewModels
             if (!isInstalled)
             {
                 IsInstallationMode = true;
-                WindowTitle = "Asher - Instalação";
+                WindowTitle = LocalizationManager.Instance["Window_InstallTitle"];
                 SetupInstallationNavigation();
             }
             else
             {
+                AsherPaths.MigrateLegacyLayout(resolvedGamePath!);
                 IsInstallationMode = false;
-                WindowTitle = "Asher - Mod Manager";
+                WindowTitle = LocalizationManager.Instance["Window_ManagerTitle"];
                 SetupNormalNavigation();
             }
+        }
+
+        private void OnLanguageChanged(object? sender, CultureInfo e)
+        {
+            WindowTitle = IsInstallationMode
+                ? LocalizationManager.Instance["Window_InstallTitle"]
+                : LocalizationManager.Instance["Window_ManagerTitle"];
+
+            if (IsInstallationMode)
+                SetupInstallationNavigation();
+            else
+                SetupNormalNavigation();
         }
 
         private string? ResolveInstalledGamePath()
         {
             var fromManagerLocation = AsherPaths.TryGetGameFolderFromManagerLocation();
             if (!string.IsNullOrEmpty(fromManagerLocation) && _installationService.IsInstalled(fromManagerLocation))
+            {
+                AsherPaths.MigrateLegacyLayout(fromManagerLocation);
                 return fromManagerLocation;
+            }
 
             if (!string.IsNullOrWhiteSpace(_settings.GameFolderPath)
                 && _installationService.IsInstalled(_settings.GameFolderPath))
             {
+                AsherPaths.MigrateLegacyLayout(_settings.GameFolderPath);
                 return _settings.GameFolderPath;
             }
 
@@ -160,10 +180,10 @@ namespace Asher.UserInterface.ViewModels
             NavigationItems.Clear();
 
             _navigationItemsManager.CreateOptions(NavigationItems,
-                ("Home", "Home", PackIconKind.Home, NavigationNames.Home, true),
-                ("ContentPatcher", "Content Patcher", PackIconKind.ContentPaste, NavigationNames.ContentPatcher, true),
-                ("PatchManager", "Patch Manager", PackIconKind.Puzzle, NavigationNames.PatchManager, true),
-                ("Settings", "Settings", PackIconKind.Settings, NavigationNames.Settings, true)
+                ("Home", LocalizationManager.Instance["Nav_Home"], PackIconKind.Home, NavigationNames.Home, true),
+                ("ContentPatcher", LocalizationManager.Instance["Nav_ContentPatcher"], PackIconKind.ContentPaste, NavigationNames.ContentPatcher, true),
+                ("PatchManager", LocalizationManager.Instance["Nav_PatchManager"], PackIconKind.Puzzle, NavigationNames.PatchManager, true),
+                ("Settings", LocalizationManager.Instance["Nav_Settings"], PackIconKind.Settings, NavigationNames.Settings, true)
             );
 
             // Navega para a home
@@ -174,7 +194,7 @@ namespace Asher.UserInterface.ViewModels
         {
             // Quando a instalação é completada, muda para o modo normal
             IsInstallationMode = false;
-            WindowTitle = "Asher - Mod Manager";
+            WindowTitle = LocalizationManager.Instance["Window_ManagerTitle"];
             SetupNormalNavigation();
 
             // As configurações já devem ter sido salvas pelo InstallationResultViewModel

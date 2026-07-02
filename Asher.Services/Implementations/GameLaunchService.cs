@@ -19,12 +19,16 @@ namespace Asher.Services.Implementations
         {
             var fromManagerLocation = AsherPaths.TryGetGameFolderFromManagerLocation();
             if (!string.IsNullOrEmpty(fromManagerLocation) && _installationService.IsInstalled(fromManagerLocation))
+            {
+                AsherPaths.MigrateLegacyLayout(fromManagerLocation);
                 return fromManagerLocation;
+            }
 
             var settings = AsherSettings.Load();
             if (!string.IsNullOrWhiteSpace(settings.GameFolderPath)
                 && _installationService.IsInstalled(settings.GameFolderPath))
             {
+                AsherPaths.MigrateLegacyLayout(settings.GameFolderPath);
                 return settings.GameFolderPath;
             }
 

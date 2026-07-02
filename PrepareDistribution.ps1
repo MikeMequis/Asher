@@ -270,19 +270,21 @@ ESTRUTURA APOS INSTALACAO NO JOGO
 GameFolder/
 ├── DustAET.exe              (Asher.Launcher - novo)
 ├── DustAET.real.exe         (executavel original renomeado)
-├── Asher.Backup/
-│   └── DustAET.exe          (backup do original)
-├── Asher/
-│   ├── Asher.Runtime.dll
-│   ├── Asher.SDK.dll
-│   ├── 0Harmony.dll
-│   ├── Mods/                (seus mods aqui)
-│   └── AsherLogs/           (logs do runtime)
-└── Asher.App/               (gerenciador instalado no jogo)
-    ├── Asher.App.exe        (use este atalho apos a instalacao)
-    ├── settings.json
-    ├── Asher.Launcher.exe   (payload para reinstalacao)
-    └── DefaultMods/
+└── Asher/
+    ├── Asher.Runtime.dll
+    ├── Asher.SDK.dll
+    ├── 0Harmony.dll
+    ├── Mods/                (mods ativos)
+    │   └── disabled/        (mods desativados)
+    ├── AsherLogs/
+    ├── patches/
+    ├── Asher.Backup/
+    │   └── DustAET.exe
+    └── Asher.App/           (gerenciador instalado no jogo)
+        ├── Asher.App.exe
+        ├── settings.json
+        ├── Asher.Launcher.exe
+        └── DefaultMods/
 
 SUPORTE
 ---------------------------------------------------------

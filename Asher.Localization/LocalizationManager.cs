@@ -6,42 +6,66 @@ namespace Asher.Localization
 {
     public class LocalizationManager : INotifyPropertyChanged
     {
-        private static LocalizationManager _instance;
-        public static LocalizationManager Instance => _instance ??= new();
+        private static LocalizationManager? _instance;
+        public static LocalizationManager Instance => _instance ??= new LocalizationManager();
 
-        private ResourceManager _resourceManager;
-        private CultureInfo _uiLanguage = new("pt-BR");
+        private ResourceManager? _resourceManager;
+        private CultureInfo _uiLanguage = new("en-US");
 
-        public ResourceManager ResourceManager
-        {
-            get => _resourceManager;
-            set => _resourceManager = value;
-        }
+        public static event EventHandler<CultureInfo>? LanguageChanged;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public CultureInfo UILanguage
         {
             get => _uiLanguage;
             set
             {
-                if (_uiLanguage?.Name != value?.Name)
-                {
-                    _uiLanguage = value;
+                var culture = value ?? new CultureInfo("en-US");
+                if (_uiLanguage.Name == culture.Name)
+                    return;
 
-                    OnPropertyChanged(nameof(UILanguage));
-                    OnPropertyChanged("Item[]");
-
-                    LanguageChanged?.Invoke(this, value);
-                }
+                _uiLanguage = culture;
+                OnPropertyChanged(nameof(UILanguage));
+                OnPropertyChanged("Item[]");
+                LanguageChanged?.Invoke(this, culture);
             }
         }
 
-        public static event EventHandler<CultureInfo> LanguageChanged;
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
+        public static void Initialize(string? language = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            Instance.ApplyCulture(language);
         }
+
+        public void ApplyCulture(string? language)
+        {
+            _resourceManager ??= new ResourceManager(
+                "Asher.Localization.Resources.Strings",
+                typeof(LocalizationManager).Assembly);
+
+            UILanguage = ResolveCulture(language);
+        }
+
+        public static CultureInfo[] GetSupportedCultures() =>
+        [
+            new CultureInfo("en-US"),
+            new CultureInfo("pt-BR"),
+            new CultureInfo("es-ES")
+        ];
+
+        public static string GetCultureDisplayName(CultureInfo culture) => culture.Name switch
+        {
+            "pt-BR" => "Portuguese (Brazil)",
+            "es-ES" => "Spanish",
+            _ => "English"
+        };
+
+        public static string GetCultureNameFromDisplay(string displayName) => displayName switch
+        {
+            "Portuguese (Brazil)" => "pt-BR",
+            "Spanish" => "es-ES",
+            _ => "en-US"
+        };
 
         public string this[string key]
         {
@@ -49,67 +73,36 @@ namespace Asher.Localization
             {
                 try
                 {
-                    return _resourceManager?.GetString(key, _uiLanguage) ?? string.Empty;
+                    if (_resourceManager == null)
+                        return key;
+
+                    return _resourceManager.GetString(key, _uiLanguage)
+                        ?? _resourceManager.GetString(key, new CultureInfo("en-US"))
+                        ?? key;
                 }
                 catch
                 {
-                    return "####";
+                    return key;
                 }
             }
         }
 
-        //public static event EventHandler<CultureInfo>? CultureChanged;
-        //public event PropertyChangedEventHandler? PropertyChanged;
-        //private static readonly ResourceManager _resourceManager;
-        //private static CultureInfo _currentCulture;
-        //private static readonly LocalizationManager _instance = new();
-        //public static LocalizationManager Instance => _instance;
-        //public static CultureInfo CurrentCulture => _currentCulture;
-        //public CultureInfo CurrentCultureProperty => _currentCulture;
+        private static CultureInfo ResolveCulture(string? language)
+        {
+            if (string.IsNullOrWhiteSpace(language))
+                return new CultureInfo("en-US");
 
-        //static LocalizationManager()
-        //{
-        //    _resourceManager = new ResourceManager("Asher.Localization.Resources.Strings", typeof(LocalizationManager).Assembly);
-        //    _currentCulture = CultureInfo.CurrentCulture;
-        //}
-        
-        //public static string GetString(string key) => _resourceManager.GetString(key, _currentCulture) ?? key;
+            try
+            {
+                return CultureInfo.GetCultureInfo(language);
+            }
+            catch
+            {
+                return new CultureInfo("en-US");
+            }
+        }
 
-        //public static string GetString(string key, params object[] args)
-        //{
-        //    var format = GetString(key);
-        //    return string.Format(format, args);
-        //}
-
-        //public static string GetString(string key, CultureInfo? culture)
-        //{
-        //    if (string.IsNullOrEmpty(key))
-        //        return "";
-        //    return _resourceManager.GetString(key, culture ?? _currentCulture) ?? $"##{key}##";
-        //}
-
-        //public static void ChangeCulture(CultureInfo culture)
-        //{
-        //    _currentCulture = culture ?? throw new ArgumentNullException(nameof(culture));
-        //    CultureChanged?.Invoke(null, culture);
-        //    _instance.PropertyChanged?.Invoke(_instance, new PropertyChangedEventArgs(nameof(CurrentCultureProperty)));
-        //}
-
-        //public static CultureInfo[] GetAvailableCultures()
-        //{
-        //    return
-        //    [
-        //        new CultureInfo("en-US"), // English
-        //        new CultureInfo("pt-BR"), // Portuguese (Brazil)
-        //    ];
-        //}
-
-        //public static void ToggleLanguage()
-        //{
-        //    var availableCultures = GetAvailableCultures();
-        //    var currentCultureName = _currentCulture.Name;
-        //    var nextCulture = availableCultures.First(c => c.Name != currentCultureName);
-        //    ChangeCulture(nextCulture);
-        //}
+        protected virtual void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-} 
+}

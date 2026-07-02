@@ -48,6 +48,8 @@ namespace Asher.Services.Implementations
                 var gamePath = gameInfo.Path;
                 var originalExePath = Path.Combine(gamePath, OriginalExeName);
 
+                await Task.Run(() => AsherPaths.MigrateLegacyLayout(gamePath));
+
                 // Verifica se já está instalado
                 if (IsInstalled(gamePath))
                 {
@@ -269,7 +271,7 @@ namespace Asher.Services.Implementations
                     if (Directory.Exists(asherFolder))
                         Directory.Delete(asherFolder, true);
 
-                    var managerFolder = Path.Combine(gameFolderPath, ManagerFolderName);
+                    var managerFolder = AsherPaths.GetManagerFolderPath(gameFolderPath);
                     if (Directory.Exists(managerFolder))
                         Directory.Delete(managerFolder, true);
                 });
@@ -311,7 +313,7 @@ namespace Asher.Services.Implementations
 
         private void CreateBackup(string gamePath, string originalExePath)
         {
-            var backupFolder = Path.Combine(gamePath, BackupFolderName);
+            var backupFolder = AsherPaths.GetBackupFolderPath(gamePath);
 
             if (!Directory.Exists(backupFolder))
                 Directory.CreateDirectory(backupFolder);
@@ -331,33 +333,21 @@ namespace Asher.Services.Implementations
 
         private void CreateFolderStructure(string gamePath)
         {
-            // Criar pasta principal Asher/
-            var asherFolder = Path.Combine(gamePath, AsherFolderName);
-            if (!Directory.Exists(asherFolder))
-                Directory.CreateDirectory(asherFolder);
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
+            Directory.CreateDirectory(asherFolder);
 
-            // Criar subpastas dentro de Asher/
-            var modsFolder = Path.Combine(asherFolder, ModsFolderName);
-            if (!Directory.Exists(modsFolder))
-                Directory.CreateDirectory(modsFolder);
-
-            var logsFolder = Path.Combine(asherFolder, LogsFolderName);
-            if (!Directory.Exists(logsFolder))
-                Directory.CreateDirectory(logsFolder);
-
-            // Criar subpastas de Mods/
-            var configFolder = Path.Combine(modsFolder, "config");
-            if (!Directory.Exists(configFolder))
-                Directory.CreateDirectory(configFolder);
-
-            var cacheFolder = Path.Combine(modsFolder, "cache");
-            if (!Directory.Exists(cacheFolder))
-                Directory.CreateDirectory(cacheFolder);
+            Directory.CreateDirectory(AsherPaths.GetModsFolderPath(gamePath));
+            Directory.CreateDirectory(Path.Combine(asherFolder, LogsFolderName));
+            Directory.CreateDirectory(AsherPaths.GetPatchesFolderPath(gamePath));
+            Directory.CreateDirectory(AsherPaths.GetBackupFolderPath(gamePath));
+            Directory.CreateDirectory(AsherPaths.GetDisabledModsFolderPath(gamePath));
+            Directory.CreateDirectory(Path.Combine(AsherPaths.GetModsFolderPath(gamePath), "config"));
+            Directory.CreateDirectory(Path.Combine(AsherPaths.GetModsFolderPath(gamePath), "cache"));
         }
 
         private void CopyRuntimeFiles(string gamePath)
         {
-            var asherFolder = Path.Combine(gamePath, AsherFolderName);
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             var sourceFolder = GetAsherInstallationPath();
 
             foreach (var fileName in RequiredRuntimeFiles)
@@ -400,7 +390,7 @@ namespace Asher.Services.Implementations
 
         private void CopyDefaultMods(string gamePath)
         {
-            var modsFolder = Path.Combine(gamePath, AsherFolderName, ModsFolderName);
+            var modsFolder = AsherPaths.GetModsFolderPath(gamePath);
             var sourceFolder = Path.Combine(GetAsherInstallationPath(), AsherPaths.DefaultModsFolderName);
 
             // Se não houver pasta de mods padrão, apenas continua
@@ -457,7 +447,7 @@ namespace Asher.Services.Implementations
                 throw new InvalidOperationException("Executável original não foi renomeado");
 
             // Verifica se pasta Asher existe
-            var asherFolder = Path.Combine(gamePath, AsherFolderName);
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             if (!Directory.Exists(asherFolder))
                 throw new InvalidOperationException("Pasta Asher não foi criada");
 
@@ -473,7 +463,7 @@ namespace Asher.Services.Implementations
         private void DeployManagerApp(string gamePath)
         {
             var sourceFolder = GetAsherInstallationPath();
-            var destinationFolder = Path.Combine(gamePath, ManagerFolderName);
+            var destinationFolder = AsherPaths.GetManagerFolderPath(gamePath);
             Directory.CreateDirectory(destinationFolder);
 
             CopyManagerDirectory(sourceFolder, destinationFolder);
