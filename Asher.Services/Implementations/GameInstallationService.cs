@@ -7,6 +7,8 @@ namespace Asher.Services.Implementations
 {
     public class GameInstallationService : IGameInstallationService
     {
+        private readonly IManagerDeployService _managerDeployService;
+
         private const string OriginalExeName = AsherPaths.GameExecutableName;
         private const string BackupExeName = AsherPaths.RealGameExecutableName;
         private const string LauncherExeName = AsherPaths.LauncherExecutableName;
@@ -30,16 +32,10 @@ namespace Asher.Services.Implementations
             "Asher.Patching.GraphicsDeprofiler.dll"
         };
 
-        private static readonly string[] ManagerCopyExcludedFiles =
+        public GameInstallationService(IManagerDeployService managerDeployService)
         {
-            AsherPaths.SettingsFileName,
-            AsherPaths.GameExecutableName,
-            AsherPaths.RealGameExecutableName,
-            AsherPaths.LauncherExecutableName,
-            "Asher.Runtime.dll",
-            "Asher.SDK.dll",
-            "0Harmony.dll"
-        };
+            _managerDeployService = managerDeployService;
+        }
 
         public async Task<InstallationResult> InstallAsync(
             GameFolderInfo gameInfo,
@@ -186,8 +182,12 @@ namespace Asher.Services.Implementations
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 92,
-                    Message = "Instalando Asher App...",
-                    Details = $"Copiando gerenciador para {ManagerFolderName}/"
+                    Message = _managerDeployService.ShouldDeferDeploy(gamePath)
+                        ? "Preparando atualização do gerenciador..."
+                        : "Instalando Asher App...",
+                    Details = _managerDeployService.ShouldDeferDeploy(gamePath)
+                        ? "Os arquivos serão aplicados após reiniciar o aplicativo"
+                        : $"Copiando gerenciador para {ManagerFolderName}/"
                 });
 
                 await Task.Run(() => DeployManagerApp(gamePath));
@@ -470,18 +470,16 @@ namespace Asher.Services.Implementations
 
         private void DeployManagerApp(string gamePath)
         {
-            var sourceFolder = NormalizeDirectoryPath(GetAsherInstallationPath());
-            var destinationFolder = NormalizeDirectoryPath(AsherPaths.GetManagerFolderPath(gamePath));
+            var sourceFolder = GetAsherInstallationPath();
 
-            if (string.Equals(sourceFolder, destinationFolder, StringComparison.OrdinalIgnoreCase))
+            if (_managerDeployService.ShouldDeferDeploy(gamePath))
+            {
+                _managerDeployService.StagePayload(sourceFolder, gamePath);
                 return;
+            }
 
-            Directory.CreateDirectory(destinationFolder);
-            CopyManagerDirectory(sourceFolder, destinationFolder);
+            _managerDeployService.DeployImmediate(sourceFolder, gamePath);
         }
-
-        private static string NormalizeDirectoryPath(string path) =>
-            Path.GetFullPath(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
         private static void RemoveLauncherFiles(string gameFolderPath)
         {
@@ -553,62 +551,6 @@ namespace Asher.Services.Implementations
                     StringComparison.OrdinalIgnoreCase))
             {
                 Directory.Delete(legacyManagerPath, true);
-            }
-        }
-
-        private static void CopyManagerDirectory(string sourceFolder, string destinationFolder)
-        {
-            foreach (var file in Directory.GetFiles(sourceFolder))
-            {
-                var fileName = Path.GetFileName(file);
-                if (ShouldSkipManagerFile(fileName))
-                    continue;
-
-                var destPath = Path.Combine(destinationFolder, fileName);
-                if (string.Equals(
-                    Path.GetFullPath(file),
-                    Path.GetFullPath(destPath),
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                TryCopyManagerFile(file, destPath);
-            }
-
-            foreach (var directory in Directory.GetDirectories(sourceFolder))
-            {
-                var directoryName = Path.GetFileName(directory);
-                if (directoryName.Equals(AsherPaths.RuntimeFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(AsherPaths.BackupFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(AsherPaths.DefaultModsFolderName, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var targetDirectory = Path.Combine(destinationFolder, directoryName);
-                Directory.CreateDirectory(targetDirectory);
-                CopyManagerDirectory(directory, targetDirectory);
-            }
-        }
-
-        private static bool ShouldSkipManagerFile(string fileName) =>
-            ManagerCopyExcludedFiles.Any(excluded =>
-                fileName.Equals(excluded, StringComparison.OrdinalIgnoreCase));
-
-        private static void TryCopyManagerFile(string sourcePath, string destPath)
-        {
-            try
-            {
-                File.Copy(sourcePath, destPath, overwrite: true);
-            }
-            catch (IOException) when (File.Exists(destPath))
-            {
-                // The manager may be running from the destination folder during reinstall.
-            }
-            catch (UnauthorizedAccessException) when (File.Exists(destPath))
-            {
             }
         }
 

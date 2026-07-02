@@ -2,6 +2,7 @@
 using Asher.Localization;
 using Asher.Services.Interfaces;
 using Asher.UserInterface.Events;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -14,19 +15,22 @@ namespace Asher.UserInterface.ViewModels
         private readonly IRegionManager _regionManager;
         private readonly IShortcutService _shortcutService;
         private readonly IManagerLaunchService _managerLaunchService;
+        private readonly IManagerDeployService _managerDeployService;
 
         public InstallationResultViewModel(
             IEventAggregator eventAggregator,
             IInstallationStateService stateService,
             IRegionManager regionManager,
             IShortcutService shortcutService,
-            IManagerLaunchService managerLaunchService)
+            IManagerLaunchService managerLaunchService,
+            IManagerDeployService managerDeployService)
         {
             _eventAggregator = eventAggregator;
             _stateService = stateService;
             _regionManager = regionManager;
             _shortcutService = shortcutService;
             _managerLaunchService = managerLaunchService;
+            _managerDeployService = managerDeployService;
         }
 
         private bool _isSuccess;
@@ -196,6 +200,14 @@ namespace Asher.UserInterface.ViewModels
                 }
 
                 if (!string.IsNullOrWhiteSpace(gameFolderPath)
+                    && _managerDeployService.HasPendingPayload(gameFolderPath)
+                    && _managerDeployService.IsRunningFromManagerOf(gameFolderPath))
+                {
+                    RestartCurrentManager();
+                    return;
+                }
+
+                if (!string.IsNullOrWhiteSpace(gameFolderPath)
                     && _managerLaunchService.ShouldRelaunchAfterInstall(gameFolderPath)
                     && _managerLaunchService.TryRelaunchManager(gameFolderPath, out _))
                 {
@@ -215,6 +227,25 @@ namespace Asher.UserInterface.ViewModels
         private void ExecuteCancelInstallationCommand()
         {
             _regionManager.RequestNavigate(RegionNames.Main, InstallationNavigationNames.Welcome);
+        }
+
+        private void RestartCurrentManager()
+        {
+            var exePath = Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrWhiteSpace(exePath))
+            {
+                _eventAggregator.GetEvent<InstallationCompleteEvent>().Publish();
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = exePath,
+                WorkingDirectory = Path.GetDirectoryName(exePath),
+                UseShellExecute = true
+            });
+
+            System.Windows.Application.Current.Shutdown();
         }
     }
 }

@@ -17,6 +17,11 @@ namespace Asher.App
             LocalizationManager.Initialize(settings.Language);
             new ThemeService().Apply(
                 string.IsNullOrWhiteSpace(settings.Theme) ? "Light" : settings.Theme);
+
+            var gameFromManager = AsherPaths.TryGetGameFolderFromManagerLocation();
+            if (!string.IsNullOrWhiteSpace(gameFromManager))
+                new ManagerDeployService().ApplyPendingPayload(gameFromManager);
+
             base.OnStartup(e);
         }
 
@@ -42,6 +47,7 @@ namespace Asher.App
             containerRegistry.RegisterSingleton<IGameLaunchService, GameLaunchService>();
             containerRegistry.RegisterSingleton<IShortcutService, ShortcutService>();
             containerRegistry.RegisterSingleton<IManagerLaunchService, ManagerLaunchService>();
+            containerRegistry.RegisterSingleton<IManagerDeployService, ManagerDeployService>();
             containerRegistry.RegisterSingleton<IThemeService, ThemeService>();
         }
 
