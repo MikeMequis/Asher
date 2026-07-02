@@ -198,10 +198,9 @@ namespace Asher.UserInterface.ViewModels
                 }
 
                 if (!string.IsNullOrWhiteSpace(gameFolderPath)
-                    && _managerDeployService.HasPendingPayload(gameFolderPath)
-                    && _managerDeployService.IsRunningFromManagerOf(gameFolderPath))
+                    && _managerDeployService.HasPendingPayload(gameFolderPath))
                 {
-                    if (_managerLaunchService.TryRestartCurrentManager(out _))
+                    if (_managerLaunchService.TryFinishInstallWithPendingPayload(gameFolderPath, out _))
                     {
                         System.Windows.Application.Current.Shutdown();
                         return;

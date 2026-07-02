@@ -480,6 +480,12 @@ namespace Asher.Services.Implementations
 
         private void DeployManagerApp(string gamePath)
         {
+            if (_managerDeployService.IsRunningFromManagerOf(gamePath))
+            {
+                _managerDeployService.ClearPendingPayload(gamePath);
+                return;
+            }
+
             var sourceFolder = GetAsherInstallationPath();
 
             if (_managerDeployService.ShouldDeferDeploy(gamePath))

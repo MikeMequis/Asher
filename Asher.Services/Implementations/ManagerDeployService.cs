@@ -39,7 +39,7 @@ namespace Asher.Services.Implementations
         public bool ShouldDeferDeploy(string gameFolderPath)
         {
             if (IsRunningFromManagerOf(gameFolderPath))
-                return true;
+                return false;
 
             return IsManagerRunningAt(AsherPaths.GetManagerFolderPath(gameFolderPath));
         }
@@ -87,6 +87,31 @@ namespace Asher.Services.Implementations
                 try
                 {
                     File.Delete(Path.Combine(payloadFolder, PendingMarkerFileName));
+                }
+                catch
+                {
+                    // Best effort cleanup.
+                }
+            }
+        }
+
+        public void ClearPendingPayload(string gameFolderPath)
+        {
+            var payloadFolder = GetPayloadFolderPath(gameFolderPath);
+            if (!Directory.Exists(payloadFolder))
+                return;
+
+            try
+            {
+                Directory.Delete(payloadFolder, true);
+            }
+            catch
+            {
+                try
+                {
+                    var markerPath = Path.Combine(payloadFolder, PendingMarkerFileName);
+                    if (File.Exists(markerPath))
+                        File.Delete(markerPath);
                 }
                 catch
                 {

@@ -7,6 +7,7 @@ namespace Asher.Services.Implementations
     public class ManagerLaunchService : IManagerLaunchService
     {
         private const string ManagerExeName = "Asher.App.exe";
+        private const string PayloadFolderName = "ManagerPayload";
 
         public string GetInstalledManagerPath(string gameFolderPath) =>
             Path.Combine(AsherPaths.GetManagerFolderPath(gameFolderPath), ManagerExeName);
@@ -55,26 +56,30 @@ namespace Asher.Services.Implementations
             }
         }
 
-        public bool TryRestartCurrentManager(out string? errorMessage)
+        public bool TryFinishInstallWithPendingPayload(string gameFolderPath, out string? errorMessage)
         {
             errorMessage = null;
 
             try
             {
-                var exePath = Process.GetCurrentProcess().MainModule?.FileName;
-                if (string.IsNullOrWhiteSpace(exePath))
+                var managerFolder = AsherPaths.GetManagerFolderPath(gameFolderPath);
+                var managerExe = Path.Combine(managerFolder, ManagerExeName);
+                var payloadFolder = Path.Combine(
+                    AsherPaths.GetRuntimeFolderPath(gameFolderPath),
+                    PayloadFolderName);
+
+                if (!Directory.Exists(payloadFolder))
                 {
-                    errorMessage = "Não foi possível localizar o executável atual.";
+                    errorMessage = $"Pending payload not found: {payloadFolder}";
                     return false;
                 }
 
-                var workingDirectory = Path.GetDirectoryName(exePath) ?? AsherPaths.GetAppBaseDirectory();
                 var currentProcessId = Process.GetCurrentProcess().Id;
-                var restartScriptPath = Path.Combine(
+                var scriptPath = Path.Combine(
                     Path.GetTempPath(),
-                    $"asher-restart-{currentProcessId}.cmd");
+                    $"asher-apply-payload-{currentProcessId}.cmd");
 
-                File.WriteAllText(restartScriptPath,
+                File.WriteAllText(scriptPath,
                     $"""
                     @echo off
                     :wait
@@ -83,14 +88,17 @@ namespace Asher.Services.Implementations
                         timeout /t 1 /nobreak >nul
                         goto wait
                     )
-                    start "" "{exePath}"
+                    robocopy "{payloadFolder}" "{managerFolder}" /E /IS /IT /XF .pending /NFL /NDL /NJH /NJS /NC /NS /NP >nul
+                    if exist "{payloadFolder}\.pending" del /F /Q "{payloadFolder}\.pending"
+                    rd /S /Q "{payloadFolder}" 2>nul
+                    start "" "{managerExe}"
                     del "%~f0"
                     """);
 
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = restartScriptPath,
-                    WorkingDirectory = workingDirectory,
+                    FileName = scriptPath,
+                    WorkingDirectory = managerFolder,
                     CreateNoWindow = true,
                     UseShellExecute = true
                 });

@@ -5,6 +5,6 @@ namespace Asher.Services.Interfaces
         string GetInstalledManagerPath(string gameFolderPath);
         bool ShouldRelaunchAfterInstall(string gameFolderPath);
         bool TryRelaunchManager(string gameFolderPath, out string? errorMessage);
-        bool TryRestartCurrentManager(out string? errorMessage);
+        bool TryFinishInstallWithPendingPayload(string gameFolderPath, out string? errorMessage);
     }
 }

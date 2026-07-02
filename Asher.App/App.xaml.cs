@@ -18,10 +18,6 @@ namespace Asher.App
             new ThemeService().Apply(
                 string.IsNullOrWhiteSpace(settings.Theme) ? "Light" : settings.Theme);
 
-            var gameFromManager = AsherPaths.TryGetGameFolderFromManagerLocation();
-            if (!string.IsNullOrWhiteSpace(gameFromManager))
-                new ManagerDeployService().ApplyPendingPayload(gameFromManager);
-
             base.OnStartup(e);
         }
 

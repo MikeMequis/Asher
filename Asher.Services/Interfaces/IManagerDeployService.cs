@@ -8,6 +8,7 @@ namespace Asher.Services.Interfaces
         void StagePayload(string sourceFolder, string gameFolderPath);
         void DeployImmediate(string sourceFolder, string gameFolderPath);
         void ApplyPendingPayload(string gameFolderPath);
+        void ClearPendingPayload(string gameFolderPath);
         bool IsRunningFromManagerOf(string gameFolderPath);
     }
 }
