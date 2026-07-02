@@ -1,4 +1,5 @@
-﻿using Asher.Services.Interfaces;
+﻿using Asher.Core;
+using Asher.Services.Interfaces;
 using System.Collections.ObjectModel;
 
 namespace Asher.UserInterface.ViewModels
@@ -6,6 +7,7 @@ namespace Asher.UserInterface.ViewModels
     public class SettingsViewModel : BaseViewModel
     {
         private readonly IGameFolderService _gameFolderService;
+        private readonly IGameLaunchService _gameLaunchService;
 
         private string _gamePath = string.Empty;
         public string GamePath
@@ -50,21 +52,22 @@ namespace Asher.UserInterface.ViewModels
         }
 
         public ObservableCollection<string> AvailableLanguages { get; } = new()
-    {
-        "English",
-        "Portuguese (Brazil)",
-        "Spanish",
-    };
+        {
+            "English",
+            "Portuguese (Brazil)",
+            "Spanish",
+        };
 
         public ObservableCollection<string> AvailableThemes { get; } = new()
-    {
-        "Light",
-        "Dark"
-    };
+        {
+            "Light",
+            "Dark"
+        };
 
-        public SettingsViewModel(IGameFolderService gameFolderService)
+        public SettingsViewModel(IGameFolderService gameFolderService, IGameLaunchService gameLaunchService)
         {
             _gameFolderService = gameFolderService;
+            _gameLaunchService = gameLaunchService;
             InitializeSettings();
         }
 
@@ -94,33 +97,27 @@ namespace Asher.UserInterface.ViewModels
 
         private void ExecuteBrowseGamePathCommand()
         {
-            using (var dialog = new FolderBrowserDialog())
+            using var dialog = new FolderBrowserDialog
             {
-                dialog.Description = "Select Dust: An Elysian Tail game folder";
+                Description = "Select Dust: An Elysian Tail game folder"
+            };
 
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var gameInfo = _gameFolderService.GetInfo(dialog.SelectedPath);
+
+                if (gameInfo.IsValid)
                 {
-                    var gameInfo = _gameFolderService.GetInfo(dialog.SelectedPath);
-
-                    if (gameInfo.IsValid)
-                    {
-                        GamePath = gameInfo.Path;
-                        // Optionally create patches folder if it doesn't exist
-                        if (!gameInfo.HasPatchesFolder)
-                            _gameFolderService.CreatePatchesFolder(gameInfo.Path);
-                    }
-                    else
-                    {
-                        // TODO: Show error message to user
-                        // Invalid game folder selected
-                    }
+                    GamePath = gameInfo.Path;
+                    if (!gameInfo.HasPatchesFolder)
+                        _gameFolderService.CreatePatchesFolder(gameInfo.Path);
                 }
             }
         }
 
         private void ExecuteResetToDefaultsCommand()
         {
-            GamePath = string.Empty;
+            GamePath = _gameLaunchService.ResolveGameFolderPath() ?? string.Empty;
             AutoLaunchEnabled = true;
             BackupEnabled = true;
             SelectedLanguage = "English";
@@ -130,14 +127,17 @@ namespace Asher.UserInterface.ViewModels
 
         private void ExecuteSaveSettingsCommand()
         {
-            // TODO: Implement settings persistence
-            // This will be implemented when we add configuration management
+            var settings = AsherSettings.Load();
+            settings.GameFolderPath = GamePath;
+            settings.Save();
         }
 
         private void InitializeSettings()
         {
-            // TODO: Load settings from configuration
-            // For now, use default values
+            var settings = AsherSettings.Load();
+            GamePath = _gameLaunchService.ResolveGameFolderPath()
+                ?? settings.GameFolderPath
+                ?? string.Empty;
         }
     }
 }

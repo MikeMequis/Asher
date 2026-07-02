@@ -1,4 +1,5 @@
 ﻿using Asher.Core.Models;
+using Asher.Core;
 using Asher.Services.Interfaces;
 
 namespace Asher.UserInterface.ViewModels
@@ -85,6 +86,12 @@ namespace Asher.UserInterface.ViewModels
 
                 // Chama o método correto: InstallAsync (não PrepareAsync)
                 var result = await _installationService.InstallAsync(gameInfo, progress);
+
+                if (result.Success)
+                {
+                    var settings = AsherSettings.Load();
+                    settings.MarkAsInstalled(gameInfo.Path, gameInfo.Version);
+                }
 
                 _stateService.SetInstallationResult(result);
 

@@ -1,4 +1,5 @@
-﻿using Asher.Core.Models;
+﻿using Asher.Core;
+using Asher.Core.Models;
 using Asher.Services.Interfaces;
 using System.Reflection;
 
@@ -6,11 +7,12 @@ namespace Asher.Services.Implementations
 {
     public class GameInstallationService : IGameInstallationService
     {
-        private const string OriginalExeName = "DustAET.exe";
-        private const string BackupExeName = "DustAET.real.exe";
-        private const string LauncherExeName = "Asher.Launcher.exe";
-        private const string BackupFolderName = "Asher.Backup";
-        private const string AsherFolderName = "Asher";
+        private const string OriginalExeName = AsherPaths.GameExecutableName;
+        private const string BackupExeName = AsherPaths.RealGameExecutableName;
+        private const string LauncherExeName = AsherPaths.LauncherExecutableName;
+        private const string BackupFolderName = AsherPaths.BackupFolderName;
+        private const string AsherFolderName = AsherPaths.RuntimeFolderName;
+        private const string ManagerFolderName = AsherPaths.ManagerFolderName;
         private const string ModsFolderName = "Mods";
         private const string LogsFolderName = "AsherLogs";
 
@@ -170,6 +172,15 @@ namespace Asher.Services.Implementations
 
                 progress?.Report(new InstallationProgress
                 {
+                    Percentage = 92,
+                    Message = "Instalando Asher App...",
+                    Details = $"Copiando gerenciador para {ManagerFolderName}/"
+                });
+
+                await Task.Run(() => DeployManagerApp(gamePath));
+
+                progress?.Report(new InstallationProgress
+                {
                     Percentage = 100,
                     Message = "Instalação concluída!",
                     Details = "O Asher está pronto para uso"
@@ -178,7 +189,8 @@ namespace Asher.Services.Implementations
                 return new InstallationResult
                 {
                     Success = true,
-                    Message = "Instalação concluída com sucesso!"
+                    Message = "Instalação concluída com sucesso!",
+                    GameFolderPath = gamePath
                 };
             }
             catch (Exception ex)
@@ -256,6 +268,10 @@ namespace Asher.Services.Implementations
                     var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
                     if (Directory.Exists(asherFolder))
                         Directory.Delete(asherFolder, true);
+
+                    var managerFolder = Path.Combine(gameFolderPath, ManagerFolderName);
+                    if (Directory.Exists(managerFolder))
+                        Directory.Delete(managerFolder, true);
                 });
 
                 progress?.Report(new InstallationProgress
@@ -385,7 +401,7 @@ namespace Asher.Services.Implementations
         private void CopyDefaultMods(string gamePath)
         {
             var modsFolder = Path.Combine(gamePath, AsherFolderName, ModsFolderName);
-            var sourceFolder = Path.Combine(GetAsherInstallationPath(), "DefaultMods");
+            var sourceFolder = Path.Combine(GetAsherInstallationPath(), AsherPaths.DefaultModsFolderName);
 
             // Se não houver pasta de mods padrão, apenas continua
             if (!Directory.Exists(sourceFolder))
@@ -454,10 +470,44 @@ namespace Asher.Services.Implementations
             }
         }
 
+        private void DeployManagerApp(string gamePath)
+        {
+            var sourceFolder = GetAsherInstallationPath();
+            var destinationFolder = Path.Combine(gamePath, ManagerFolderName);
+            Directory.CreateDirectory(destinationFolder);
+
+            CopyManagerDirectory(sourceFolder, destinationFolder);
+        }
+
+        private static void CopyManagerDirectory(string sourceFolder, string destinationFolder)
+        {
+            foreach (var file in Directory.GetFiles(sourceFolder))
+            {
+                var fileName = Path.GetFileName(file);
+                if (fileName.Equals(AsherPaths.SettingsFileName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                File.Copy(file, Path.Combine(destinationFolder, fileName), overwrite: true);
+            }
+
+            foreach (var directory in Directory.GetDirectories(sourceFolder))
+            {
+                var directoryName = Path.GetFileName(directory);
+                if (directoryName.Equals(AsherPaths.RuntimeFolderName, StringComparison.OrdinalIgnoreCase)
+                    || directoryName.Equals(AsherPaths.BackupFolderName, StringComparison.OrdinalIgnoreCase)
+                    || directoryName.Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var targetDirectory = Path.Combine(destinationFolder, directoryName);
+                Directory.CreateDirectory(targetDirectory);
+                CopyManagerDirectory(directory, targetDirectory);
+            }
+        }
+
         private string GetAsherInstallationPath()
         {
-            // Retorna o diretório onde o Asher.UserInterface.exe está rodando
-            // Aqui devem estar os arquivos para copiar: Asher.Launcher.exe, DLLs, etc.
             return AppDomain.CurrentDomain.BaseDirectory;
         }
 

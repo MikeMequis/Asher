@@ -18,6 +18,7 @@ namespace Asher.App
             containerRegistry.RegisterSingleton<IGameInstallationService, GameInstallationService>();
             containerRegistry.RegisterSingleton<IInstallationStateService, InstallationStateService>();
             containerRegistry.RegisterSingleton<INavigationItemsManager, NavigationItemsManager>();
+            containerRegistry.RegisterSingleton<IGameLaunchService, GameLaunchService>();
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)

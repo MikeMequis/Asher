@@ -1,4 +1,5 @@
-﻿using Asher.Services.Interfaces;
+﻿using Asher.Core;
+using Asher.Services.Interfaces;
 using Asher.UserInterface.Events;
 
 namespace Asher.UserInterface.ViewModels
@@ -109,10 +110,19 @@ namespace Asher.UserInterface.ViewModels
 
         private void ExecuteFinishInstallationCommand()
         {
-            // Publica evento de instalação completa
-            _eventAggregator.GetEvent<InstallationCompleteEvent>().Publish();
+            var result = _stateService.GetInstallationResult();
+            if (result?.Success == true)
+            {
+                var gameInfo = _stateService.GetGameFolder();
+                var settings = AsherSettings.Load();
 
-            // O MainWindow vai escutar este evento e alternar os NavigationItems
+                if (gameInfo != null)
+                    settings.MarkAsInstalled(gameInfo.Path, gameInfo.Version);
+                else if (!string.IsNullOrWhiteSpace(result.GameFolderPath))
+                    settings.MarkAsInstalled(result.GameFolderPath, settings.GameVersion);
+            }
+
+            _eventAggregator.GetEvent<InstallationCompleteEvent>().Publish();
         }
 
         private void ExecuteRetryInstallationCommand()

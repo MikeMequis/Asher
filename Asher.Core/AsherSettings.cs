@@ -8,77 +8,58 @@ namespace Asher.Core
     /// </summary>
     public class AsherSettings
     {
-        private static readonly string SettingsFilePath = Path.Combine(
+        private static readonly string AppDataSettingsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Asher",
-            "settings.json"
+            AsherPaths.SettingsFileName
         );
 
-        public string GameFolderPath { get; set; }
+        public string GameFolderPath { get; set; } = string.Empty;
         public bool IsInstalled { get; set; }
         public DateTime? InstallationDate { get; set; }
-        public string GameVersion { get; set; }
+        public string GameVersion { get; set; } = string.Empty;
         public bool FirstRun { get; set; } = true;
 
-        /// <summary>
-        /// Carrega as configurações do arquivo
-        /// </summary>
         public static AsherSettings Load()
         {
-            try
+            foreach (var path in GetSettingsLoadOrder())
             {
-                if (File.Exists(SettingsFilePath))
-                {
-                    var json = File.ReadAllText(SettingsFilePath);
-                    return JsonConvert.DeserializeObject<AsherSettings>(json) ?? new AsherSettings();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error if needed
-                Console.WriteLine($"Erro ao carregar settings: {ex.Message}");
+                var settings = TryLoadFrom(path);
+                if (settings != null)
+                    return settings;
             }
 
             return new AsherSettings();
         }
 
-        /// <summary>
-        /// Salva as configurações no arquivo
-        /// </summary>
         public void Save()
         {
-            try
-            {
-                var directory = Path.GetDirectoryName(SettingsFilePath);
-                if (!Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
+            SaveToPath(AppDataSettingsPath);
 
-                var json = JsonConvert.SerializeObject(this, Formatting.Indented);
-                File.WriteAllText(SettingsFilePath, json);
-            }
-            catch (Exception ex)
+            var localPath = AsherPaths.GetLocalSettingsPath();
+            if (!string.Equals(localPath, AppDataSettingsPath, StringComparison.OrdinalIgnoreCase))
+                SaveToPath(localPath);
+
+            if (!string.IsNullOrWhiteSpace(GameFolderPath))
             {
-                // Log error if needed
-                Console.WriteLine($"Erro ao salvar settings: {ex.Message}");
+                var managerSettingsPath = Path.Combine(
+                    AsherPaths.GetManagerFolderPath(GameFolderPath),
+                    AsherPaths.SettingsFileName);
+
+                SaveToPath(managerSettingsPath);
             }
         }
 
-        /// <summary>
-        /// Marca a instalação como concluída
-        /// </summary>
         public void MarkAsInstalled(string gameFolderPath, string gameVersion)
         {
             GameFolderPath = gameFolderPath;
             IsInstalled = true;
             InstallationDate = DateTime.Now;
-            GameVersion = gameVersion;
+            GameVersion = gameVersion ?? string.Empty;
             FirstRun = false;
             Save();
         }
 
-        /// <summary>
-        /// Marca como desinstalado
-        /// </summary>
         public void MarkAsUninstalled()
         {
             IsInstalled = false;
@@ -86,17 +67,61 @@ namespace Asher.Core
             Save();
         }
 
-        /// <summary>
-        /// Limpa todas as configurações
-        /// </summary>
         public void Clear()
         {
-            GameFolderPath = null;
+            GameFolderPath = string.Empty;
             IsInstalled = false;
             InstallationDate = null;
-            GameVersion = null;
+            GameVersion = string.Empty;
             FirstRun = true;
             Save();
+        }
+
+        private static IEnumerable<string> GetSettingsLoadOrder()
+        {
+            yield return AsherPaths.GetLocalSettingsPath();
+
+            if (!string.IsNullOrWhiteSpace(AsherPaths.TryGetGameFolderFromManagerLocation()))
+            {
+                yield return Path.Combine(
+                    AsherPaths.GetManagerFolderPath(AsherPaths.TryGetGameFolderFromManagerLocation()!),
+                    AsherPaths.SettingsFileName);
+            }
+
+            yield return AppDataSettingsPath;
+        }
+
+        private static AsherSettings? TryLoadFrom(string path)
+        {
+            try
+            {
+                if (!File.Exists(path))
+                    return null;
+
+                var json = File.ReadAllText(path);
+                return JsonConvert.DeserializeObject<AsherSettings>(json);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void SaveToPath(string path)
+        {
+            try
+            {
+                var directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                var json = JsonConvert.SerializeObject(this, Formatting.Indented);
+                File.WriteAllText(path, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao salvar settings em {path}: {ex.Message}");
+            }
         }
     }
 }

@@ -102,25 +102,42 @@ namespace Asher.UserInterface.ViewModels
 
         private void InitializeNavigationItems()
         {
-            // Verifica se já está instalado usando settings E validação real
-            bool isInstalled = _settings.IsInstalled &&
-                               !string.IsNullOrEmpty(_settings.GameFolderPath) &&
-                               _installationService.IsInstalled(_settings.GameFolderPath);
+            var resolvedGamePath = ResolveInstalledGamePath();
+            bool isInstalled = !string.IsNullOrEmpty(resolvedGamePath);
+
+            if (isInstalled && (!_settings.IsInstalled || _settings.GameFolderPath != resolvedGamePath))
+            {
+                var gameInfo = new GameFolderInfo { Path = resolvedGamePath, Version = _settings.GameVersion };
+                _settings.MarkAsInstalled(resolvedGamePath, gameInfo.Version ?? string.Empty);
+            }
 
             if (!isInstalled)
             {
-                // Modo de instalação
                 IsInstallationMode = true;
                 WindowTitle = "Asher - Instalação";
                 SetupInstallationNavigation();
             }
             else
             {
-                // Modo normal
                 IsInstallationMode = false;
                 WindowTitle = "Asher - Mod Manager";
                 SetupNormalNavigation();
             }
+        }
+
+        private string? ResolveInstalledGamePath()
+        {
+            var fromManagerLocation = AsherPaths.TryGetGameFolderFromManagerLocation();
+            if (!string.IsNullOrEmpty(fromManagerLocation) && _installationService.IsInstalled(fromManagerLocation))
+                return fromManagerLocation;
+
+            if (!string.IsNullOrWhiteSpace(_settings.GameFolderPath)
+                && _installationService.IsInstalled(_settings.GameFolderPath))
+            {
+                return _settings.GameFolderPath;
+            }
+
+            return null;
         }
 
         private void SetupInstallationNavigation()

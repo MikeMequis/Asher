@@ -1,4 +1,5 @@
-﻿using Asher.Core.Models;
+﻿using Asher.Core;
+using Asher.Core.Models;
 using Asher.Services.Interfaces;
 
 namespace Asher.Services.Implementations
@@ -6,16 +7,27 @@ namespace Asher.Services.Implementations
     public class GameFolderService : IGameFolderService
     {
         private static readonly string[] DustFolderNames = { "DustAET", "Dust An Elysian Tail", "Dust: An Elysian Tail" };
-        private const string ExeName = "DustAET.exe";
         private const string PatchesFolderName = "patches";
 
         public GameFolderInfo DetectGameFolder()
         {
-            // Try detection methods in order of likelihood
-            return TryGetPath(GetSteamPath())
-                ?? TryGetPath(GetGogPath())
-                ?? TryGetPath(GetHumblePath())
-                ?? TryGetPath(SearchForDustFolder())
+            var fromManagerLocation = AsherPaths.TryGetGameFolderFromManagerLocation();
+            if (!string.IsNullOrEmpty(fromManagerLocation))
+                return GetInfo(fromManagerLocation, "Installed");
+
+            var settings = AsherSettings.Load();
+            if (!string.IsNullOrWhiteSpace(settings.GameFolderPath))
+            {
+                var fromSettings = TryGetPath(settings.GameFolderPath, "Settings");
+                if (fromSettings != null)
+                    return fromSettings;
+            }
+
+            return TryGetPath(GetSteamPath(), "Steam")
+                ?? TryGetPath(GetGogPath(), "GOG")
+                ?? TryGetPath(GetHumblePath(), "Humble")
+                ?? TryGetPath(FindAsherInstalledFolder(), "Installed")
+                ?? TryGetPath(SearchForDustFolder(), "Search")
                 ?? CreateEmptyInfo();
         }
 
@@ -26,22 +38,27 @@ namespace Asher.Services.Implementations
                 Directory.CreateDirectory(patchesPath);
         }
 
-        private GameFolderInfo TryGetPath(string path)
+        private GameFolderInfo TryGetPath(string? path, string source)
         {
-            return !string.IsNullOrEmpty(path) && Directory.Exists(path) ? GetInfo(path) : null;
+            return !string.IsNullOrEmpty(path) && Directory.Exists(path) ? GetInfo(path, source) : null;
         }
 
         public GameFolderInfo GetInfo(string folderPath)
         {
-            string exePath = Path.Combine(folderPath, ExeName);
-            bool isValid = File.Exists(exePath);
+            return GetInfo(folderPath, "Manual");
+        }
+
+        private GameFolderInfo GetInfo(string folderPath, string source)
+        {
+            string exePath = Path.Combine(folderPath, AsherPaths.GameExecutableName);
+            bool isValid = AsherPaths.IsValidGameFolder(folderPath);
             string version = string.Empty;
 
-            if (isValid)
+            if (File.Exists(exePath))
             {
                 try
                 {
-                    version = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath).FileVersion;
+                    version = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath).FileVersion ?? string.Empty;
                 }
                 catch { }
             }
@@ -53,7 +70,7 @@ namespace Asher.Services.Implementations
                 Path = folderPath,
                 Version = version,
                 IsValid = isValid,
-                Source = "Manual",
+                Source = source,
                 HasPatchesFolder = Directory.Exists(patchesFolderPath),
                 PatchesFolderPath = patchesFolderPath
             };
@@ -185,7 +202,7 @@ namespace Asher.Services.Implementations
                     {
                         var folderName = Path.GetFileName(folder);
                         if (DustFolderNames.Any(name => folderName.Equals(name, StringComparison.OrdinalIgnoreCase))
-                            && File.Exists(Path.Combine(folder, ExeName)))
+                            && AsherPaths.IsValidGameFolder(folder))
                         {
                             return folder;
                         }
@@ -195,6 +212,56 @@ namespace Asher.Services.Implementations
             }
 
             return null;
+        }
+
+        private string? FindAsherInstalledFolder()
+        {
+            foreach (var steamRoot in GetSteamLibraryRoots())
+            {
+                var commonPath = Path.Combine(steamRoot, "steamapps", "common");
+                if (!Directory.Exists(commonPath))
+                    continue;
+
+                foreach (var folderName in DustFolderNames)
+                {
+                    var candidate = Path.Combine(commonPath, folderName);
+                    if (AsherPaths.IsAsherInstalledIn(candidate))
+                        return candidate;
+                }
+
+                var dustFolder = Path.Combine(commonPath, "Dust An Elysian Tail");
+                if (AsherPaths.IsAsherInstalledIn(dustFolder))
+                    return dustFolder;
+            }
+
+            return null;
+        }
+
+        private IEnumerable<string> GetSteamLibraryRoots()
+        {
+            var steamLocations = new[]
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Steam"),
+                @"C:\Steam",
+                @"D:\Steam",
+                @"E:\Steam"
+            };
+
+            foreach (var steamPath in steamLocations.Where(Directory.Exists))
+            {
+                yield return steamPath;
+
+                var libraryFoldersVdf = Path.Combine(steamPath, "steamapps", "libraryfolders.vdf");
+                if (!File.Exists(libraryFoldersVdf))
+                    continue;
+
+                foreach (var line in File.ReadAllLines(libraryFoldersVdf).Where(l => l.Contains("path")))
+                {
+                    foreach (var part in line.Split('"').Where(p => p.Contains(":\\")))
+                        yield return part;
+                }
+            }
         }
     }
 }
