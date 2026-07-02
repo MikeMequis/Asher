@@ -219,6 +219,10 @@ namespace Asher.Services.Implementations
                     var launcherPath = Path.Combine(gameFolderPath, OriginalExeName);
                     if (File.Exists(launcherPath))
                         File.Delete(launcherPath);
+
+                    var launcherConfigPath = launcherPath + ".config";
+                    if (File.Exists(launcherConfigPath))
+                        File.Delete(launcherConfigPath);
                 });
 
                 // Passo 2: Restaurar executável original
@@ -391,6 +395,10 @@ namespace Asher.Services.Implementations
                 throw new FileNotFoundException($"Asher Launcher não encontrado: {launcherSource}");
 
             File.Copy(launcherSource, launcherDest, overwrite: true);
+
+            var launcherConfigSource = launcherSource + ".config";
+            if (File.Exists(launcherConfigSource))
+                File.Copy(launcherConfigSource, launcherDest + ".config", overwrite: true);
         }
 
         private void VerifyInstallation(string gamePath)

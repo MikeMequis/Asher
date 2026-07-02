@@ -110,6 +110,14 @@ if (Test-Path $launcherExe) {
     Copy-Item -Path $launcherExe -Destination $OutputPath -Force
     $launcherSize = [math]::Round((Get-Item $launcherExe).Length / 1KB, 2)
     Write-Host "      [OK] Asher.Launcher.exe ($launcherSize KB)" -ForegroundColor Green
+
+    $launcherConfig = "$launcherExe.config"
+    if (Test-Path $launcherConfig) {
+        Copy-Item -Path $launcherConfig -Destination (Join-Path $OutputPath "Asher.Launcher.exe.config") -Force
+        Write-Host "      [OK] Asher.Launcher.exe.config" -ForegroundColor Green
+    } else {
+        Write-Host "      [AVISO] Asher.Launcher.exe.config nao encontrado" -ForegroundColor Yellow
+    }
 } else {
     Write-Host "      [ERRO] Asher.Launcher.exe nao encontrado!" -ForegroundColor Red
     Write-Host "             Procurado em: $LauncherPath" -ForegroundColor DarkGray

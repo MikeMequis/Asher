@@ -3,6 +3,8 @@ using Asher.Runtime.Bootstrap;
 using Asher.Runtime.Core;
 using Asher.SDK.Logging;
 using System.Reflection;
+using System.Text;
+using System.Windows.Forms;
 
 namespace Asher.Launcher
 {
@@ -177,34 +179,106 @@ namespace Asher.Launcher
         /// </summary>
         private static void HandleFatalError(Exception ex)
         {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
             try
             {
-                AsherLog.Error($"ERRO FATAL no Asher Launcher:");
+                AsherLog.Error("ERRO FATAL no Asher Launcher:");
                 AsherLog.Error($"Tipo: {ex.GetType().Name}");
                 AsherLog.Error($"Mensagem: {ex.Message}");
                 AsherLog.Error($"Stack Trace:\n{ex.StackTrace}");
 
                 if (ex.InnerException != null)
-                {
                     AsherLog.Error($"Inner Exception: {ex.InnerException.Message}");
-                }
             }
             catch
             {
-                // Se o log falhar, tenta escrever no console
-                Console.Error.WriteLine($"ERRO FATAL: {ex}");
+                // Logger may not be initialized yet.
             }
 
-            // Mostra mensagem ao usuário
-            Console.WriteLine("\n" + new string('=', 80));
-            Console.WriteLine("ERRO FATAL - O Asher não pôde iniciar o jogo");
-            Console.WriteLine(new string('=', 80));
-            Console.WriteLine($"\n{ex.GetType().Name}: {ex.Message}\n");
-            Console.WriteLine("Verifique o arquivo de log em Asher/AsherLogs/ para mais detalhes.");
-            Console.WriteLine("\nPressione qualquer tecla para sair...");
-            Console.ReadKey();
+            var logPath = WriteEmergencyLog(baseDir, ex);
+            var message = BuildFatalErrorMessage(baseDir, ex, logPath);
+
+            try
+            {
+                MessageBox.Show(
+                    message,
+                    "Asher Launcher - Erro Fatal",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch
+            {
+                // Last-resort fallback when UI is unavailable.
+                try
+                {
+                    if (Environment.UserInteractive)
+                    {
+                        Console.Error.WriteLine(message);
+                        Console.ReadKey();
+                    }
+                }
+                catch
+                {
+                    // Ignore secondary failures.
+                }
+            }
 
             Environment.Exit(1);
+        }
+
+        private static string BuildFatalErrorMessage(string baseDir, Exception ex, string logPath)
+        {
+            var message = new StringBuilder();
+            message.AppendLine("O Asher não pôde iniciar o jogo.");
+            message.AppendLine();
+            message.AppendLine($"{ex.GetType().Name}: {ex.Message}");
+
+            if (ex.InnerException != null)
+                message.AppendLine($"Detalhe: {ex.InnerException.Message}");
+
+            if (!File.Exists(Path.Combine(baseDir, OriginalGameExe)))
+            {
+                message.AppendLine();
+                message.AppendLine("Este executável deve rodar na pasta do jogo como DustAET.exe.");
+                message.AppendLine("Não execute Asher.Launcher.exe diretamente da pasta Distribution.");
+                message.AppendLine("Use o instalador (Asher.App.exe) ou inicie o jogo pelo Steam/GOG.");
+            }
+
+            if (!string.IsNullOrEmpty(logPath))
+            {
+                message.AppendLine();
+                message.AppendLine($"Log salvo em: {logPath}");
+            }
+            else
+            {
+                message.AppendLine();
+                message.AppendLine("Verifique os logs em Asher\\AsherLogs\\ se existirem.");
+            }
+
+            return message.ToString();
+        }
+
+        private static string WriteEmergencyLog(string baseDir, Exception ex)
+        {
+            try
+            {
+                var logDir = Path.Combine(baseDir, AsherFolderName, LogsFolderName);
+                if (!Directory.Exists(logDir))
+                    Directory.CreateDirectory(logDir);
+
+                var logPath = Path.Combine(logDir, $"launcher_fatal_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+                var content = new StringBuilder();
+                content.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ERRO FATAL");
+                content.AppendLine($"Diretório: {baseDir}");
+                content.AppendLine(ex.ToString());
+                File.WriteAllText(logPath, content.ToString());
+                return logPath;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
     }
 }
