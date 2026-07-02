@@ -9,7 +9,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:Asher.Core.Models;assembly=Asher.Core"
         xmlns:prism="http://prismlibrary.com/"
-        Title="Asher Modding Platform"
+        Title="{Binding WindowTitle}"
         Width="1200"
         Height="700"
         prism:ViewModelLocator.AutoWireViewModel="True"
@@ -200,11 +200,55 @@
                               HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0,8">
-                        <ItemsControl ItemsSource="{Binding NavigationItems}">
+                        <!--  Installation Mode Navigation Items  -->
+                        <ItemsControl ItemsSource="{Binding InstallationNavigationItems}"
+                                      Visibility="{Binding IsInstallationMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type models:NavigationItem}">
                                     <Button Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding}"
+                                            IsEnabled="{Binding IsEnabled}"
+                                            Style="{StaticResource NavigationButtonStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <materialDesign:PackIcon Grid.Column="0"
+                                                                     Width="20"
+                                                                     Height="20"
+                                                                     Margin="0,0,12,0"
+                                                                     VerticalAlignment="Center"
+                                                                     Kind="{Binding Icon}" />
+
+                                            <TextBlock Grid.Column="1"
+                                                       VerticalAlignment="Center"
+                                                       Style="{StaticResource NavigationTextStyle}"
+                                                       Text="{Binding Label}" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--  Normal Mode Navigation Items  -->
+                        <ItemsControl ItemsSource="{Binding NavigationItems}">
+                            <ItemsControl.Style>
+                                <Style TargetType="ItemsControl">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsInstallationMode}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:NavigationItem}">
+                                    <Button Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            IsEnabled="{Binding IsEnabled}"
                                             Style="{StaticResource NavigationButtonStyle}">
                                         <Grid>
                                             <Grid.ColumnDefinitions>

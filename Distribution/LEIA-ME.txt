@@ -1,0 +1,68 @@
+﻿================================================================
+   ASHER - MOD MANAGER PARA DUST: AN ELYSIAN TAIL
+================================================================
+
+COMO USAR
+---------------------------------------------------------
+1. Execute Asher.exe (ou Asher.App.exe)
+2. Siga o assistente de instalacao
+3. O Asher detectara automaticamente a pasta do jogo
+4. Apos a instalacao, execute o jogo normalmente pelo Steam/GOG
+
+ESTRUTURA DE ARQUIVOS
+---------------------------------------------------------
+Asher.exe / Asher.App.exe    Instalador e gerenciador de mods
+Asher.Launcher.exe            Launcher que sera copiado para o jogo
+Asher.Runtime.dll             Runtime principal (.NET Framework 4.7.2)
+Asher.SDK.dll                 SDK para desenvolvimento de mods
+0Harmony.dll                  Biblioteca de patching (Harmony)
+DefaultMods/                  Mods inclusos na instalacao
+
+REQUISITOS
+---------------------------------------------------------
+- .NET 8.0 Runtime (para o instalador)
+- .NET Framework 4.7.2 ou superior (para o jogo/launcher)
+- Dust: An Elysian Tail instalado (Steam, GOG ou Humble Bundle)
+- Windows 10 ou superior
+
+IMPORTANTE
+---------------------------------------------------------
+- Um backup automatico do jogo sera criado durante a instalacao
+- O jogo nao sera modificado permanentemente
+- Voce pode desinstalar o Asher a qualquer momento
+- Mods sao carregados apenas quando o jogo inicia pelo launcher
+
+MODS INCLUSOS
+---------------------------------------------------------
+- DebugEnabler:        Ativa menu de debug (F12)
+- IntroSkipper:        Pula a intro do jogo
+- GraphicsDeprofiler:  Otimiza o profiler de graficos
+
+ESTRUTURA APOS INSTALACAO NO JOGO
+---------------------------------------------------------
+GameFolder/
+â”œâ”€â”€ DustAET.exe              (Asher.Launcher - novo)
+â”œâ”€â”€ DustAET.real.exe         (executavel original renomeado)
+â”œâ”€â”€ Asher.Backup/
+â”‚   â””â”€â”€ DustAET.exe          (backup do original)
+â””â”€â”€ Asher/
+    â”œâ”€â”€ Asher.Runtime.dll
+    â”œâ”€â”€ Asher.SDK.dll
+    â”œâ”€â”€ 0Harmony.dll
+    â”œâ”€â”€ Mods/                (seus mods aqui)
+    â””â”€â”€ AsherLogs/           (logs do runtime)
+
+SUPORTE
+---------------------------------------------------------
+- Logs sao salvos em: [GameFolder]\Asher\AsherLogs\
+- Visite o repositorio do projeto para reportar bugs
+- Para problemas, inclua o arquivo de log mais recente
+
+NOTAS DA VERSAO
+---------------------------------------------------------
+Versao: 1.0.0
+Platform: x86
+Configuration: Release
+Gerado em: 2026-01-28 00:03:38
+
+(C) 2024 Asher Project
