@@ -2,7 +2,6 @@
 using Asher.SDK.Patching;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -90,7 +89,5 @@ namespace Asher.Patching.IntroSkipper
                 AsherLog.Error($"[IntroSkipper] Erro durante execução: {ex.Message}");
             }
         }
-
-        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }

@@ -2,7 +2,6 @@
 using Asher.SDK.Patching;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -56,7 +55,5 @@ namespace Asher.Patching.DebugEnabler
                 .GetField("canDebug", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 ?.SetValue(null, true);
         }
-
-        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Asher.UserInterface.Events
+namespace Asher.UserInterface.Events
 {
     public class InstallationCompleteEvent : PubSubEvent { }
 }

@@ -477,3 +477,4 @@ bootstrap_static_ctor.log
 ## Temporary test files
 *.test.log
 *.test.output
+Distribution/*

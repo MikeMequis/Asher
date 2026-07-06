@@ -1,6 +1,4 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
 
 namespace Asher.SDK.Patching
 {
@@ -20,11 +18,5 @@ namespace Asher.SDK.Patching
         /// </summary>
         /// <param name="harmony">Instância Harmony para aplicar patches</param>
         void Apply(Harmony harmony);
-
-        /// <summary>
-        /// Retorna os tipos que contêm patches Harmony (usando atributos [HarmonyPatch]).
-        /// Retorne Array.Empty se você aplicar patches manualmente via Apply().
-        /// </summary>
-        IEnumerable<Type> GetPatchTypes();
     }
 }

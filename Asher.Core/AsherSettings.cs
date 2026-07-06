@@ -18,7 +18,6 @@ namespace Asher.Core
         public bool IsInstalled { get; set; }
         public DateTime? InstallationDate { get; set; }
         public string GameVersion { get; set; } = string.Empty;
-        public bool FirstRun { get; set; } = true;
         public string Language { get; set; } = "en-US";
         public bool AutoLaunchEnabled { get; set; } = true;
         public bool BackupEnabled { get; set; } = true;
@@ -61,7 +60,6 @@ namespace Asher.Core
             IsInstalled = true;
             InstallationDate = DateTime.Now;
             GameVersion = gameVersion ?? string.Empty;
-            FirstRun = false;
             Save();
         }
 
@@ -78,7 +76,6 @@ namespace Asher.Core
             IsInstalled = false;
             InstallationDate = null;
             GameVersion = string.Empty;
-            FirstRun = true;
             Save();
         }
 
