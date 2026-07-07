@@ -66,12 +66,8 @@ namespace Asher.SDK.Patching.Core
 
                 enabledProperty.SetValue(null, shouldEnable);
 
-                // Log apropriado
                 if (shouldEnable)
-                {
-                    AsherLog.Info($"{LogTag} {EnabledMessage}");
                     OnEnabled();
-                }
                 else
                 {
                     AsherLog.Info($"{LogTag} {DisabledMessage}");

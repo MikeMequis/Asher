@@ -17,8 +17,6 @@ namespace Asher.Runtime.Bootstrap
                 return;
             }
 
-            RuntimeLogger.Info("[PatchModuleLoader] Iniciando carregamento de módulos de patch...");
-
             Harmony harmony = new("com.asher.runtime.mods");
 
             var modules = AppDomain.CurrentDomain.GetAssemblies()
@@ -39,7 +37,6 @@ namespace Asher.Runtime.Bootstrap
                 try
                 {
                     var module = (IAsherPatchModule)Activator.CreateInstance(type)!;
-                    RuntimeLogger.Info($"[PatchModuleLoader] Aplicando módulo: {module.Name}");
                     module.Apply(harmony);
                     count++;
                 }
@@ -49,19 +46,12 @@ namespace Asher.Runtime.Bootstrap
                 }
             }
 
-            RuntimeLogger.Info($"[PatchModuleLoader] {count} módulos de patch aplicados.");
+            RuntimeLogger.Info($"[Patches] {count} modules applied.");
 
             LifecycleModuleLoader.Load();
 
             if (LifecycleModuleLoader.HasModules)
-            {
-                RuntimeLogger.Info("[PatchModuleLoader] Módulos de lifecycle detectados, aplicando hooks...");
                 HarmonyLifecycleBootstrap.InitializeIfNeeded();
-            }
-            else
-            {
-                RuntimeLogger.Info("[PatchModuleLoader] Nenhum módulo de lifecycle detectado, hooks não serão aplicados.");
-            }
 
             _loaded = true;
         }

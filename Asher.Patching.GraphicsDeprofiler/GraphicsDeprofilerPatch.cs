@@ -24,22 +24,15 @@ namespace Asher.Patching.GraphicsDeprofiler
         public void Execute()
         {
             if (!Enabled)
-            {
-                AsherLog.Info("[Deprofiler] Patch desabilitado - pulando aplicação");
                 return;
-            }
 
             try
             {
-                AsherLog.Info("[Deprofiler] Aplicando patch antecipado...");
-
                 var harmony = new Harmony("com.asher.deprofiler");
                 int patchCount = PatchAllIsProfileSupportedMethods(harmony);
 
-                if (patchCount > 0)
-                    AsherLog.Info($"[Deprofiler] ✓ {patchCount} método(s) patchado(s)");
-                else
-                    AsherLog.Warning("[Deprofiler] Nenhum método encontrado para patch");
+                if (patchCount == 0)
+                    AsherLog.Warning("[Deprofiler] No methods found to patch");
             }
             catch (Exception ex)
             {
@@ -61,12 +54,6 @@ namespace Asher.Patching.GraphicsDeprofiler
             {
                 try
                 {
-                    var parameters = string.Join(", ",
-                        method.GetParameters().Select(p => p.ParameterType.Name));
-
-                    AsherLog.Info($"[Deprofiler] Patchando: {method.Name}({parameters}) - " +
-                        $"{(method.IsPublic ? "public" : "internal")}");
-
                     harmony.Patch(
                         method,
                         prefix: new HarmonyMethod(typeof(GraphicsDeprofilerPatch), nameof(AlwaysReturnTrue))

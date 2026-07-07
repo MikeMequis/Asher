@@ -22,10 +22,7 @@ namespace Asher.Patching.MuteVoiceActing
         public void Apply(Harmony harmony)
         {
             if (!Enabled)
-            {
-                AsherLog.Info("[MuteVoiceActing] Patch desabilitado por configuração");
                 return;
-            }
 
             try
             {
@@ -43,8 +40,6 @@ namespace Asher.Patching.MuteVoiceActing
                 harmony.Patch(
                     setSfxVolumeMethod,
                     postfix: new HarmonyMethod(typeof(MuteVoiceActingPatch), nameof(SetSfxVolumePostfix)));
-
-                AsherLog.Info("[MuteVoiceActing] Patch aplicado com sucesso");
             }
             catch (Exception ex)
             {

@@ -17,18 +17,11 @@ namespace Asher.Patching.GraphicsDeprofiler
 
         public override void OnGameInitialized()
         {
-            ExecuteIfEnabled(
-                action: ValidateHiDefBypass,
-                notEnabledMessage: "Monitor: Patch não foi aplicado"
-            );
+            ExecuteIfEnabled(ValidateHiDefBypass);
         }
 
         public override void OnContentLoaded()
         {
-            ExecuteIfEnabled(() =>
-            {
-                AsherLog.Info($"{LogTag} Conteúdo carregado - monitorando estabilidade gráfica");
-            });
         }
 
         /// <summary>
@@ -41,14 +34,9 @@ namespace Asher.Patching.GraphicsDeprofiler
                 bool result = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef);
 
                 if (result)
-                {
-                    AsherLog.Info($"{LogTag} ✓ Verificação OK - HiDef retornou TRUE");
-                }
-                else
-                {
-                    AsherLog.Error($"{LogTag} ✗ FALHA - HiDef retornou FALSE (patch não funcionou)");
-                    AsherLog.Warning($"{LogTag} O jogo pode crashar ao tentar usar recursos HiDef");
-                }
+                    return;
+
+                AsherLog.Error($"{LogTag} HiDef check failed after patch");
             }
             catch (Exception ex)
             {

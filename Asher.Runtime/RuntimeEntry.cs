@@ -19,7 +19,6 @@ namespace Asher.Runtime
                 throw new ArgumentNullException(nameof(context));
 
             AsherLog.Logger = new RuntimeLoggerAdapter();
-            RuntimeLogger.Info("Asher SDK Logger conectado ao Runtime.");
 
             lock (_lockObj)
             {

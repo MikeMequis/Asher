@@ -32,7 +32,6 @@ namespace Asher.Runtime.Bootstrap
                 initializeMethod,
                 postfix: new HarmonyMethod(typeof(GameTitleBootstrap), nameof(SetWindowTitle)));
 
-            RuntimeLogger.Info("[GameTitle] Patch de título da janela aplicado.");
         }
 
         private static void SetWindowTitle(object __instance)
@@ -48,7 +47,6 @@ namespace Asher.Runtime.Bootstrap
 
                 var titleProperty = window.GetType().GetProperty("Title");
                 titleProperty?.SetValue(window, GameWindowTitle);
-                RuntimeLogger.Info($"[GameTitle] Título definido: {GameWindowTitle}");
             }
             catch (Exception ex)
             {

@@ -8,11 +8,13 @@ using System.Reflection;
 namespace Asher.Patching.IntroSkipper
 {
     /// <summary>
-    /// Pula completamente a intro forçando o startUpStage antes do primeiro draw.
-    /// Remove ESRB, logos e vídeos sem causar flicker.
+    /// Skips intro sequences by forcing MainMenu mode after initialization,
+    /// matching the legacy SkipIntro mod behavior.
     /// </summary>
     public sealed class IntroSkipperPatch : IAsherPatchModule
     {
+        private static bool _skipped;
+
         public static bool Enabled { get; set; }
 
         public string Name => "Intro Skipper";
@@ -20,74 +22,91 @@ namespace Asher.Patching.IntroSkipper
         public void Apply(Harmony harmony)
         {
             if (!Enabled)
-            {
-                AsherLog.Info("[IntroSkipper] Patch desabilitado por configuração");
                 return;
-            }
 
             try
             {
-                var game1Type = AppDomain.CurrentDomain
-                    .GetAssemblies()
-                    .FirstOrDefault(a => a.GetName().Name == "DustAET")
-                    ?.GetType("Dust.Game1");
+                var game1Type = GetGame1Type();
+                var initializeMethod = game1Type?.GetMethod(
+                    "Initialize",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                var drawStartupMethod = game1Type?.GetMethod(
-                    "DrawStartup",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-
-                if (drawStartupMethod == null)
+                if (initializeMethod == null)
                 {
-                    AsherLog.Warning("[IntroSkipper] Não foi possível encontrar Game1.DrawStartup");
+                    AsherLog.Warning("[IntroSkipper] Game1.Initialize not found");
                     return;
                 }
 
                 harmony.Patch(
-                    drawStartupMethod,
-                    prefix: new HarmonyMethod(
-                        typeof(IntroSkipperPatch),
-                        nameof(DrawStartupPrefix)));
+                    initializeMethod,
+                    postfix: new HarmonyMethod(typeof(IntroSkipperPatch), nameof(InitializePostfix)));
             }
             catch (Exception ex)
             {
-                AsherLog.Error($"[IntroSkipper] Erro ao aplicar patch: {ex.Message}");
+                AsherLog.Error($"[IntroSkipper] Failed to apply patch: {ex.Message}");
             }
         }
 
-        private static void DrawStartupPrefix()
+        private static void InitializePostfix(object __instance)
         {
+            if (_skipped)
+                return;
+
             try
             {
-                var game1Type = AppDomain.CurrentDomain
-                    .GetAssemblies()
-                    .FirstOrDefault(a => a.GetName().Name == "DustAET")
-                    ?.GetType("Dust.Game1");
-
-                var stageField = game1Type.GetField(
-                    "startUpStage",
-                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-
-                var timerField = game1Type.GetField(
-                    "startUpTimer",
-                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-
-                if (stageField == null || timerField == null)
-                    return;
-
-                int currentStage = (int)stageField.GetValue(null);
-
-                if (currentStage < 6)
-                {
-                    stageField.SetValue(null, 6);
-                    timerField.SetValue(null, 0f);
-
-                    AsherLog.Info("[IntroSkipper] Startup stages pulados (ESRB + logos removidos)");
-                }
+                SkipIntro(__instance);
+                _skipped = true;
             }
             catch (Exception ex)
             {
-                AsherLog.Error($"[IntroSkipper] Erro durante execução: {ex.Message}");
+                AsherLog.Error($"[IntroSkipper] Failed to skip intro: {ex.Message}");
             }
+        }
+
+        private static void SkipIntro(object gameInstance)
+        {
+            var game1Type = GetGame1Type();
+            if (game1Type == null)
+                return;
+
+            var gameModesType = game1Type.GetNestedType(
+                "GameModes",
+                BindingFlags.Public | BindingFlags.NonPublic);
+
+            var gameModeField = game1Type.GetField(
+                "gameMode",
+                BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (gameModesType == null || gameModeField == null)
+            {
+                AsherLog.Warning("[IntroSkipper] gameMode fields not found");
+                return;
+            }
+
+            var mainMenu = Enum.Parse(gameModesType, "MainMenu");
+            gameModeField.SetValue(gameModeField.IsStatic ? null : gameInstance, mainMenu);
+
+            var stageField = game1Type.GetField(
+                "startUpStage",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+            var timerField = game1Type.GetField(
+                "startUpTimer",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (stageField != null)
+                stageField.SetValue(null, 6);
+
+            if (timerField != null)
+                timerField.SetValue(null, 0f);
+        }
+
+        private static Type GetGame1Type()
+        {
+            return AppDomain.CurrentDomain
+                .GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "DustAET")
+                ?.GetType("Dust.Game1");
         }
     }
 }

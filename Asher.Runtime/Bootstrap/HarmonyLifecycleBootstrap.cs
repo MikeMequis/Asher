@@ -21,25 +21,14 @@ namespace Asher.Runtime.Bootstrap
                 return;
 
             if (!RequiresLifecycleHooks())
-            {
-                RuntimeLogger.Info("[LifecycleBootstrap] Nenhum módulo requer lifecycle hooks, pulando inicialização.");
                 return;
-            }
 
             try
             {
-                RuntimeLogger.Info("[LifecycleBootstrap] Aplicando lifecycle hooks...");
-                
-                // Hooks implementados
                 ApplyGameInitializeHook();
                 ApplyContentLoadedHook();
-                
-                // Hooks futuros (descomentе quando necessário)
-                // ApplyGamePausedHook();
-                // ApplyGameExitingHook();
 
                 _initialized = true;
-                RuntimeLogger.Info("[LifecycleBootstrap] Lifecycle hooks aplicados com sucesso.");
             }
             catch (Exception ex)
             {
@@ -80,7 +69,6 @@ namespace Asher.Runtime.Bootstrap
                         nameof(GameLifecycleHooks.OnGameInitialized)
                     )
                 );
-                RuntimeLogger.Info("[LifecycleBootstrap] ✓ Hook em Game1.Initialize aplicado.");
             }
         }
 
@@ -101,7 +89,6 @@ namespace Asher.Runtime.Bootstrap
                         nameof(GameLifecycleHooks.OnContentLoaded)
                     )
                 );
-                RuntimeLogger.Info("[LifecycleBootstrap] ✓ Hook em Game1.LoadContent aplicado.");
             }
         }
 

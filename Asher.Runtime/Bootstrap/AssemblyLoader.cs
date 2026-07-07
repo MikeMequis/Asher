@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -8,30 +9,27 @@ namespace Asher.Runtime.Bootstrap
     {
         public static void LoadAssembliesFrom(string directory)
         {
-            RuntimeLogger.Info($"[AssemblyLoader] Verificando diretório: {directory}");
-
             if (!Directory.Exists(directory))
             {
-                RuntimeLogger.Warning($"[AssemblyLoader] Diretório não existe: {directory}");
+                RuntimeLogger.Warning($"[Mods] Directory not found: {directory}");
                 return;
             }
 
             var dllFiles = Directory.GetFiles(directory, "*.dll");
-            RuntimeLogger.Info($"[AssemblyLoader] {dllFiles.Length} DLLs encontradas.");
+            var loaded = new List<string>();
 
             foreach (var dll in dllFiles)
             {
                 var fileName = Path.GetFileName(dll);
-                RuntimeLogger.Info($"[AssemblyLoader] Tentando carregar: {fileName}");
 
                 try
                 {
-                    var asm = Assembly.LoadFrom(dll);
-                    RuntimeLogger.Info($"[AssemblyLoader] ✓ Assembly carregado: {fileName} ({asm.FullName})");
+                    Assembly.LoadFrom(dll);
+                    loaded.Add(fileName);
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    RuntimeLogger.Error($"[AssemblyLoader] Falha ao carregar tipos de {fileName}");
+                    RuntimeLogger.Error($"[Mods] Failed to load {fileName}");
 
                     if (ex.LoaderExceptions != null)
                     {
@@ -44,11 +42,14 @@ namespace Asher.Runtime.Bootstrap
                 }
                 catch (Exception ex)
                 {
-                    RuntimeLogger.Warning($"[AssemblyLoader] Falha ao carregar {fileName}: {ex.Message}");
+                    RuntimeLogger.Warning($"[Mods] Failed to load {fileName}: {ex.Message}");
                 }
             }
 
-            RuntimeLogger.Info("[AssemblyLoader] Carregamento concluído.");
+            if (loaded.Count == 0)
+                RuntimeLogger.Info("[Mods] No mod assemblies loaded.");
+            else
+                RuntimeLogger.Info($"[Mods] Loaded {loaded.Count}: {string.Join(", ", loaded)}");
         }
     }
 }

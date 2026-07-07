@@ -32,10 +32,7 @@ namespace Asher.Patching.GraphicsDeprofiler
                     adapter.CurrentDisplayMode.Height >= 600;
 
                 if (!hasMinResolution)
-                {
-                    AsherLog.Info($"{LogTag} Resolução baixa detectada");
                     return true;
-                }
 
                 // Heurística 2: Verifica device type via reflection
                 var adapterType = adapter.GetType();
@@ -47,20 +44,11 @@ namespace Asher.Patching.GraphicsDeprofiler
                     var deviceType = deviceTypeField.GetValue(adapter);
                     string deviceTypeName = deviceType?.ToString() ?? "Unknown";
 
-                    AsherLog.Info($"{LogTag} DeviceType: {deviceTypeName}");
-
-                    // Se for Reference/Software, definitivamente precisa do patch
                     if (deviceTypeName.Contains("Reference") ||
                         deviceTypeName.Contains("Software"))
-                    {
-                        AsherLog.Info($"{LogTag} Software renderer detectado");
                         return true;
-                    }
                 }
 
-                // Heurística 3: Fallback - aplica em caso de dúvida
-                // Melhor aplicar e funcionar do que não aplicar e crashar
-                AsherLog.Info($"{LogTag} Detecção inconclusiva - habilitando por segurança");
                 return true;
             }
             catch (Exception ex)
@@ -78,7 +66,6 @@ namespace Asher.Patching.GraphicsDeprofiler
 
         protected override void OnEnabled()
         {
-            AsherLog.Warning($"{LogTag} ⚠️ Podem ocorrer problemas gráficos");
         }
     }
 }

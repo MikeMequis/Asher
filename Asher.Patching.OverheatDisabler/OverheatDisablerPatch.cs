@@ -19,10 +19,7 @@ namespace Asher.Patching.OverheatDisabler
         public void Apply(Harmony harmony)
         {
             if (!Enabled)
-            {
-                AsherLog.Info("[OverheatDisabler] Patch desabilitado por configuração");
                 return;
-            }
 
             try
             {
@@ -40,8 +37,6 @@ namespace Asher.Patching.OverheatDisabler
                 harmony.Patch(
                     spinBladeMethod,
                     prefix: new HarmonyMethod(typeof(OverheatDisablerPatch), nameof(SpinBladePrefix)));
-
-                AsherLog.Info("[OverheatDisabler] Patch aplicado com sucesso");
             }
             catch (Exception ex)
             {

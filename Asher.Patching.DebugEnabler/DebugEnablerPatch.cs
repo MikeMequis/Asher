@@ -19,10 +19,7 @@ namespace Asher.Patching.DebugEnabler
         public void Apply(Harmony harmony)
         {
             if (!Enabled)
-            {
-                AsherLog.Info("[DebugEnabler] Patch desabilitado por configuração");
                 return;
-            }
 
             try
             {

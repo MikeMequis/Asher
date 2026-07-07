@@ -15,12 +15,7 @@ namespace Asher.Runtime.Bootstrap
         public static void Load()
         {
             if (_loaded)
-            {
-                RuntimeLogger.Warning("[LifecycleModuleLoader] Módulos de lifecycle já foram carregados.");
                 return;
-            }
-
-            RuntimeLogger.Info("[LifecycleModuleLoader] Iniciando carregamento de módulos de lifecycle...");
 
             var moduleTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a =>
@@ -34,23 +29,20 @@ namespace Asher.Runtime.Bootstrap
                     !t.IsInterface
                 );
 
-            int count = 0;
             foreach (var type in moduleTypes)
             {
                 try
                 {
                     var module = (IAsherLifecycleModule)Activator.CreateInstance(type)!;
                     _modules.Add(module);
-                    RuntimeLogger.Info($"[LifecycleModuleLoader] Módulo registrado: {module.Name}");
-                    count++;
                 }
                 catch (Exception ex)
                 {
-                    RuntimeLogger.Error($"[LifecycleModuleLoader] Erro ao carregar {type.FullName}: {ex.Message}", ex);
+                    RuntimeLogger.Error($"[Lifecycle] Failed to load {type.FullName}: {ex.Message}", ex);
                 }
             }
 
-            if (count > 0)
+            if (_modules.Count > 0)
             {
                 LifecycleEventBus.Subscribe(LifecycleEvent.GameInitialized, OnGameInitialized);
                 LifecycleEventBus.Subscribe(LifecycleEvent.ContentLoaded, OnContentLoaded);
@@ -58,70 +50,56 @@ namespace Asher.Runtime.Bootstrap
                 LifecycleEventBus.Subscribe(LifecycleEvent.GameExiting, OnGameExiting);
             }
 
-            RuntimeLogger.Info($"[LifecycleModuleLoader] {count} módulos de lifecycle carregados.");
+            if (_modules.Count > 0)
+                RuntimeLogger.Info($"[Lifecycle] {_modules.Count} modules registered.");
+
             _loaded = true;
         }
 
         private static void OnGameInitialized()
         {
-            RuntimeLogger.Info("[LifecycleModuleLoader] Notificando módulos: GameInitialized");
             foreach (var module in _modules)
             {
-                try
-                {
-                    module.OnGameInitialized();
-                }
+                try { module.OnGameInitialized(); }
                 catch (Exception ex)
                 {
-                    RuntimeLogger.Error($"[LifecycleModuleLoader] Erro em {module.Name}.OnGameInitialized", ex);
+                    RuntimeLogger.Error($"[Lifecycle] {module.Name}.OnGameInitialized failed", ex);
                 }
             }
         }
 
         private static void OnContentLoaded()
         {
-            RuntimeLogger.Info("[LifecycleModuleLoader] Notificando módulos: ContentLoaded");
             foreach (var module in _modules)
             {
-                try
-                {
-                    module.OnContentLoaded();
-                }
+                try { module.OnContentLoaded(); }
                 catch (Exception ex)
                 {
-                    RuntimeLogger.Error($"[LifecycleModuleLoader] Erro em {module.Name}.OnContentLoaded", ex);
+                    RuntimeLogger.Error($"[Lifecycle] {module.Name}.OnContentLoaded failed", ex);
                 }
             }
         }
 
         private static void OnGamePaused()
         {
-            RuntimeLogger.Info("[LifecycleModuleLoader] Notificando módulos: GamePaused");
             foreach (var module in _modules)
             {
-                try
-                {
-                    module.OnGamePaused();
-                }
+                try { module.OnGamePaused(); }
                 catch (Exception ex)
                 {
-                    RuntimeLogger.Error($"[LifecycleModuleLoader] Erro em {module.Name}.OnGamePaused", ex);
+                    RuntimeLogger.Error($"[Lifecycle] {module.Name}.OnGamePaused failed", ex);
                 }
             }
         }
 
         private static void OnGameExiting()
         {
-            RuntimeLogger.Info("[LifecycleModuleLoader] Notificando módulos: GameExiting");
             foreach (var module in _modules)
             {
-                try
-                {
-                    module.OnGameExiting();
-                }
+                try { module.OnGameExiting(); }
                 catch (Exception ex)
                 {
-                    RuntimeLogger.Error($"[LifecycleModuleLoader] Erro em {module.Name}.OnGameExiting", ex);
+                    RuntimeLogger.Error($"[Lifecycle] {module.Name}.OnGameExiting failed", ex);
                 }
             }
         }

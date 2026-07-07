@@ -29,8 +29,6 @@ namespace Asher.Runtime.Lifecycle
             if (!_subscribers.ContainsKey(evt))
                 return;
 
-            RuntimeLogger.Info($"[LifecycleEventBus] Publishing event: {evt}");
-
             foreach (var handler in _subscribers[evt])
             {
                 try
