@@ -27,6 +27,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.IntroSkipper
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.GraphicsDeprofiler", "Asher.Patching.GraphicsDeprofiler\Asher.Patching.GraphicsDeprofiler.csproj", "{37BFDD8E-33D5-4495-8E85-124E6D5FB103}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.MuteVoiceActing", "Asher.Patching.MuteVoiceActing\Asher.Patching.MuteVoiceActing.csproj", "{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.OverheatDisabler", "Asher.Patching.OverheatDisabler\Asher.Patching.OverheatDisabler.csproj", "{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -77,6 +81,14 @@ Global
 		{37BFDD8E-33D5-4495-8E85-124E6D5FB103}.Debug|x86.Build.0 = Debug|x86
 		{37BFDD8E-33D5-4495-8E85-124E6D5FB103}.Release|x86.ActiveCfg = Release|x86
 		{37BFDD8E-33D5-4495-8E85-124E6D5FB103}.Release|x86.Build.0 = Release|x86
+		{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01}.Debug|x86.ActiveCfg = Debug|x86
+		{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01}.Debug|x86.Build.0 = Debug|x86
+		{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01}.Release|x86.ActiveCfg = Release|x86
+		{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01}.Release|x86.Build.0 = Release|x86
+		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Debug|x86.ActiveCfg = Debug|x86
+		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Debug|x86.Build.0 = Debug|x86
+		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Release|x86.ActiveCfg = Release|x86
+		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +97,8 @@ Global
 		{A4090D6C-6E98-4A93-A484-DC77D9CFE7C6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{3090A709-30CC-4918-8D22-74B4BA2D7289} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{37BFDD8E-33D5-4495-8E85-124E6D5FB103} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1A164D67-582A-41C4-8BE3-E83FE362FD88}

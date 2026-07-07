@@ -29,7 +29,9 @@ namespace Asher.Services.Implementations
         {
             "Asher.Patching.DebugEnabler.dll",
             "Asher.Patching.IntroSkipper.dll",
-            "Asher.Patching.GraphicsDeprofiler.dll"
+            "Asher.Patching.GraphicsDeprofiler.dll",
+            "Asher.Patching.MuteVoiceActing.dll",
+            "Asher.Patching.OverheatDisabler.dll"
         };
 
         public GameInstallationService(IManagerDeployService managerDeployService)

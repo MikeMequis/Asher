@@ -11,6 +11,8 @@ namespace Asher.Services.Implementations
             ["Asher.Patching.DebugEnabler.dll"] = ("Debug Enabler", "Enables the debug menu in pause mode"),
             ["Asher.Patching.IntroSkipper.dll"] = ("Intro Skipper", "Skips intro sequences and splash screens"),
             ["Asher.Patching.GraphicsDeprofiler.dll"] = ("Graphics Deprofiler", "Bypasses HiDef GPU profile restrictions"),
+            ["Asher.Patching.MuteVoiceActing.dll"] = ("Voice Acting Muter", "Mutes voice acting while keeping other SFX"),
+            ["Asher.Patching.OverheatDisabler.dll"] = ("Dust Storm Overheat Disabler", "Prevents Dust Storm from overheating"),
         };
 
         private readonly IGameLaunchService _gameLaunchService;

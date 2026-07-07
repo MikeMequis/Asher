@@ -200,7 +200,9 @@ Write-Host "[6/7] Copiando mods padrao..." -ForegroundColor Gray
 $modProjects = @(
     "Asher.Patching.DebugEnabler",
     "Asher.Patching.IntroSkipper",
-    "Asher.Patching.GraphicsDeprofiler"
+    "Asher.Patching.GraphicsDeprofiler",
+    "Asher.Patching.MuteVoiceActing",
+    "Asher.Patching.OverheatDisabler"
 )
 
 $modsCopied = 0

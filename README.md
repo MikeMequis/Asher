@@ -180,6 +180,8 @@ After installation, the game directory looks like this:
     │   ├── Asher.Patching.DebugEnabler.dll
     │   ├── Asher.Patching.IntroSkipper.dll
     │   ├── Asher.Patching.GraphicsDeprofiler.dll
+    │   ├── Asher.Patching.MuteVoiceActing.dll
+    │   ├── Asher.Patching.OverheatDisabler.dll
     │   └── disabled/            (mods disabled via Patch Manager)
     │
     ├── AsherLogs/
