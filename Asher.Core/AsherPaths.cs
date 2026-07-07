@@ -8,6 +8,8 @@ namespace Asher.Core
         public const string ManagerFolderName = "Asher.App";
         public const string BackupFolderName = "Asher.Backup";
         public const string PatchesFolderName = "patches";
+        public const string ContentPatchConfigFileName = "content.json";
+        public const string ContentPatchAssetsFolderName = "assets";
         public const string DefaultModsFolderName = "DefaultMods";
         public const string InstallPayloadFolderName = "InstallPayload";
         public const string ModsFolderName = "Mods";

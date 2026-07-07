@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Asher.ContentPatcher\Asher.ContentPatcher.csproj" />
     <ProjectReference Include="..\Asher.Core\Asher.Core.csproj" />
   </ItemGroup>
 

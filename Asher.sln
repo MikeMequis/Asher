@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.MuteVoiceAct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.OverheatDisabler", "Asher.Patching.OverheatDisabler\Asher.Patching.OverheatDisabler.csproj", "{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.ContentPatcher", "Asher.ContentPatcher\Asher.ContentPatcher.csproj", "{C8D4E2F1-3A5D-4E67-9B12-8F3D5A7C9E02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asher.Patching.ContentPatcher", "Asher.Patching.ContentPatcher\Asher.Patching.ContentPatcher.csproj", "{D9E5F3A2-4B6E-5F78-0C23-9A4E6B8C0D14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -89,6 +93,14 @@ Global
 		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Debug|x86.Build.0 = Debug|x86
 		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Release|x86.ActiveCfg = Release|x86
 		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03}.Release|x86.Build.0 = Release|x86
+		{C8D4E2F1-3A5D-4E67-9B12-8F3D5A7C9E02}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C8D4E2F1-3A5D-4E67-9B12-8F3D5A7C9E02}.Debug|x86.Build.0 = Debug|Any CPU
+		{C8D4E2F1-3A5D-4E67-9B12-8F3D5A7C9E02}.Release|x86.ActiveCfg = Release|Any CPU
+		{C8D4E2F1-3A5D-4E67-9B12-8F3D5A7C9E02}.Release|x86.Build.0 = Release|Any CPU
+		{D9E5F3A2-4B6E-5F78-0C23-9A4E6B8C0D14}.Debug|x86.ActiveCfg = Debug|x86
+		{D9E5F3A2-4B6E-5F78-0C23-9A4E6B8C0D14}.Debug|x86.Build.0 = Debug|x86
+		{D9E5F3A2-4B6E-5F78-0C23-9A4E6B8C0D14}.Release|x86.ActiveCfg = Release|x86
+		{D9E5F3A2-4B6E-5F78-0C23-9A4E6B8C0D14}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +111,7 @@ Global
 		{37BFDD8E-33D5-4495-8E85-124E6D5FB103} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{B8C4E2F1-3A5D-4E67-9B12-8F3D5A7C9E01} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{A7B3D1E9-2C4F-5D68-8A01-7E2B4C6D8E03} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{D9E5F3A2-4B6E-5F78-0C23-9A4E6B8C0D14} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1A164D67-582A-41C4-8BE3-E83FE362FD88}

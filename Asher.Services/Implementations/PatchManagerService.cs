@@ -13,6 +13,7 @@ namespace Asher.Services.Implementations
             ["Asher.Patching.GraphicsDeprofiler.dll"] = ("Graphics Deprofiler", "Bypasses HiDef GPU profile restrictions"),
             ["Asher.Patching.MuteVoiceActing.dll"] = ("Voice Acting Muter", "Mutes voice acting while keeping other SFX"),
             ["Asher.Patching.OverheatDisabler.dll"] = ("Dust Storm Overheat Disabler", "Prevents Dust Storm from overheating"),
+            ["Asher.Patching.ContentPatcher.dll"] = ("Content Patcher", "Replaces game assets at runtime via content.json"),
         };
 
         private readonly IGameLaunchService _gameLaunchService;

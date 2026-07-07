@@ -11,24 +11,22 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24">
-            <!--  Header  -->
             <materialDesign:Card Margin="0,0,0,24" Padding="24">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,8"
                                Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                               Text="Content Patcher" />
+                               Text="{Binding Title}" />
                     <TextBlock Opacity="0.7"
                                Style="{StaticResource MaterialDesignBody1TextBlock}"
-                               Text="Replace game assets and content without modifying original files" />
+                               Text="{Binding Subtitle}" />
                 </StackPanel>
             </materialDesign:Card>
 
-            <!--  Content Patching Section  -->
             <materialDesign:Card Margin="0,0,0,16" Padding="24">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Text="Asset Replacement" />
+                               Text="{Binding AddReplacementLabel}" />
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -37,39 +35,33 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <!--  Original Asset  -->
                         <StackPanel Grid.Column="0" Margin="0,0,16,0">
                             <TextBlock Margin="0,0,0,8"
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                       Text="Original Asset" />
-                            <TextBox Margin="0,0,0,8"
-                                     materialDesign:HintAssist.Hint="Asset path (e.g., Characters/Fidget)"
+                                       Text="{Binding OriginalAssetLabel}" />
+                            <TextBox materialDesign:HintAssist.Hint="gfx/ui/main_menu"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Text="{Binding OriginalAssetPath, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button HorizontalAlignment="Stretch"
-                                    Content="Browse Original"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
                         </StackPanel>
 
-                        <!--  Arrow  -->
                         <materialDesign:PackIcon Grid.Column="1"
                                                  Width="24"
                                                  Height="24"
-                                                 Margin="8,0"
-                                                 VerticalAlignment="Center"
+                                                 Margin="8,24,8,0"
+                                                 VerticalAlignment="Top"
                                                  Kind="ArrowRight" />
 
-                        <!--  Replacement Asset  -->
                         <StackPanel Grid.Column="2" Margin="16,0,0,0">
                             <TextBlock Margin="0,0,0,8"
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                       Text="Replacement Asset" />
+                                       Text="{Binding ReplacementAssetLabel}" />
                             <TextBox Margin="0,0,0,8"
-                                     materialDesign:HintAssist.Hint="Replacement file path"
+                                     materialDesign:HintAssist.Hint="C:\path\to\texture.png"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Text="{Binding ReplacementAssetPath, UpdateSourceTrigger=PropertyChanged}" />
                             <Button HorizontalAlignment="Stretch"
-                                    Content="Browse Replacement"
+                                    Command="{Binding BrowseReplacementCommand}"
+                                    Content="{Binding BrowseReplacementLabel}"
                                     Style="{StaticResource MaterialDesignOutlinedButton}" />
                         </StackPanel>
                     </Grid>
@@ -77,29 +69,88 @@
                     <Button Margin="0,16,0,0"
                             HorizontalAlignment="Right"
                             Command="{Binding AddReplacementCommand}"
-                            Content="Add Replacement"
+                            Content="{Binding AddReplacementLabel}"
                             Style="{StaticResource MaterialDesignRaisedButton}" />
                 </StackPanel>
             </materialDesign:Card>
 
-            <!--  Active Replacements  -->
             <materialDesign:Card Padding="24">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,16"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                               Text="Active Replacements" />
+                               Text="{Binding ActiveReplacementsLabel}" />
 
                     <TextBlock Margin="32"
                                HorizontalAlignment="Center"
                                Opacity="0.5"
-                               Style="{StaticResource MaterialDesignBody2TextBlock}"
-                               Text="No active replacements configured" />
+                               Text="{Binding EmptyStateLabel}">
+                        <TextBlock.Style>
+                            <Style BasedOn="{StaticResource MaterialDesignBody2TextBlock}" TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasReplacements}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <ItemsControl ItemsSource="{Binding Replacements}">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasReplacements}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8"
+                                        Padding="12"
+                                        BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                        BorderThickness="1"
+                                        CornerRadius="4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <CheckBox Grid.Column="0"
+                                                  Margin="0,0,12,0"
+                                                  VerticalAlignment="Center"
+                                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock FontWeight="SemiBold"
+                                                       Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                                       Text="{Binding Target}" />
+                                            <TextBlock Opacity="0.7"
+                                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                                       Text="{Binding FromFile}" />
+                                        </StackPanel>
+
+                                        <Button Grid.Column="2"
+                                                Command="{Binding DataContext.RemoveReplacementCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="{Binding DataContext.RemoveLabel, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                Style="{StaticResource MaterialDesignFlatButton}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
                     <TextBlock Margin="0,8,0,0"
                                HorizontalAlignment="Center"
                                Opacity="0.7"
                                Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                               Text="Replacements will be applied when the game is launched" />
+                               Text="{Binding AppliedOnLaunchLabel}" />
                 </StackPanel>
             </materialDesign:Card>
         </StackPanel>

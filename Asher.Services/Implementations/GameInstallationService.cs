@@ -22,7 +22,9 @@ namespace Asher.Services.Implementations
         {
             "Asher.Runtime.dll",
             "Asher.SDK.dll",
-            "0Harmony.dll"
+            "Asher.ContentPatcher.dll",
+            "0Harmony.dll",
+            "Newtonsoft.Json.dll"
         };
 
         private static readonly string[] DefaultModFiles =
@@ -31,7 +33,8 @@ namespace Asher.Services.Implementations
             "Asher.Patching.IntroSkipper.dll",
             "Asher.Patching.GraphicsDeprofiler.dll",
             "Asher.Patching.MuteVoiceActing.dll",
-            "Asher.Patching.OverheatDisabler.dll"
+            "Asher.Patching.OverheatDisabler.dll",
+            "Asher.Patching.ContentPatcher.dll"
         };
 
         public GameInstallationService(IManagerDeployService managerDeployService)

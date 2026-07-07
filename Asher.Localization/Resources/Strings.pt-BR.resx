@@ -73,4 +73,12 @@
   <data name="Uninstall_NotInstalled" xml:space="preserve"><value>O Asher não está instalado na pasta do jogo selecionada.</value></data>
   <data name="Uninstall_NoBackup" xml:space="preserve"><value>Nenhum backup restaurável foi encontrado em Asher/Asher.Backup.</value></data>
   <data name="Uninstall_Failed" xml:space="preserve"><value>Falha ao restaurar o jogo.</value></data>
+  <data name="ContentPatcher_OriginalAsset" xml:space="preserve"><value>Asset Original</value></data>
+  <data name="ContentPatcher_ReplacementAsset" xml:space="preserve"><value>Arquivo de Substituição</value></data>
+  <data name="ContentPatcher_BrowseReplacement" xml:space="preserve"><value>Procurar Arquivo</value></data>
+  <data name="ContentPatcher_AddReplacement" xml:space="preserve"><value>Adicionar Substituição</value></data>
+  <data name="ContentPatcher_ActiveReplacements" xml:space="preserve"><value>Substituições Ativas</value></data>
+  <data name="ContentPatcher_EmptyState" xml:space="preserve"><value>Nenhuma substituição configurada</value></data>
+  <data name="ContentPatcher_AppliedOnLaunch" xml:space="preserve"><value>As substituições são aplicadas ao iniciar o jogo</value></data>
+  <data name="ContentPatcher_Remove" xml:space="preserve"><value>Remover</value></data>
 </root>
