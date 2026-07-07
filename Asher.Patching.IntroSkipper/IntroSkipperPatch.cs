@@ -4,18 +4,17 @@ using HarmonyLib;
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 
 namespace Asher.Patching.IntroSkipper
 {
     /// <summary>
     /// Skips startup splashes and intro video, then jumps straight to the main menu
-    /// "Press A" screen via Menu.SkipToStartPage (legacy SkipIntro behaviour + confirm).
+    /// "Press A" screen. Menu music is deferred until initLoaded so Music::Play works.
     /// </summary>
     public sealed class IntroSkipperPatch : IAsherPatchModule
     {
+        private static volatile bool _mainMenuApplied;
         private static volatile bool _skipApplied;
-        private static int _waitThreadStarted;
 
         public static bool Enabled { get; set; }
 
@@ -28,8 +27,6 @@ namespace Asher.Patching.IntroSkipper
 
             try
             {
-                StartPcManagerWaitThread();
-
                 var game1Type = GetGame1Type();
                 if (game1Type == null)
                 {
@@ -68,36 +65,6 @@ namespace Asher.Patching.IntroSkipper
             }
         }
 
-        private static void StartPcManagerWaitThread()
-        {
-            if (Interlocked.CompareExchange(ref _waitThreadStarted, 1, 0) != 0)
-                return;
-
-            var thread = new Thread(WaitForPcManager)
-            {
-                IsBackground = true,
-                Name = "IntroSkipper"
-            };
-            thread.Start();
-        }
-
-        /// <summary>
-        /// Mirrors legacy SkipIntro: poll until pcManager exists so we can skip ASAP.
-        /// </summary>
-        private static void WaitForPcManager()
-        {
-            try
-            {
-                while (!IsPcManagerReady())
-                {
-                }
-            }
-            catch (Exception ex)
-            {
-                AsherLog.Error($"[IntroSkipper] Wait thread failed: {ex.Message}");
-            }
-        }
-
         private static void UpdatePostfix()
         {
             TryApplyIntroSkip();
@@ -110,7 +77,7 @@ namespace Asher.Patching.IntroSkipper
         {
             TryApplyIntroSkip();
 
-            if (!_skipApplied)
+            if (!_mainMenuApplied)
                 ClearToBlack(__instance);
 
             return false;
@@ -127,6 +94,18 @@ namespace Asher.Patching.IntroSkipper
                 if (game1Type == null)
                     return;
 
+                if (!_mainMenuApplied)
+                {
+                    StopStartupVideo(game1Type);
+                    SetGameModeMainMenu(game1Type);
+                    _mainMenuApplied = true;
+                }
+
+                // SkipToStartPage calls Music::Play("beauty"), which only works after
+                // LoadInitContent finishes and initLoaded is set.
+                if (!IsInitLoaded())
+                    return;
+
                 var menu = game1Type.GetField(
                         "menu",
                         BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
@@ -135,7 +114,6 @@ namespace Asher.Patching.IntroSkipper
                 if (menu == null)
                     return;
 
-                StopStartupVideo(game1Type);
                 menu.GetType()
                     .GetMethod("SkipToStartPage", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                     ?.Invoke(menu, null);
@@ -146,6 +124,23 @@ namespace Asher.Patching.IntroSkipper
             {
                 AsherLog.Error($"[IntroSkipper] Erro ao aplicar skip: {ex.Message}");
             }
+        }
+
+        private static void SetGameModeMainMenu(Type game1Type)
+        {
+            var gameModesType = game1Type.GetNestedType(
+                "GameModes",
+                BindingFlags.Public | BindingFlags.NonPublic);
+
+            var gameModeField = game1Type.GetField(
+                "gameMode",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (gameModesType == null || gameModeField == null)
+                return;
+
+            var mainMenu = Enum.Parse(gameModesType, "MainMenu");
+            gameModeField.SetValue(null, mainMenu);
         }
 
         private static void StopStartupVideo(Type game1Type)
@@ -213,6 +208,19 @@ namespace Asher.Patching.IntroSkipper
                 BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
             return pcManagerField != null && pcManagerField.GetValue(null) != null;
+        }
+
+        private static bool IsInitLoaded()
+        {
+            var game1Type = GetGame1Type();
+            if (game1Type == null)
+                return false;
+
+            var initLoadedField = game1Type.GetField(
+                "initLoaded",
+                BindingFlags.Static | BindingFlags.NonPublic);
+
+            return initLoadedField != null && (bool)initLoadedField.GetValue(null);
         }
 
         private static Type GetGame1Type()
