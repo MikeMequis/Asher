@@ -4,16 +4,18 @@ using HarmonyLib;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Asher.Patching.IntroSkipper
 {
     /// <summary>
-    /// Skips intro sequences once the game is ready (pcManager initialized),
-    /// matching the legacy SkipIntro mod behavior.
+    /// Skips intro sequences by suppressing startup draws and switching to MainMenu
+    /// as soon as pcManager is initialized, matching legacy SkipIntro timing.
     /// </summary>
     public sealed class IntroSkipperPatch : IAsherPatchModule
     {
-        private static bool _skipped;
+        private static volatile bool _skipped;
+        private static int _skipThreadStarted;
 
         public static bool Enabled { get; set; }
 
@@ -33,6 +35,8 @@ namespace Asher.Patching.IntroSkipper
                     return;
                 }
 
+                StartSkipThread();
+
                 var drawStartupMethod = game1Type.GetMethod(
                     "DrawStartup",
                     BindingFlags.Instance | BindingFlags.NonPublic);
@@ -43,20 +47,6 @@ namespace Asher.Patching.IntroSkipper
                         drawStartupMethod,
                         prefix: new HarmonyMethod(typeof(IntroSkipperPatch), nameof(DrawStartupPrefix)));
                 }
-
-                var drawMethod = game1Type.GetMethod(
-                    "Draw",
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-                if (drawMethod == null)
-                {
-                    AsherLog.Warning("[IntroSkipper] Game1.Draw not found");
-                    return;
-                }
-
-                harmony.Patch(
-                    drawMethod,
-                    prefix: new HarmonyMethod(typeof(IntroSkipperPatch), nameof(DrawPrefix)));
             }
             catch (Exception ex)
             {
@@ -64,16 +54,48 @@ namespace Asher.Patching.IntroSkipper
             }
         }
 
-        private static void DrawStartupPrefix()
+        private static void StartSkipThread()
+        {
+            if (Interlocked.CompareExchange(ref _skipThreadStarted, 1, 0) != 0)
+                return;
+
+            var thread = new Thread(WaitForGameReadyAndSkip)
+            {
+                IsBackground = true,
+                Name = "IntroSkipper"
+            };
+            thread.Start();
+        }
+
+        private static void WaitForGameReadyAndSkip()
+        {
+            try
+            {
+                while (!IsGameReady())
+                {
+                    // Match legacy SkipIntro: poll until pcManager exists.
+                    Thread.SpinWait(1);
+                }
+
+                SkipToMainMenu();
+                _skipped = true;
+            }
+            catch (Exception ex)
+            {
+                AsherLog.Error($"[IntroSkipper] Skip thread failed: {ex.Message}");
+            }
+        }
+
+        private static bool DrawStartupPrefix()
         {
             if (_skipped)
-                return;
+                return true;
 
             try
             {
                 var game1Type = GetGame1Type();
                 if (game1Type == null)
-                    return;
+                    return true;
 
                 var stageField = game1Type.GetField(
                     "startUpStage",
@@ -83,39 +105,20 @@ namespace Asher.Patching.IntroSkipper
                     "startUpTimer",
                     BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-                if (stageField == null)
-                    return;
-
-                int currentStage = (int)stageField.GetValue(null);
-                if (currentStage < 6)
-                {
+                if (stageField != null)
                     stageField.SetValue(null, 6);
-                    timerField?.SetValue(null, 0f);
-                }
+
+                if (timerField != null)
+                    timerField.SetValue(null, 0f);
             }
             catch (Exception ex)
             {
                 AsherLog.Error($"[IntroSkipper] DrawStartup failed: {ex.Message}");
+                return true;
             }
-        }
 
-        private static void DrawPrefix()
-        {
-            if (_skipped)
-                return;
-
-            try
-            {
-                if (!IsGameReady())
-                    return;
-
-                SkipToMainMenu();
-                _skipped = true;
-            }
-            catch (Exception ex)
-            {
-                AsherLog.Error($"[IntroSkipper] Failed to skip intro: {ex.Message}");
-            }
+            // Suppress ESRB/logo/video startup draws until MainMenu is set.
+            return false;
         }
 
         private static bool IsGameReady()
