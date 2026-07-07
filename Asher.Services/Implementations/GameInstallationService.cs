@@ -22,9 +22,7 @@ namespace Asher.Services.Implementations
         {
             "Asher.Runtime.dll",
             "Asher.SDK.dll",
-            "Asher.ContentPatcher.dll",
-            "0Harmony.dll",
-            "Newtonsoft.Json.dll"
+            "0Harmony.dll"
         };
 
         private static readonly string[] DefaultModFiles =

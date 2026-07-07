@@ -38,11 +38,14 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContentAssetLoader.cs" />
     <Compile Include="ContentPatchRegistry.cs" />
+    <Compile Include="RuntimeContentPatchLoader.cs" />
+    <Compile Include="RuntimeContentPatchModels.cs" />
     <Compile Include="ContentPatcherConfig.cs" />
     <Compile Include="ContentPatcherLifecycle.cs" />
     <Compile Include="ContentPatcherPatch.cs" />
@@ -52,10 +55,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Asher.ContentPatcher\Asher.ContentPatcher.csproj">
-      <Project>{c8d4e2f1-3a5d-4e67-9b12-8f3d5a7c9e02}</Project>
-      <Name>Asher.ContentPatcher</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Asher.SDK\Asher.SDK.csproj">
       <Project>{f1599195-1c95-49ff-8f40-a2493526c428}</Project>
       <Name>Asher.SDK</Name>

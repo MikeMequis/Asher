@@ -1,4 +1,3 @@
-using Asher.ContentPatcher;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,8 +8,8 @@ namespace Asher.Patching.ContentPatcher
     {
         private static readonly object Sync = new object();
         private static string _gameFolder = string.Empty;
-        private static IReadOnlyDictionary<string, ContentPatchEntry> _replacements =
-            new Dictionary<string, ContentPatchEntry>(StringComparer.OrdinalIgnoreCase);
+        private static IReadOnlyDictionary<string, RuntimeContentPatchEntry> _replacements =
+            new Dictionary<string, RuntimeContentPatchEntry>(StringComparer.OrdinalIgnoreCase);
 
         public static void Initialize(string gameFolder)
         {
@@ -28,12 +27,21 @@ namespace Asher.Patching.ContentPatcher
                 if (string.IsNullOrWhiteSpace(_gameFolder))
                     return;
 
-                var config = ContentPatchStore.Load(_gameFolder);
-                _replacements = ContentPatchStore.BuildReplacementMap(config);
+                var config = RuntimeContentPatchLoader.Load(_gameFolder);
+                _replacements = RuntimeContentPatchLoader.BuildReplacementMap(config);
             }
         }
 
-        public static bool TryGetReplacement(string assetName, out ContentPatchEntry entry, out string assetPath)
+        public static int ReplacementCount
+        {
+            get
+            {
+                lock (Sync)
+                    return _replacements.Count;
+            }
+        }
+
+        public static bool TryGetReplacement(string assetName, out RuntimeContentPatchEntry entry, out string assetPath)
         {
             entry = null;
             assetPath = string.Empty;
@@ -43,11 +51,11 @@ namespace Asher.Patching.ContentPatcher
                 if (string.IsNullOrWhiteSpace(_gameFolder))
                     return false;
 
-                var target = ContentPatchStore.NormalizeTarget(assetName);
+                var target = RuntimeContentPatchLoader.NormalizeTarget(assetName);
                 if (!_replacements.TryGetValue(target, out entry))
                     return false;
 
-                assetPath = ContentPatchStore.ResolveAssetPath(_gameFolder, entry.FromFile);
+                assetPath = RuntimeContentPatchLoader.ResolveAssetPath(_gameFolder, entry.FromFile);
                 return File.Exists(assetPath);
             }
         }

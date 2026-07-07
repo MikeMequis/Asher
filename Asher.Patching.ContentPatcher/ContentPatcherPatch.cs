@@ -1,4 +1,3 @@
-using Asher.ContentPatcher;
 using Asher.SDK.Logging;
 using Asher.SDK.Patching;
 using HarmonyLib;
@@ -50,6 +49,8 @@ namespace Asher.Patching.ContentPatcher
 
                 foreach (var method in loadMethods)
                     harmony.Patch(method, prefix: prefix);
+
+                AsherLog.Info($"[ContentPatcher] Applied with {ContentPatchRegistry.ReplacementCount} replacement(s)");
             }
             catch (Exception ex)
             {
@@ -68,7 +69,7 @@ namespace Asher.Patching.ContentPatcher
 
             try
             {
-                if (!ContentPatchRegistry.TryGetReplacement(assetName, out ContentPatchEntry entry, out var filePath))
+                if (!ContentPatchRegistry.TryGetReplacement(assetName, out RuntimeContentPatchEntry entry, out var filePath))
                     return true;
 
                 var assetType = __originalMethod.GetGenericArguments()[0];

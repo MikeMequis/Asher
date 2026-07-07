@@ -146,28 +146,6 @@ if ($sdkDlls) {
     Write-Host "      [ERRO] Asher.SDK.dll nao encontrado em $SDKPath" -ForegroundColor Red
 }
 
-# Content patcher shared library
-$contentPatcherDll = Get-ChildItem -Path ".\Asher.ContentPatcher\bin" -Filter "Asher.ContentPatcher.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($contentPatcherDll) {
-    Copy-Item -Path $contentPatcherDll.FullName -Destination $OutputPath -Force
-    $contentPatcherSize = [math]::Round($contentPatcherDll.Length / 1KB, 2)
-    Write-Host "      [OK] Asher.ContentPatcher.dll ($contentPatcherSize KB)" -ForegroundColor Green
-} else {
-    Write-Host "      [AVISO] Asher.ContentPatcher.dll nao encontrado" -ForegroundColor Yellow
-}
-
-# Newtonsoft.Json (runtime dependency for content.json)
-$newtonsoftDll = Get-ChildItem -Path ".\packages\Newtonsoft.Json.13.0.4\lib" -Filter "Newtonsoft.Json.dll" -Recurse -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -match "net45|netstandard2.0" } |
-    Select-Object -First 1
-if ($newtonsoftDll) {
-    Copy-Item -Path $newtonsoftDll.FullName -Destination $OutputPath -Force
-    $newtonsoftSize = [math]::Round($newtonsoftDll.Length / 1KB, 2)
-    Write-Host "      [OK] Newtonsoft.Json.dll ($newtonsoftSize KB)" -ForegroundColor Green
-} else {
-    Write-Host "      [AVISO] Newtonsoft.Json.dll nao encontrado" -ForegroundColor Yellow
-}
-
 # Procurar e copiar 0Harmony.dll
 Write-Host "[4/7] Procurando 0Harmony.dll..." -ForegroundColor Gray
 
