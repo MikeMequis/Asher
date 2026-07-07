@@ -1,3 +1,4 @@
+using Asher.SDK.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +30,7 @@ namespace Asher.Patching.ContentPatcher
 
                 var config = RuntimeContentPatchLoader.Load(_gameFolder);
                 _replacements = RuntimeContentPatchLoader.BuildReplacementMap(config);
+                AsherLog.Info($"[ContentPatcher] Loaded config from {RuntimeContentPatchLoader.GetPatchesFolder(_gameFolder)}");
             }
         }
 
@@ -56,7 +58,13 @@ namespace Asher.Patching.ContentPatcher
                     return false;
 
                 assetPath = RuntimeContentPatchLoader.ResolveAssetPath(_gameFolder, entry.FromFile);
-                return File.Exists(assetPath);
+                if (!File.Exists(assetPath))
+                {
+                    AsherLog.Warning($"[ContentPatcher] Replacement file missing: {assetPath}");
+                    return false;
+                }
+
+                return true;
             }
         }
     }

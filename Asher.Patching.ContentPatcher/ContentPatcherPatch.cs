@@ -8,7 +8,7 @@ using System.Reflection;
 namespace Asher.Patching.ContentPatcher
 {
     /// <summary>
-    /// Intercepts XNA ContentManager.Load calls and swaps assets defined in Asher/patches/content.json.
+    /// Intercepts XNA ContentManager.LoadAsset and swaps assets from Asher/patches/content.json.
     /// </summary>
     public sealed class ContentPatcherPatch : IAsherPatchModule
     {
@@ -27,52 +27,50 @@ namespace Asher.Patching.ContentPatcher
                 ContentPatchRegistry.Initialize(gameFolder);
 
                 var contentManagerType = GetContentManagerType();
-
                 if (contentManagerType == null)
                 {
                     AsherLog.Warning("[ContentPatcher] ContentManager type not found");
                     return;
                 }
 
-                var loadMethods = contentManagerType
-                    .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                    .Where(method => method.Name == "Load" && method.IsGenericMethodDefinition)
-                    .ToArray();
-
-                if (loadMethods.Length == 0)
+                var loadAssetMethod = FindLoadAssetMethod(contentManagerType);
+                if (loadAssetMethod == null)
                 {
-                    AsherLog.Warning("[ContentPatcher] ContentManager.Load methods not found");
+                    AsherLog.Warning("[ContentPatcher] ContentManager.LoadAsset method not found");
                     return;
                 }
 
-                var prefix = new HarmonyMethod(typeof(ContentPatcherPatch), nameof(LoadPrefix));
-
-                foreach (var method in loadMethods)
-                    harmony.Patch(method, prefix: prefix);
+                harmony.Patch(
+                    loadAssetMethod,
+                    prefix: new HarmonyMethod(typeof(ContentPatcherPatch), nameof(LoadAssetPrefix)));
 
                 AsherLog.Info($"[ContentPatcher] Applied with {ContentPatchRegistry.ReplacementCount} replacement(s)");
             }
             catch (Exception ex)
             {
                 AsherLog.Error($"[ContentPatcher] Failed to apply patch: {ex.Message}");
+                if (ex.InnerException != null)
+                    AsherLog.Error($"[ContentPatcher] Inner: {ex.InnerException.Message}");
             }
         }
 
-        private static bool LoadPrefix(
-            string assetName,
+        /// <summary>
+        /// Harmony cannot patch open generic Load&lt;T&gt;; LoadAsset is the non-generic entry point.
+        /// </summary>
+        private static bool LoadAssetPrefix(
+            string originalAssetName,
+            Type assetType,
             ref object __result,
-            object __instance,
-            MethodBase __originalMethod)
+            object __instance)
         {
             if (!Enabled)
                 return true;
 
             try
             {
-                if (!ContentPatchRegistry.TryGetReplacement(assetName, out RuntimeContentPatchEntry entry, out var filePath))
+                if (!ContentPatchRegistry.TryGetReplacement(originalAssetName, out _, out var filePath))
                     return true;
 
-                var assetType = __originalMethod.GetGenericArguments()[0];
                 var replacement = ContentAssetLoader.TryLoadReplacement(__instance, assetType, filePath);
                 if (replacement == null)
                     return true;
@@ -82,9 +80,21 @@ namespace Asher.Patching.ContentPatcher
             }
             catch (Exception ex)
             {
-                AsherLog.Error($"[ContentPatcher] Failed to load replacement for '{assetName}': {ex.Message}");
+                AsherLog.Error($"[ContentPatcher] Failed to load replacement for '{originalAssetName}': {ex.Message}");
                 return true;
             }
+        }
+
+        private static MethodInfo FindLoadAssetMethod(Type contentManagerType)
+        {
+            return contentManagerType
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault(method =>
+                    method.Name == "LoadAsset"
+                    && method.GetParameters().Length == 3
+                    && method.GetParameters()[0].ParameterType == typeof(string)
+                    && method.GetParameters()[1].ParameterType == typeof(Type)
+                    && !method.IsGenericMethodDefinition);
         }
 
         private static Type GetContentManagerType()
