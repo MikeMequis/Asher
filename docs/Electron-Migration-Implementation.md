@@ -1245,6 +1245,84 @@ Diagnostic log file: `%APPDATA%\\asher-electron\\asher-electron.log` (path also 
 
 ---
 
+## Step 18 — Electron-Owned Installation & Distribution
+
+### Decision
+
+**The full Asher installation workflow moves to Electron.** End users should install Asher onto a game folder through the Electron app (Setup → Install), not by running `PrepareDistribution.ps1` and launching `Distribution\Asher.App.exe` first.
+
+`PrepareDistribution.ps1` remains a **WPF legacy / developer packaging** tool until WPF is retired. It is **not** part of the Electron user workflow.
+
+### Current state (validated on game PC)
+
+| Scenario | Works today? | Notes |
+|----------|--------------|-------|
+| Electron against **already-installed** game | **Yes** | Setup, Manager, mod toggle, launch, uninstall validated when game folder already has Asher runtime |
+| Electron **fresh install** from dev checkout | **No** | Install UI exists (`installation-controller.js`) but C# cannot find payload files |
+| WPF via `Distribution\` after `PrepareDistribution.ps1` | **Yes** | Original shipping path; unchanged |
+
+### Why fresh Electron install fails today
+
+`GameInstallationService.ResolveInstallSourceFolder()` looks for install payload next to the running application (`AppDomain.CurrentDomain.BaseDirectory`), then game-folder caches. Electron spawns `Asher.Host.exe` from `Asher.Host\bin\x86\Debug\...`, which contains **host dependencies only** — not:
+
+- `Asher.Launcher.exe`
+- `Asher.Runtime.dll` / `Asher.SDK.dll` / `0Harmony.dll`
+- `DefaultMods\`
+
+Those files are assembled today by `PrepareDistribution.ps1` into `Distribution\` for WPF. Electron does not copy or bundle them yet.
+
+### Target Electron flow (no Distribution script for users)
+
+```text
+User runs Electron app
+    ↓
+Setup (detect / validate / save game folder)
+    ↓
+Install Asher (in-app progress + cancel)
+    ↓
+C# InstallAsync (unchanged logic)
+    ↓
+Manager (mods, launch, uninstall)
+```
+
+All install/uninstall behavior stays in C#. Electron only provides UI and invokes `install` / `uninstall` over JSONL.
+
+### Required work (not yet implemented)
+
+| Item | Purpose |
+|------|---------|
+| **Install payload bundling** | Ship Launcher, Runtime, SDK, Harmony, and DefaultMods with Electron/Host — not via manual `PrepareDistribution.ps1` step |
+| **Build integration** | MSBuild or Electron packaging step copies payload from project `bin` outputs into a known folder (e.g. `Asher.Host/install-payload/` or `Asher.Electron/resources/install-payload/`) |
+| **Host payload resolution** | Ensure `ResolveInstallSourceFolder()` finds bundled payload when Host runs from Electron (extend candidate paths or set host working directory — minimal C# change only if bundling beside Host is insufficient) |
+| **Production packaging** | `electron-builder` (or equivalent) packages Electron + `Asher.Host` + install payload as one distributable |
+| **Dev workflow** | `npm start` works for fresh install after `dotnet build` — no separate Distribution folder step |
+
+### Explicit non-goals
+
+- Do not require users to run `PrepareDistribution.ps1` before using Electron.
+- Do not duplicate `InstallAsync` logic in JavaScript.
+- Do not remove `PrepareDistribution.ps1` until WPF is deprecated (keeps WPF release path working).
+
+### Relationship to existing Electron steps
+
+| Step | Status |
+|------|--------|
+| 11 Setup | Done — folder detect/validate/save |
+| 14 Install UI | Done — progress, cancel, post-install refresh |
+| 15 Uninstall UI | Done |
+| 17 Launch | Done |
+| **18 Payload + packaging** | **Next** — closes gap between install UI and installable fresh game |
+
+### Validation plan (when payload bundling lands)
+
+1. Clean game folder (no `Asher\` runtime).
+2. `npm start` only — no `PrepareDistribution.ps1`.
+3. Setup → Install → verify `DustAET.exe` launcher, runtime files, DefaultMods in game folder.
+4. Manager → Launch → play.
+5. Uninstall → restore backup → return to Setup.
+
+---
+
 ## Validation
 
 ### Build
@@ -1299,7 +1377,8 @@ Optional live flags (not run in CI smoke):
 2. **Transitive UI assemblies** — Host still loads `Asher.Core` (`UseWPF`, MaterialDesign, Prism) even though it does not start WPF. Full decoupling deferred per investigation §11.8.
 3. **Duplicate DI wiring** — ~~WPF (`App.xaml.cs`) and `AsherServiceHost` both construct services; drift risk until unified.~~ Resolved in Step 5 via `ApplicationServices`.
 4. **Mutating operations** — Install/uninstall not automated in smoke to avoid destructive changes.
-5. **No automated test project** — validation is manual console output only.
+5. **Fresh install via Electron** — Install UI exists, but install payload is not bundled with Host/Electron yet; `PrepareDistribution.ps1` still required indirectly for payload files (see Step 18).
+6. **No automated test project** — validation is manual console output only.
 
 ---
 
@@ -1312,6 +1391,8 @@ Optional live flags (not run in CI smoke):
 | Read-only default smoke | Safe validation without game directory mutation |
 | `net8.0-windows` for host | Required to reference `Asher.Services` / `Asher.Core` |
 | Exclude `INavigationItemsManager` from host | Presentation-only; not part of application contract |
+| Electron owns end-user installation | Full install via in-app flow; `PrepareDistribution.ps1` is WPF legacy only, not an Electron prerequisite |
+| Install payload bundled with Electron/Host | Fresh install must work without manual Distribution folder assembly |
 
 ---
 
@@ -1321,7 +1402,7 @@ Optional live flags (not run in CI smoke):
 - [x] Add `ISettingsService` wrapper; remove direct `AsherSettings` from ViewModels
 - [x] Unify WPF DI with `AsherServiceHost` or shared registration module
 - [x] Introduce in-process `IAsherApplication` contract
-- [ ] Live validation on machine with Asher-installed game (install, launch, mod toggle, uninstall)
+- [ ] Live validation on machine with Asher-installed game (install, launch, mod toggle, uninstall) — **partial**: launch/mods/manager validated on game PC; fresh install not yet tested
 - [x] Freeze §12.5 contract as serializable API surface
 - [x] IPC / transport investigation (separate phase)
 - [x] JSONL transport prototype (`Asher.Host --jsonl` + test client)
@@ -1332,6 +1413,8 @@ Optional live flags (not run in CI smoke):
 - [x] Electron installation flow (install, progress, cancel)
 - [x] Electron uninstallation flow (uninstall, progress, cancel, post-uninstall refresh)
 - [x] Electron launch game flow
+- [ ] Electron install payload bundling (remove `PrepareDistribution.ps1` dependency for fresh install)
+- [ ] Electron production packaging (Host + install payload + frontend)
 - [ ] Electron settings screen
 - [ ] Electron home / hub navigation
 
@@ -1341,7 +1424,8 @@ Optional live flags (not run in CI smoke):
 
 | Date | Step | Summary |
 |------|------|---------|
-| 2026-08-28 | 17+ | Host startup sync fix; renderer-driven `startHost`, status rebroadcast on load |
+| 2026-08-28 | 18 | Electron-owned installation; payload bundling plan; Distribution script out of user path |
+| 2026-08-28 | 17+ | Host startup sync fix; preload.cjs; diagnostic logging |
 | 2026-08-28 | 17 | Launch game; Manager button via existing `launchGame` JSONL |
 | 2026-08-28 | 16 | Remaining WPF audit; launch game + settings identified as next priorities |
 | 2026-08-28 | 15 | Uninstallation flow; uninstall/progress/cancel, post-uninstall mode refresh |
