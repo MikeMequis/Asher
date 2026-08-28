@@ -1,6 +1,4 @@
-﻿using Asher.Core;
-using Asher.Core.Models;
-using Asher.Services.Interfaces;
+﻿using Asher.Services.Interfaces;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -11,7 +9,7 @@ namespace Asher.UserInterface.ViewModels
     {
         private readonly IPatchManagerService _patchManagerService;
 
-        public ObservableCollection<ManagedModInfo> AvailablePatches { get; } = new();
+        public ObservableCollection<ManagedModItemViewModel> AvailablePatches { get; } = new();
 
         private int _activePatchCount;
         public int ActivePatchCount
@@ -75,8 +73,9 @@ namespace Asher.UserInterface.ViewModels
             var mods = await _patchManagerService.GetModsAsync();
             foreach (var mod in mods)
             {
-                mod.PropertyChanged += OnPatchPropertyChanged;
-                AvailablePatches.Add(mod);
+                var item = ManagedModItemViewModel.From(mod);
+                item.PropertyChanged += OnPatchPropertyChanged;
+                AvailablePatches.Add(item);
             }
 
             UpdatePatchCounts();
@@ -84,7 +83,7 @@ namespace Asher.UserInterface.ViewModels
 
         private async void OnPatchPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (sender is not ManagedModInfo mod || e.PropertyName != nameof(ManagedModInfo.IsEnabled))
+            if (sender is not ManagedModItemViewModel mod || e.PropertyName != nameof(ManagedModItemViewModel.IsEnabled))
                 return;
 
             await _patchManagerService.SetModEnabledAsync(mod.FileName, mod.IsEnabled);

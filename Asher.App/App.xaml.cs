@@ -1,4 +1,5 @@
-﻿using Asher.Core;
+﻿using Asher.App.Hosting;
+using Asher.Core;
 using Asher.Localization;
 using Asher.Services.Implementations;
 using Asher.Services.Interfaces;
@@ -13,7 +14,8 @@ namespace Asher.App
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            var settings = AsherSettings.Load();
+            var settingsService = new SettingsService();
+            var settings = settingsService.Load();
             LocalizationManager.Initialize(settings.Language);
             new ThemeService().Apply(
                 string.IsNullOrWhiteSpace(settings.Theme) ? "Light" : settings.Theme);
@@ -27,23 +29,17 @@ namespace Asher.App
         {
             base.OnInitialized();
 
-            var settings = AsherSettings.Load();
+            var settings = Container.Resolve<ISettingsService>().Load();
             Container.Resolve<IThemeService>().Apply(
                 string.IsNullOrWhiteSpace(settings.Theme) ? "Light" : settings.Theme);
         }
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
+            PrismApplicationServiceRegistration.RegisterApplicationServices(containerRegistry);
+
             containerRegistry.Register<MainWindow>();
-            containerRegistry.RegisterSingleton<IGameFolderService, GameFolderService>();
-            containerRegistry.RegisterSingleton<IPatchManagerService, PatchManagerService>();
-            containerRegistry.RegisterSingleton<IGameInstallationService, GameInstallationService>();
-            containerRegistry.RegisterSingleton<IInstallationStateService, InstallationStateService>();
             containerRegistry.RegisterSingleton<INavigationItemsManager, NavigationItemsManager>();
-            containerRegistry.RegisterSingleton<IGameLaunchService, GameLaunchService>();
-            containerRegistry.RegisterSingleton<IShortcutService, ShortcutService>();
-            containerRegistry.RegisterSingleton<IManagerLaunchService, ManagerLaunchService>();
-            containerRegistry.RegisterSingleton<IManagerDeployService, ManagerDeployService>();
             containerRegistry.RegisterSingleton<IThemeService, ThemeService>();
         }
 

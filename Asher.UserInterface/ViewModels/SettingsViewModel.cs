@@ -14,6 +14,7 @@ namespace Asher.UserInterface.ViewModels
         private readonly IGameInstallationService _installationService;
         private readonly IRegionManager _regionManager;
         private readonly IThemeService _themeService;
+        private readonly ISettingsService _settingsService;
         private bool _isApplyingSettings;
 
         private string _gamePath = string.Empty;
@@ -117,13 +118,15 @@ namespace Asher.UserInterface.ViewModels
             IGameLaunchService gameLaunchService,
             IGameInstallationService installationService,
             IRegionManager regionManager,
-            IThemeService themeService)
+            IThemeService themeService,
+            ISettingsService settingsService)
         {
             _gameFolderService = gameFolderService;
             _gameLaunchService = gameLaunchService;
             _installationService = installationService;
             _regionManager = regionManager;
             _themeService = themeService;
+            _settingsService = settingsService;
             InitializeSettings();
         }
 
@@ -225,21 +228,21 @@ namespace Asher.UserInterface.ViewModels
 
         private void ExecuteSaveSettingsCommand()
         {
-            var settings = AsherSettings.Load();
+            var settings = _settingsService.Load();
             settings.GameFolderPath = GamePath;
             settings.AutoLaunchEnabled = AutoLaunchEnabled;
             settings.BackupEnabled = BackupEnabled;
             settings.Theme = SelectedTheme;
             settings.CheckForUpdatesEnabled = CheckForUpdatesEnabled;
             settings.Language = LocalizationManager.GetCultureNameFromDisplay(SelectedLanguage);
-            settings.Save();
+            _settingsService.Save(settings);
         }
 
         private void InitializeSettings()
         {
             _isApplyingSettings = true;
 
-            var settings = AsherSettings.Load();
+            var settings = _settingsService.Load();
             GamePath = _gameLaunchService.ResolveGameFolderPath()
                 ?? settings.GameFolderPath
                 ?? string.Empty;

@@ -13,17 +13,20 @@ namespace Asher.UserInterface.ViewModels
         private readonly IGameLaunchService _gameLaunchService;
         private readonly IRegionManager _regionManager;
         private readonly IEventAggregator _eventAggregator;
+        private readonly ISettingsService _settingsService;
 
         public UninstallProgressViewModel(
             IGameInstallationService installationService,
             IGameLaunchService gameLaunchService,
             IRegionManager regionManager,
-            IEventAggregator eventAggregator)
+            IEventAggregator eventAggregator,
+            ISettingsService settingsService)
         {
             _installationService = installationService;
             _gameLaunchService = gameLaunchService;
             _regionManager = regionManager;
             _eventAggregator = eventAggregator;
+            _settingsService = settingsService;
         }
 
         private double _progressPercentage;
@@ -119,7 +122,7 @@ namespace Asher.UserInterface.ViewModels
 
                 if (result.Success)
                 {
-                    var settings = AsherSettings.Load();
+                    var settings = _settingsService.Load();
                     settings.MarkAsUninstalled();
                     _eventAggregator.GetEvent<UninstallCompleteEvent>().Publish();
                     return;

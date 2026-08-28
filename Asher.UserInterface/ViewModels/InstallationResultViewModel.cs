@@ -14,6 +14,7 @@ namespace Asher.UserInterface.ViewModels
         private readonly IShortcutService _shortcutService;
         private readonly IManagerLaunchService _managerLaunchService;
         private readonly IManagerDeployService _managerDeployService;
+        private readonly ISettingsService _settingsService;
 
         public InstallationResultViewModel(
             IEventAggregator eventAggregator,
@@ -21,7 +22,8 @@ namespace Asher.UserInterface.ViewModels
             IRegionManager regionManager,
             IShortcutService shortcutService,
             IManagerLaunchService managerLaunchService,
-            IManagerDeployService managerDeployService)
+            IManagerDeployService managerDeployService,
+            ISettingsService settingsService)
         {
             _eventAggregator = eventAggregator;
             _stateService = stateService;
@@ -29,6 +31,7 @@ namespace Asher.UserInterface.ViewModels
             _shortcutService = shortcutService;
             _managerLaunchService = managerLaunchService;
             _managerDeployService = managerDeployService;
+            _settingsService = settingsService;
         }
 
         private bool _isSuccess;
@@ -178,7 +181,7 @@ namespace Asher.UserInterface.ViewModels
             if (result?.Success == true)
             {
                 var gameInfo = _stateService.GetGameFolder();
-                var settings = AsherSettings.Load();
+                var settings = _settingsService.Load();
 
                 if (gameInfo != null)
                 {

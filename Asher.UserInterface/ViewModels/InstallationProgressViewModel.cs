@@ -10,16 +10,19 @@ namespace Asher.UserInterface.ViewModels
         private readonly IInstallationStateService _stateService;
         private readonly IGameInstallationService _installationService;
         private readonly IRegionManager _regionManager;
+        private readonly ISettingsService _settingsService;
 
         public InstallationProgressViewModel(IEventAggregator eventAggregator,
                                              IInstallationStateService stateService,
                                              IGameInstallationService installationService,
-                                             IRegionManager regionManager)
+                                             IRegionManager regionManager,
+                                             ISettingsService settingsService)
         {
             _eventAggregator = eventAggregator;
             _stateService = stateService;
             _installationService = installationService;
             _regionManager = regionManager;
+            _settingsService = settingsService;
         }
 
         private double _progressPercentage;
@@ -89,7 +92,7 @@ namespace Asher.UserInterface.ViewModels
 
                 if (result.Success)
                 {
-                    var settings = AsherSettings.Load();
+                    var settings = _settingsService.Load();
                     settings.MarkAsInstalled(gameInfo.Path, gameInfo.Version);
                 }
 

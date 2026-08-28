@@ -26,6 +26,7 @@ namespace Asher.UserInterface.ViewModels
         private readonly IEventAggregator _eventAggregator;
         private readonly INavigationItemsManager _navigationItemsManager;
         private readonly IGameInstallationService _installationService;
+        private readonly ISettingsService _settingsService;
         private AsherSettings _settings;
         private string? _currentNavigationPath;
         private bool _startupNavigationPending;
@@ -34,17 +35,19 @@ namespace Asher.UserInterface.ViewModels
             IRegionManager regionManager,
             IEventAggregator eventAggregator,
             INavigationItemsManager navigationItemsManager,
-            IGameInstallationService installationService)
+            IGameInstallationService installationService,
+            ISettingsService settingsService)
         {
             _regionManager = regionManager;
             _eventAggregator = eventAggregator;
             _navigationItemsManager = navigationItemsManager;
             _installationService = installationService;
+            _settingsService = settingsService;
 
             NavigationItems = new();
             InstallationNavigationItems = new();
 
-            _settings = AsherSettings.Load();
+            _settings = _settingsService.Load();
 
             _eventAggregator.GetEvent<InstallationCompleteEvent>().Subscribe(OnInstallationComplete);
             _eventAggregator.GetEvent<UninstallCompleteEvent>().Subscribe(OnUninstallComplete);
@@ -297,14 +300,14 @@ namespace Asher.UserInterface.ViewModels
             WindowTitle = LocalizationManager.Instance["Window_ManagerTitle"];
             SetupNormalNavigation(navigateToHome: true);
 
-            _settings = AsherSettings.Load();
+            _settings = _settingsService.Load();
         }
 
         private void OnUninstallComplete()
         {
             IsInstallationMode = true;
             WindowTitle = LocalizationManager.Instance["Window_InstallTitle"];
-            _settings = AsherSettings.Load();
+            _settings = _settingsService.Load();
             SetupInstallationNavigation(navigateToStart: true);
         }
     }

@@ -1,6 +1,6 @@
-namespace Asher.Core.Models
+namespace Asher.Services.Application.Contracts
 {
-    public class ManagedModInfo
+    public sealed class ManagedModDto
     {
         public string FileName { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
