@@ -1239,6 +1239,10 @@ Linux port will need platform-specific launch abstraction in C# services; Electr
 
 Renderer now calls `startHost()` and applies the returned status (not only `getHostStatus` + IPC events). Main no longer starts the host before the window loads; current status is rebroadcast on `did-finish-load`. `HostManager.start()` shares one in-flight promise for concurrent callers.
 
+Preload must be CommonJS (`preload.cjs`) — sandboxed Electron preload cannot use ESM `import` when `package.json` has `"type": "module"`.
+
+Diagnostic log file: `%APPDATA%\\asher-electron\\asher-electron.log` (path also shown in app footer).
+
 ---
 
 ## Validation

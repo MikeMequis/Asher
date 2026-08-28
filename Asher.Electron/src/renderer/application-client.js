@@ -1,11 +1,15 @@
-/** @typedef {import('../preload/preload.js')} AsherApi */
+/** @typedef {Window['asher']} AsherApi */
 
 /**
  * Thin renderer client over the preload bridge.
  */
 export class ApplicationClient {
-  /** @param {AsherApi} api */
+  /** @param {AsherApi | undefined} api */
   constructor(api) {
+    if (!api) {
+      throw new Error('Asher preload bridge is not available.');
+    }
+
     this.api = api;
     this.#operationStartedUnsubscribe = this.api.onOperationStarted((payload) => {
       if (this.#operationStartedHandler) {

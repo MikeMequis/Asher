@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('asher', {
   getLogPath: () => ipcRenderer.invoke('asher:get-log-path'),

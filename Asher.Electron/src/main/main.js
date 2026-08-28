@@ -34,7 +34,7 @@ function broadcastHostStatus() {
 }
 
 function createWindow() {
-  const preloadPath = path.join(__dirname, '..', 'preload', 'preload.js');
+  const preloadPath = path.join(__dirname, '..', 'preload', 'preload.cjs');
   writeDiagnosticLog('info', 'main', 'creating window', { preloadPath });
 
   mainWindow = new BrowserWindow({
