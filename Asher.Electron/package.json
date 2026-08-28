@@ -1,0 +1,22 @@
+{
+  "name": "asher-electron",
+  "version": "0.1.0",
+  "description": "Electron frontend spike for Asher (JSONL transport to Asher.Host)",
+  "private": true,
+  "main": "src/main/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "smoke": "node scripts/smoke-test.mjs",
+    "smoke:setup": "node scripts/setup-smoke-test.mjs",
+    "smoke:manager": "node scripts/manager-smoke-test.mjs",
+    "smoke:shell": "node scripts/shell-smoke-test.mjs",
+    "smoke:install": "node scripts/install-smoke-test.mjs",
+    "smoke:uninstall": "node scripts/uninstall-smoke-test.mjs",
+    "smoke:launch": "node scripts/launch-smoke-test.mjs"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0"
+  }
+}

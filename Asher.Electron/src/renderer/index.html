@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asher</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Asher</h1>
+        <p id="page-subtitle" class="subtitle">Starting...</p>
+      </div>
+      <div class="host-chip" aria-live="polite">
+        <span id="status-badge" class="badge badge-stopped">stopped</span>
+        <span id="status-message" class="status-message">Not connected</span>
+      </div>
+    </header>
+
+    <nav id="main-nav" class="main-nav" hidden>
+      <button id="nav-setup" class="nav-button nav-active" type="button">Setup</button>
+      <button id="nav-manager" class="nav-button" type="button">Mod Manager</button>
+    </nav>
+
+    <section id="shell-loading" class="panel shell-state">
+      <h2 id="shell-loading-title">Starting application</h2>
+      <p id="shell-loading-message" class="help-text">Connecting to Asher.Host...</p>
+    </section>
+
+    <section id="host-error-panel" class="panel error-panel shell-state" hidden>
+      <h2>Application Unavailable</h2>
+      <p id="host-error-message"></p>
+      <button id="retry-host">Retry Connection</button>
+    </section>
+
+    <main id="app-content" hidden>
+      <section id="ready-view" class="panel" hidden>
+        <h2>Game Configured</h2>
+        <p id="ready-summary" class="ready-summary"></p>
+        <dl class="info-list">
+          <div><dt>Folder</dt><dd id="ready-path"></dd></div>
+          <div><dt>Version</dt><dd id="ready-version"></dd></div>
+          <div><dt>Source</dt><dd id="ready-source"></dd></div>
+          <div><dt>Mode</dt><dd id="ready-mode"></dd></div>
+        </dl>
+        <div class="action-row">
+          <button id="start-install" hidden>Install Asher</button>
+          <button id="open-manager">Open Mod Manager</button>
+          <button id="reconfigure" class="secondary">Change Game Folder</button>
+        </div>
+      </section>
+
+      <section id="install-view" class="panel" hidden>
+        <h2>Installing Asher</h2>
+        <p class="help-text">Preparing the game for mod support. Do not close the application during installation.</p>
+
+        <div id="install-idle" class="install-state" hidden>
+          <button id="begin-install">Start Installation</button>
+        </div>
+
+        <div id="install-active" class="install-state" hidden>
+          <div id="install-status" class="install-status">Starting installation...</div>
+          <progress id="install-progress" max="100" value="0"></progress>
+          <div id="install-details" class="install-details" hidden></div>
+          <button id="cancel-install" class="secondary" hidden>Cancel</button>
+        </div>
+
+        <div id="install-completed" class="install-state setup-status status-valid" hidden>
+          <p id="install-success-message">Installation completed successfully.</p>
+          <button id="install-continue">Continue to Mod Manager</button>
+        </div>
+
+        <div id="install-failed" class="error install-state" hidden>
+          <p id="install-failure-message"></p>
+          <div class="action-row">
+            <button id="retry-install">Try Again</button>
+            <button id="install-back-setup" class="secondary">Back to Setup</button>
+          </div>
+        </div>
+
+        <div id="install-cancelled" class="install-state" hidden>
+          <p id="install-cancelled-message">Installation was cancelled.</p>
+          <div class="action-row">
+            <button id="retry-install-cancelled">Try Again</button>
+            <button id="install-back-setup-cancelled" class="secondary">Back to Setup</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="setup-view" class="panel" hidden>
+        <h2>Locate Game Installation</h2>
+        <p class="help-text">Find the installation folder for <em>Dust: An Elysian Tail</em>.</p>
+        <div id="setup-context-error" class="error" hidden></div>
+
+        <div class="action-row">
+          <button id="auto-detect" disabled>Detect Automatically</button>
+        </div>
+
+        <div class="path-row">
+          <input
+            id="folder-path"
+            type="text"
+            placeholder="Game folder path"
+            aria-label="Game folder path"
+            readonly
+          />
+          <button id="browse-folder" class="secondary" disabled>Browse...</button>
+        </div>
+
+        <div class="action-row">
+          <button id="validate-path" class="secondary" disabled>Validate</button>
+          <button id="save-config" disabled>Save Configuration</button>
+        </div>
+
+        <div id="setup-status" class="setup-status" hidden></div>
+        <div id="setup-error" class="error" hidden></div>
+      </section>
+
+      <section id="manager-view" class="panel" hidden>
+        <div class="manager-header">
+          <div>
+            <h2>Mod Manager</h2>
+            <p class="help-text">Enable or disable installed mods.</p>
+          </div>
+          <div class="manager-actions">
+            <button id="launch-game" hidden>Launch Game</button>
+            <button id="refresh-mods" class="secondary" disabled>Refresh</button>
+          </div>
+        </div>
+
+        <div id="manager-launch-success" class="setup-status status-valid" hidden></div>
+        <div id="manager-launch-error" class="error" hidden></div>
+
+        <div id="manager-loading" class="loading" hidden>Loading mods...</div>
+        <div id="manager-empty" class="empty-state" hidden>No mods found for the configured game folder.</div>
+        <div id="manager-error" class="error" hidden></div>
+        <div id="manager-toggle-error" class="error" hidden></div>
+
+        <ul id="mod-list" class="mod-list" hidden></ul>
+
+        <div id="manager-stats" class="manager-stats" hidden>
+          <div><span class="stat-label">Active</span><span id="active-count" class="stat-value">0</span></div>
+          <div><span class="stat-label">Total</span><span id="total-count" class="stat-value">0</span></div>
+        </div>
+
+        <div class="manager-footer">
+          <button id="uninstall-asher" class="danger" hidden>Uninstall Asher</button>
+        </div>
+      </section>
+
+      <section id="uninstall-view" class="panel" hidden>
+        <h2>Uninstalling Asher</h2>
+        <p class="help-text">This will remove Asher from the configured game folder and restore the original game files where possible.</p>
+
+        <div id="uninstall-confirm" class="install-state" hidden>
+          <p>Are you sure you want to uninstall Asher from this game installation?</p>
+          <div class="action-row">
+            <button id="confirm-uninstall">Uninstall</button>
+            <button id="cancel-uninstall-confirm" class="secondary">Cancel</button>
+          </div>
+        </div>
+
+        <div id="uninstall-active" class="install-state" hidden>
+          <div id="uninstall-status" class="install-status">Starting uninstallation...</div>
+          <progress id="uninstall-progress" max="100" value="0"></progress>
+          <div id="uninstall-details" class="install-details" hidden></div>
+          <button id="cancel-uninstall" class="secondary" hidden>Cancel</button>
+        </div>
+
+        <div id="uninstall-completed" class="install-state setup-status status-valid" hidden>
+          <p id="uninstall-success-message">Uninstallation completed successfully.</p>
+          <button id="uninstall-continue">Continue</button>
+        </div>
+
+        <div id="uninstall-failed" class="error install-state" hidden>
+          <p id="uninstall-failure-message"></p>
+          <div class="action-row">
+            <button id="retry-uninstall">Try Again</button>
+            <button id="uninstall-back-manager" class="secondary">Back to Manager</button>
+          </div>
+        </div>
+
+        <div id="uninstall-cancelled" class="install-state" hidden>
+          <p id="uninstall-cancelled-message">Uninstallation was cancelled.</p>
+          <div class="action-row">
+            <button id="retry-uninstall-cancelled">Try Again</button>
+            <button id="uninstall-back-manager-cancelled" class="secondary">Back to Manager</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
