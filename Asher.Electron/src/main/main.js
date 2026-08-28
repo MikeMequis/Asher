@@ -1,6 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  getDiagnosticLogPath,
+  initDiagnosticLogger,
+  writeDiagnosticLog
+} from './diagnostic-logger.js';
 import { HostManager } from './host-manager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,22 +17,31 @@ const hostManager = new HostManager();
 function broadcast(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, payload);
+    return true;
   }
+
+  writeDiagnosticLog('warn', 'main', `broadcast skipped (no window): ${channel}`, payload);
+  return false;
 }
 
 function broadcastHostStatus() {
-  broadcast('host:status-changed', {
+  const status = {
     status: hostManager.status,
     message: hostManager.statusMessage
-  });
+  };
+  writeDiagnosticLog('info', 'main', 'broadcast host status', status);
+  broadcast('host:status-changed', status);
 }
 
 function createWindow() {
+  const preloadPath = path.join(__dirname, '..', 'preload', 'preload.js');
+  writeDiagnosticLog('info', 'main', 'creating window', { preloadPath });
+
   mainWindow = new BrowserWindow({
     width: 720,
     height: 640,
     webPreferences: {
-      preload: path.join(__dirname, '..', 'preload', 'preload.js'),
+      preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -35,35 +49,78 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
+    writeDiagnosticLog('info', 'main', 'renderer did-finish-load');
     broadcastHostStatus();
   });
 
-  mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    writeDiagnosticLog('error', 'main', 'renderer did-fail-load', {
+      errorCode,
+      errorDescription,
+      validatedURL
+    });
+  });
+
+  mainWindow.webContents.on('preload-error', (_event, preloadPathValue, error) => {
+    writeDiagnosticLog('error', 'main', 'preload-error', {
+      preloadPath: preloadPathValue,
+      error: error?.message ?? String(error)
+    });
+  });
+
+  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    writeDiagnosticLog('info', 'renderer-console', message, { level, line, sourceId });
+  });
+
+  const indexPath = path.join(__dirname, '..', 'renderer', 'index.html');
+  writeDiagnosticLog('info', 'main', 'loading renderer', { indexPath });
+  mainWindow.loadFile(indexPath);
 }
 
 hostManager.on('status-changed', () => {
   broadcastHostStatus();
 });
 
-ipcMain.handle('host:get-status', () => ({
-  status: hostManager.status,
-  message: hostManager.statusMessage,
-  hostPath: hostManager.hostPath
-}));
+ipcMain.handle('asher:get-log-path', () => getDiagnosticLogPath());
+
+ipcMain.handle('asher:log', (_event, { level, source, message, data }) => {
+  const normalizedLevel = level === 'error' || level === 'warn' ? level : 'info';
+  writeDiagnosticLog(normalizedLevel, source ?? 'renderer', message, data);
+});
+
+ipcMain.handle('host:get-status', () => {
+  const status = {
+    status: hostManager.status,
+    message: hostManager.statusMessage,
+    hostPath: hostManager.hostPath
+  };
+  writeDiagnosticLog('info', 'ipc', 'host:get-status', status);
+  return status;
+});
 
 ipcMain.handle('host:start', async () => {
+  writeDiagnosticLog('info', 'ipc', 'host:start requested', {
+    currentStatus: hostManager.status
+  });
+
   if (hostManager.status === 'ready') {
-    return { status: hostManager.status, message: hostManager.statusMessage };
+    const status = { status: hostManager.status, message: hostManager.statusMessage };
+    writeDiagnosticLog('info', 'ipc', 'host:start already ready', status);
+    return status;
   }
 
   try {
     await hostManager.start();
-    return { status: hostManager.status, message: hostManager.statusMessage };
+    const status = { status: hostManager.status, message: hostManager.statusMessage };
+    writeDiagnosticLog('info', 'ipc', 'host:start completed', status);
+    return status;
   } catch (err) {
-    return {
+    const status = {
       status: hostManager.status,
-      message: err.message ?? 'Failed to start host'
+      message: err instanceof Error ? err.message : 'Failed to start host'
     };
+    writeDiagnosticLog('error', 'ipc', 'host:start failed', status);
+    return status;
   }
 });
 
@@ -81,9 +138,18 @@ ipcMain.handle('dialog:pick-folder', async () => {
 });
 
 ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, allowFailure }) => {
+  writeDiagnosticLog('info', 'ipc', `asher:invoke ${method}`, {
+    trackProgress: Boolean(trackProgress),
+    allowFailure: Boolean(allowFailure)
+  });
+
   const client = hostManager.client;
   if (!client || hostManager.status !== 'ready') {
-    throw new Error('Host is not available. Wait for connection or restart the application.');
+    const error = new Error('Host is not available. Wait for connection or restart the application.');
+    writeDiagnosticLog('error', 'ipc', `asher:invoke blocked for ${method}`, {
+      hostStatus: hostManager.status
+    });
+    throw error;
   }
 
   const progressEvents = [];
@@ -105,10 +171,17 @@ ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, a
       : undefined
   });
 
+  writeDiagnosticLog('info', 'ipc', `asher:invoke ${method} completed`, {
+    requestId,
+    progressCount: progressEvents.length
+  });
+
   return { requestId, result, progressCount: progressEvents.length };
 });
 
 app.whenReady().then(() => {
+  const logPath = initDiagnosticLogger(app.getPath('userData'));
+  writeDiagnosticLog('info', 'main', 'app ready', { logPath });
   createWindow();
 
   app.on('activate', () => {
@@ -119,12 +192,14 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  writeDiagnosticLog('info', 'main', 'window-all-closed');
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('before-quit', async (event) => {
+  writeDiagnosticLog('info', 'main', 'before-quit', { hostStatus: hostManager.status });
   if (hostManager.status === 'stopped' || hostManager.status === 'terminated') {
     return;
   }

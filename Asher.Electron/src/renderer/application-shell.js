@@ -1,4 +1,5 @@
 import { fetchApplicationState, mapApplicationError } from './application-state.js';
+import { logDiagnostic } from './diagnostic-log.js';
 
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 /** @typedef {import('./application-state.js').ApplicationState} ApplicationState */
@@ -87,11 +88,19 @@ export class ApplicationShell {
    * @param {ShellPhase} phase
    */
   #setPhase(phase) {
+    logDiagnostic('info', 'shell', `phase -> ${phase}`, {
+      hostStatus: this.#hostStatus.status
+    });
     this.#phase = phase;
     this.#notify();
   }
 
   async start() {
+    logDiagnostic('info', 'shell', 'start()');
+    if (!window.asher) {
+      logDiagnostic('error', 'shell', 'window.asher preload bridge is missing');
+    }
+
     this.#setPhase('booting');
     this.client.onHostStatusChanged((status) => {
       void this.#handleHostStatus(status);
@@ -101,7 +110,10 @@ export class ApplicationShell {
   }
 
   async #ensureHostConnected() {
+    logDiagnostic('info', 'shell', 'ensureHostConnected() begin');
     const initial = await this.client.getHostStatus();
+    logDiagnostic('info', 'shell', 'initial host status', initial);
+
     if (initial.status === 'ready') {
       await this.#handleHostStatus(initial);
       return;
@@ -109,6 +121,7 @@ export class ApplicationShell {
 
     this.#setPhase('connecting');
     const result = await this.client.startHost();
+    logDiagnostic('info', 'shell', 'startHost() result', result);
     await this.#handleHostStatus(result);
   }
 
@@ -116,6 +129,7 @@ export class ApplicationShell {
    * @param {{ status: string, message?: string | null }} status
    */
   async #handleHostStatus(status) {
+    logDiagnostic('info', 'shell', 'handleHostStatus()', status);
     this.#hostStatus = {
       status: status.status,
       message: status.message ?? null
@@ -151,11 +165,18 @@ export class ApplicationShell {
   }
 
   async #loadApplicationState() {
+    logDiagnostic('info', 'shell', 'loadApplicationState() begin');
     this.#setPhase('loading-app');
     this.#errorMessage = null;
 
     try {
       const state = await fetchApplicationState(this.client);
+      logDiagnostic('info', 'shell', 'application state loaded', {
+        mode: state.mode,
+        isConfigured: state.isConfigured,
+        recommendedScreen: state.recommendedScreen,
+        canLaunchGame: state.canLaunchGame
+      });
       this.#applicationState = state;
 
       if (!this.#screen || (this.#screen === 'manager' && !state.isConfigured)) {
@@ -166,6 +187,10 @@ export class ApplicationShell {
       await this.#enterScreen(this.#screen);
     } catch (err) {
       const { message } = mapApplicationError(this.client, err);
+      logDiagnostic('error', 'shell', 'loadApplicationState() failed', {
+        message,
+        error: err instanceof Error ? err.message : String(err)
+      });
       this.#applicationState = null;
       this.#screen = null;
       this.#errorMessage = message;

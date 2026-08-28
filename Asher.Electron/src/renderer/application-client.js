@@ -46,6 +46,23 @@ export class ApplicationClient {
     return this.api.getHostStatus();
   }
 
+  getLogPath() {
+    return this.api.getLogPath();
+  }
+
+  /**
+   * @param {'info' | 'warn' | 'error'} level
+   * @param {string} source
+   * @param {string} message
+   * @param {unknown} [data]
+   */
+  log(level, source, message, data) {
+    if (this.api.log) {
+      return this.api.log(level, source, message, data);
+    }
+    return Promise.resolve();
+  }
+
   startHost() {
     return this.api.startHost();
   }

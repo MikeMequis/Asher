@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('asher', {
+  getLogPath: () => ipcRenderer.invoke('asher:get-log-path'),
+  log: (level, source, message, data) =>
+    ipcRenderer.invoke('asher:log', { level, source, message, data }),
   getHostStatus: () => ipcRenderer.invoke('host:get-status'),
   startHost: () => ipcRenderer.invoke('host:start'),
   invoke: (method, params, options) =>
