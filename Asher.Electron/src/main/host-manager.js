@@ -17,6 +17,8 @@ export class HostManager extends EventEmitter {
   /** @type {JsonlClient | null} */
   #client = null;
   #hostPath = null;
+  /** @type {Promise<void> | null} */
+  #startPromise = null;
 
   get status() {
     return this.#status;
@@ -41,17 +43,32 @@ export class HostManager extends EventEmitter {
   }
 
   async start() {
-    if (this.#status === 'starting' || this.#status === 'ready') {
+    if (this.#status === 'ready') {
       return;
     }
 
+    if (this.#startPromise) {
+      return this.#startPromise;
+    }
+
+    this.#startPromise = this.#startInternal();
+
+    try {
+      await this.#startPromise;
+    } catch (err) {
+      this.#startPromise = null;
+      throw err;
+    }
+  }
+
+  #startInternal() {
     this.#setStatus('starting', 'Launching Asher.Host...');
 
     try {
       this.#hostPath = resolveHostPath();
     } catch (err) {
       this.#setStatus('error', err.message);
-      throw err;
+      return Promise.reject(err);
     }
 
     return new Promise((resolve, reject) => {
@@ -74,6 +91,7 @@ export class HostManager extends EventEmitter {
       client.attach(child.stdin, child.stdout);
 
       const readyTimeout = setTimeout(() => {
+        this.#startPromise = null;
         this.#setStatus('error', 'Host did not emit ready event within timeout');
         this.stop({ force: true });
         reject(new Error('Host ready timeout'));
@@ -93,12 +111,14 @@ export class HostManager extends EventEmitter {
 
       child.on('error', (err) => {
         clearTimeout(readyTimeout);
+        this.#startPromise = null;
         this.#setStatus('error', `Failed to start host: ${err.message}`);
         reject(err);
       });
 
       child.on('exit', (code, signal) => {
         clearTimeout(readyTimeout);
+        this.#startPromise = null;
         if (this.#status !== 'stopped') {
           const detail = signal ? `signal ${signal}` : `exit code ${code}`;
           this.#setStatus('terminated', `Host process ended (${detail})`);
@@ -153,6 +173,7 @@ export class HostManager extends EventEmitter {
 
     this.#process = null;
     this.#client = null;
+    this.#startPromise = null;
     this.#setStatus('stopped');
   }
 }

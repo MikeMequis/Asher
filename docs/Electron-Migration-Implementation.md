@@ -1235,6 +1235,10 @@ Linux port will need platform-specific launch abstraction in C# services; Electr
 - `AutoLaunchEnabled` setting not read by launch service.
 - Live game start not validated on dev machine.
 
+### Host startup sync fix
+
+Renderer now calls `startHost()` and applies the returned status (not only `getHostStatus` + IPC events). Main no longer starts the host before the window loads; current status is rebroadcast on `did-finish-load`. `HostManager.start()` shares one in-flight promise for concurrent callers.
+
 ---
 
 ## Validation
@@ -1333,6 +1337,7 @@ Optional live flags (not run in CI smoke):
 
 | Date | Step | Summary |
 |------|------|---------|
+| 2026-08-28 | 17+ | Host startup sync fix; renderer-driven `startHost`, status rebroadcast on load |
 | 2026-08-28 | 17 | Launch game; Manager button via existing `launchGame` JSONL |
 | 2026-08-28 | 16 | Remaining WPF audit; launch game + settings identified as next priorities |
 | 2026-08-28 | 15 | Uninstallation flow; uninstall/progress/cancel, post-uninstall mode refresh |

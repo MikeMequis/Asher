@@ -15,6 +15,13 @@ function broadcast(channel, payload) {
   }
 }
 
+function broadcastHostStatus() {
+  broadcast('host:status-changed', {
+    status: hostManager.status,
+    message: hostManager.statusMessage
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 720,
@@ -27,11 +34,15 @@ function createWindow() {
     }
   });
 
+  mainWindow.webContents.on('did-finish-load', () => {
+    broadcastHostStatus();
+  });
+
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 }
 
-hostManager.on('status-changed', (status) => {
-  broadcast('host:status-changed', status);
+hostManager.on('status-changed', () => {
+  broadcastHostStatus();
 });
 
 ipcMain.handle('host:get-status', () => ({
@@ -97,14 +108,8 @@ ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, a
   return { requestId, result, progressCount: progressEvents.length };
 });
 
-app.whenReady().then(async () => {
+app.whenReady().then(() => {
   createWindow();
-
-  try {
-    await hostManager.start();
-  } catch {
-    // Status already updated; renderer shows the error.
-  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -93,10 +93,23 @@ export class ApplicationShell {
 
   async start() {
     this.#setPhase('booting');
-    this.client.onHostStatusChanged((status) => this.#handleHostStatus(status));
+    this.client.onHostStatusChanged((status) => {
+      void this.#handleHostStatus(status);
+    });
 
+    await this.#ensureHostConnected();
+  }
+
+  async #ensureHostConnected() {
     const initial = await this.client.getHostStatus();
-    await this.#handleHostStatus(initial);
+    if (initial.status === 'ready') {
+      await this.#handleHostStatus(initial);
+      return;
+    }
+
+    this.#setPhase('connecting');
+    const result = await this.client.startHost();
+    await this.#handleHostStatus(result);
   }
 
   /**
@@ -107,6 +120,7 @@ export class ApplicationShell {
       status: status.status,
       message: status.message ?? null
     };
+    this.#notify();
 
     if (status.status === 'starting') {
       this.#errorMessage = null;
@@ -115,6 +129,9 @@ export class ApplicationShell {
     }
 
     if (status.status === 'ready') {
+      if (this.#phase === 'ready' || this.#phase === 'loading-app') {
+        return;
+      }
       await this.#loadApplicationState();
       return;
     }
@@ -262,8 +279,7 @@ export class ApplicationShell {
 
   async retryHost() {
     this.#errorMessage = null;
-    this.#setPhase('connecting');
-    await this.client.startHost();
+    await this.#ensureHostConnected();
   }
 
   /**
