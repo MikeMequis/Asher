@@ -1,10 +1,30 @@
 import { ApplicationClient } from './application-client.js';
 import { ApplicationShell } from './application-shell.js';
+import { logDiagnostic, showDiagnosticLogPath } from './diagnostic-log.js';
 import { GameSetupController } from './game-setup.js';
 import { InstallationController } from './installation-controller.js';
 import { LaunchGameController } from './launch-game.js';
 import { ModManagerController } from './mod-manager.js';
 import { UninstallationController } from './uninstallation-controller.js';
+
+if (!window.asher) {
+  logDiagnostic('error', 'renderer', 'window.asher preload bridge is missing');
+}
+
+window.addEventListener('error', (event) => {
+  logDiagnostic('error', 'renderer', 'window error', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  logDiagnostic('error', 'renderer', 'unhandled rejection', {
+    reason: event.reason instanceof Error ? event.reason.message : String(event.reason)
+  });
+});
 
 const client = new ApplicationClient(window.asher);
 const shell = new ApplicationShell(client);
@@ -572,4 +592,10 @@ retryHostButton.addEventListener('click', async () => {
   }
 });
 
+logDiagnostic('info', 'renderer', 'app.js bootstrap begin');
+await showDiagnosticLogPath(client);
 await shell.start();
+logDiagnostic('info', 'renderer', 'app.js bootstrap complete', {
+  shellPhase: shell.phase,
+  hostStatus: shell.hostStatus.status
+});

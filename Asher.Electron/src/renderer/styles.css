@@ -331,6 +331,19 @@ button.secondary {
   border-top: 1px solid #ddd;
 }
 
+.diagnostic-footer {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.diagnostic-log-path {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #666;
+  word-break: break-all;
+}
+
 button.danger {
   background: #fdecea;
   border-color: #f5c2c0;
