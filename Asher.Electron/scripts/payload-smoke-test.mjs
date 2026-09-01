@@ -12,7 +12,9 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 const DEFAULT_MOD_FILES = [
   'Asher.Patching.DebugEnabler.dll',
   'Asher.Patching.IntroSkipper.dll',
-  'Asher.Patching.GraphicsDeprofiler.dll'
+  'Asher.Patching.GraphicsDeprofiler.dll',
+  'Asher.Patching.MuteVoiceActing.dll',
+  'Asher.Patching.OverheatDisabler.dll'
 ];
 
 const hostDirs = [

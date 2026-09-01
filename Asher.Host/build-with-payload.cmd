@@ -17,6 +17,12 @@ if errorlevel 1 exit /b 1
 dotnet build "%~dp0..\Asher.Patching.GraphicsDeprofiler\Asher.Patching.GraphicsDeprofiler.csproj" -c %CONFIG% -p:Platform=x86
 if errorlevel 1 exit /b 1
 
+dotnet build "%~dp0..\Asher.Patching.MuteVoiceActing\Asher.Patching.MuteVoiceActing.csproj" -c %CONFIG% -p:Platform=x86
+if errorlevel 1 exit /b 1
+
+dotnet build "%~dp0..\Asher.Patching.OverheatDisabler\Asher.Patching.OverheatDisabler.csproj" -c %CONFIG% -p:Platform=x86
+if errorlevel 1 exit /b 1
+
 dotnet build "%~dp0..\Asher.Runtime\Asher.Runtime.csproj" -c %CONFIG% -p:Platform=x86
 if errorlevel 1 exit /b 1
 

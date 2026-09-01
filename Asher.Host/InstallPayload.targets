@@ -58,6 +58,8 @@
       <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.DebugEnabler\bin\x86\$(Configuration)\Asher.Patching.DebugEnabler.dll" />
       <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.IntroSkipper\bin\x86\$(Configuration)\Asher.Patching.IntroSkipper.dll" />
       <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.GraphicsDeprofiler\bin\x86\$(Configuration)\Asher.Patching.GraphicsDeprofiler.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.MuteVoiceActing\bin\x86\$(Configuration)\Asher.Patching.MuteVoiceActing.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.OverheatDisabler\bin\x86\$(Configuration)\Asher.Patching.OverheatDisabler.dll" />
       <_ExistingDefaultModDll Include="@(_DefaultModDll)" Condition="Exists('%(Identity)')" />
     </ItemGroup>
 
@@ -89,6 +91,16 @@
           SkipUnchangedFiles="false"
           OverwriteReadOnlyFiles="true"
           Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.GraphicsDeprofiler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.GraphicsDeprofiler.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.MuteVoiceActing.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.MuteVoiceActing.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.MuteVoiceActing.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.OverheatDisabler.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.OverheatDisabler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.OverheatDisabler.dll')" />
 
     <ItemGroup>
       <_StagedModDll Include="$(_InstallPayloadModsDir)\*.dll" />
