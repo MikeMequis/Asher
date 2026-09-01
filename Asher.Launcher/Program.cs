@@ -37,9 +37,7 @@ namespace Asher.Launcher
                 var gameExe = Path.Combine(baseDir, OriginalGameExe);
 
                 // 1 - Inicializar Runtime
-                AsherLog.Info("=== Asher Launcher iniciado ===");
-                AsherLog.Info($"Diretório do jogo: {baseDir}");
-                AsherLog.Info($"Diretório Asher: {asherDir}");
+                AsherLog.Info($"Launcher started | game={baseDir}");
 
                 var context = new RuntimeContext(
                     gamePath: baseDir,
@@ -49,31 +47,21 @@ namespace Asher.Launcher
                 );
 
                 RuntimeEntry.Init(context);
-                AsherLog.Info("Runtime inicializado com sucesso.");
 
                 // 2 - Carregar assembly do jogo original
-                AsherLog.Info($"Carregando assembly do jogo: {gameExe}");
                 var gameAssembly = Assembly.LoadFrom(gameExe);
-                AsherLog.Info($"Assembly do jogo carregado: {gameAssembly.FullName}");
 
                 // 3 - Carregar Mods
-                AsherLog.Info($"Carregando mods de: {modsPath}");
                 AssemblyLoader.LoadAssembliesFrom(modsPath);
-                AsherLog.Info("Mods carregados com sucesso.");
 
                 // 4 - Executar PreInit de todos os módulos
-                AsherLog.Info("Executando PreInit dos módulos...");
                 PreInitBootstrap.ExecutePreInitModules();
-                AsherLog.Info("PreInit concluído.");
 
                 // 5 - Aplicar patches (Harmony)
-                AsherLog.Info("Aplicando patches de módulos...");
                 GameTitleBootstrap.Apply(gameAssembly);
                 PatchModuleLoader.Load();
-                AsherLog.Info("Patches aplicados com sucesso.");
 
                 // 6 - Executar Dust.Program.Main
-                AsherLog.Info("Procurando Dust.Program.Main...");
                 var programType = gameAssembly.GetType("Dust.Program");
                 if (programType == null)
                     throw new InvalidOperationException("Tipo 'Dust.Program' não encontrado no assembly do jogo.");
@@ -84,9 +72,7 @@ namespace Asher.Launcher
                 if (mainMethod == null)
                     throw new InvalidOperationException("Método 'Dust.Program.Main' não encontrado.");
 
-                AsherLog.Info("Iniciando Dust.Program.Main...");
-                AsherLog.Info("=== Transferindo controle para o jogo ===");
-
+                AsherLog.Info("Starting game");
                 mainMethod.Invoke(null, new object[] { args });
             }
             catch (Exception ex)
@@ -153,7 +139,6 @@ namespace Asher.Launcher
 
                 if (File.Exists(assemblyPath))
                 {
-                    AsherLog.Info($"Resolvendo assembly: {assemblyName} de {assemblyPath}");
                     return Assembly.LoadFrom(assemblyPath);
                 }
 
@@ -163,7 +148,6 @@ namespace Asher.Launcher
 
                 if (File.Exists(modAssemblyPath))
                 {
-                    AsherLog.Info($"Resolvendo assembly: {assemblyName} de {modAssemblyPath}");
                     return Assembly.LoadFrom(modAssemblyPath);
                 }
             }

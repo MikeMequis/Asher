@@ -40,12 +40,11 @@ export class HostManager extends EventEmitter {
   #setStatus(status, message = null) {
     this.#status = status;
     this.#statusMessage = message;
-    writeDiagnosticLog('info', 'host', `status -> ${status}`, { message });
+    writeDiagnosticLog('info', 'host', `status ${status}`, message ? { message } : undefined);
     this.emit('status-changed', { status, message });
   }
 
   async start() {
-    writeDiagnosticLog('info', 'host', 'start requested', { currentStatus: this.#status });
     if (this.#status === 'ready') {
       return;
     }
@@ -69,25 +68,18 @@ export class HostManager extends EventEmitter {
 
     try {
       this.#hostPath = resolveHostPath();
-      writeDiagnosticLog('info', 'host', 'resolved host path', { hostPath: this.#hostPath });
     } catch (err) {
       this.#setStatus('error', err.message);
       return Promise.reject(err);
     }
 
     return new Promise((resolve, reject) => {
-      writeDiagnosticLog('info', 'host', 'spawning host process', {
-        hostPath: this.#hostPath,
-        args: ['--jsonl']
-      });
-
       const child = spawn(this.#hostPath, ['--jsonl'], {
         stdio: ['pipe', 'pipe', 'pipe'],
         windowsHide: true
       });
 
       this.#process = child;
-      writeDiagnosticLog('info', 'host', 'host process spawned', { pid: child.pid });
 
       const client = new JsonlClient();
       this.#client = client;
@@ -95,14 +87,7 @@ export class HostManager extends EventEmitter {
       child.stderr.on('data', (chunk) => {
         const text = chunk.toString('utf8').trim();
         if (text) {
-          writeDiagnosticLog('warn', 'host-stderr', text);
-        }
-      });
-
-      child.stdout.on('data', (chunk) => {
-        const text = chunk.toString('utf8').trim();
-        if (text) {
-          writeDiagnosticLog('info', 'host-stdout', text);
+          writeDiagnosticLog('warn', 'host', text);
         }
       });
 
@@ -117,7 +102,6 @@ export class HostManager extends EventEmitter {
 
       client.once('ready', () => {
         clearTimeout(readyTimeout);
-        writeDiagnosticLog('info', 'host', 'ready event received from host');
         this.#setStatus('ready', 'Connected to Asher.Host');
         resolve();
       });
@@ -138,9 +122,9 @@ export class HostManager extends EventEmitter {
       child.on('exit', (code, signal) => {
         clearTimeout(readyTimeout);
         this.#startPromise = null;
-        writeDiagnosticLog('warn', 'host', 'host process exited', { code, signal, status: this.#status });
         if (this.#status !== 'stopped') {
           const detail = signal ? `signal ${signal}` : `exit code ${code}`;
+          writeDiagnosticLog('warn', 'host', 'process exited', { detail, status: this.#status });
           this.#setStatus('terminated', `Host process ended (${detail})`);
         }
         this.#process = null;

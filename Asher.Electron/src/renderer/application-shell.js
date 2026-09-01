@@ -88,17 +88,13 @@ export class ApplicationShell {
    * @param {ShellPhase} phase
    */
   #setPhase(phase) {
-    logDiagnostic('info', 'shell', `phase -> ${phase}`, {
-      hostStatus: this.#hostStatus.status
-    });
     this.#phase = phase;
     this.#notify();
   }
 
   async start() {
-    logDiagnostic('info', 'shell', 'start()');
     if (!window.asher) {
-      logDiagnostic('error', 'shell', 'window.asher preload bridge is missing');
+      logDiagnostic('error', 'shell', 'preload bridge missing');
     }
 
     this.#setPhase('booting');
@@ -110,9 +106,7 @@ export class ApplicationShell {
   }
 
   async #ensureHostConnected() {
-    logDiagnostic('info', 'shell', 'ensureHostConnected() begin');
     const initial = await this.client.getHostStatus();
-    logDiagnostic('info', 'shell', 'initial host status', initial);
 
     if (initial.status === 'ready') {
       await this.#handleHostStatus(initial);
@@ -121,7 +115,6 @@ export class ApplicationShell {
 
     this.#setPhase('connecting');
     const result = await this.client.startHost();
-    logDiagnostic('info', 'shell', 'startHost() result', result);
     await this.#handleHostStatus(result);
   }
 
@@ -129,7 +122,6 @@ export class ApplicationShell {
    * @param {{ status: string, message?: string | null }} status
    */
   async #handleHostStatus(status) {
-    logDiagnostic('info', 'shell', 'handleHostStatus()', status);
     this.#hostStatus = {
       status: status.status,
       message: status.message ?? null
@@ -165,18 +157,14 @@ export class ApplicationShell {
   }
 
   async #loadApplicationState() {
-    logDiagnostic('info', 'shell', 'loadApplicationState() begin');
     this.#setPhase('loading-app');
     this.#errorMessage = null;
 
     try {
       const state = await fetchApplicationState(this.client);
-      logDiagnostic('info', 'shell', 'application state loaded', {
-        mode: state.mode,
-        isConfigured: state.isConfigured,
-        recommendedScreen: state.recommendedScreen,
-        canLaunchGame: state.canLaunchGame
-      });
+      if (state.settings?.gameFolderPath) {
+        await this.client.relocateLogs(state.settings.gameFolderPath);
+      }
       this.#applicationState = state;
 
       if (!this.#screen || (this.#screen === 'manager' && !state.isConfigured)) {

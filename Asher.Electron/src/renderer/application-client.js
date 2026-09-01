@@ -54,6 +54,14 @@ export class ApplicationClient {
     return this.api.getLogPath();
   }
 
+  relocateLogs(gameFolderPath) {
+    if (!this.api.relocateLogs) {
+      return Promise.resolve(null);
+    }
+
+    return this.api.relocateLogs(gameFolderPath);
+  }
+
   /**
    * @param {'info' | 'warn' | 'error'} level
    * @param {string} source

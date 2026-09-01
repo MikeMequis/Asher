@@ -1,5 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  buildManagerLogFilePath,
+  resolveGameLogsDir
+} from './log-path-resolver.js';
 
 /** @type {string | null} */
 let logFilePath = null;
@@ -12,29 +16,47 @@ export function setDiagnosticLogPath(filePath) {
 }
 
 /**
+ * @param {unknown} data
+ * @returns {string}
+ */
+function formatData(data) {
+  if (data === undefined || data === null) {
+    return '';
+  }
+
+  if (typeof data === 'string') {
+    return data;
+  }
+
+  try {
+    const serialized = JSON.stringify(data);
+    return serialized === '{}' ? '' : serialized;
+  } catch {
+    return String(data);
+  }
+}
+
+/**
  * @param {'info' | 'warn' | 'error'} level
  * @param {string} source
  * @param {string} message
  * @param {unknown} [data]
  */
 export function writeDiagnosticLog(level, source, message, data) {
-  const entry = {
-    ts: new Date().toISOString(),
-    level,
-    source,
-    message,
-    data: data ?? undefined
-  };
+  const ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  const levelLabel = level.toUpperCase().padEnd(5);
+  const extra = formatData(data);
+  const line = extra
+    ? `[${ts}] [${levelLabel}] [${source}] ${message} | ${extra}\n`
+    : `[${ts}] [${levelLabel}] [${source}] ${message}\n`;
 
-  const line = `${JSON.stringify(entry)}\n`;
-  const prefix = `[asher-electron][${source}] ${message}`;
-
+  const prefix = `[asher][${source}] ${message}`;
   if (level === 'error') {
-    console.error(prefix, data ?? '');
+    console.error(prefix, extra || '');
   } else if (level === 'warn') {
-    console.warn(prefix, data ?? '');
+    console.warn(prefix, extra || '');
   } else {
-    console.log(prefix, data ?? '');
+    console.log(prefix, extra || '');
   }
 
   if (!logFilePath) {
@@ -45,7 +67,7 @@ export function writeDiagnosticLog(level, source, message, data) {
     fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
     fs.appendFileSync(logFilePath, line, 'utf8');
   } catch {
-    // Ignore file write failures; console remains available.
+    // Console remains available if file logging fails.
   }
 }
 
@@ -54,21 +76,47 @@ export function getDiagnosticLogPath() {
 }
 
 /**
- * Initialize file logging for the Electron main process.
- * @param {string} userDataDir
+ * Point file logging at the game's Asher/AsherLogs folder.
+ * @param {string | null | undefined} gameFolderPath
+ * @returns {string | null}
  */
-export function initDiagnosticLogger(userDataDir) {
-  const dir = userDataDir;
-  fs.mkdirSync(dir, { recursive: true });
-  const filePath = path.join(dir, 'asher-electron.log');
-  setDiagnosticLogPath(filePath);
+export function relocateDiagnosticLogger(gameFolderPath) {
+  const logsDir = resolveGameLogsDir(gameFolderPath);
+  if (!logsDir) {
+    return null;
+  }
 
-  writeDiagnosticLog('info', 'main', 'Diagnostic logger initialized', {
-    logFilePath: filePath,
-    cwd: process.cwd(),
-    execPath: process.execPath,
-    versions: process.versions
+  const resolvedLogsDir = path.resolve(logsDir);
+  if (logFilePath && path.resolve(logFilePath).startsWith(resolvedLogsDir)) {
+    return logFilePath;
+  }
+
+  const previousPath = logFilePath;
+  const nextPath = buildManagerLogFilePath(logsDir);
+  setDiagnosticLogPath(nextPath);
+
+  writeDiagnosticLog('info', 'main', 'Manager log file ready', {
+    path: nextPath,
+    previousPath: previousPath ?? undefined
   });
 
-  return filePath;
+  return nextPath;
+}
+
+/**
+ * Initialize manager logging under the configured game folder when available.
+ * @returns {string | null}
+ */
+export function initDiagnosticLogger() {
+  const logPath = relocateDiagnosticLogger(null);
+  if (logPath) {
+    return logPath;
+  }
+
+  writeDiagnosticLog(
+    'warn',
+    'main',
+    'No game folder configured yet; file logging disabled until setup completes'
+  );
+  return null;
 }

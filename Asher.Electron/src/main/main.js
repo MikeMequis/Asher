@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import {
   getDiagnosticLogPath,
   initDiagnosticLogger,
+  relocateDiagnosticLogger,
   writeDiagnosticLog
 } from './diagnostic-logger.js';
 import { HostManager } from './host-manager.js';
@@ -20,22 +21,32 @@ function broadcast(channel, payload) {
     return true;
   }
 
-  writeDiagnosticLog('warn', 'main', `broadcast skipped (no window): ${channel}`, payload);
+  writeDiagnosticLog('warn', 'main', `broadcast skipped: ${channel}`);
   return false;
 }
 
 function broadcastHostStatus() {
-  const status = {
+  broadcast('host:status-changed', {
     status: hostManager.status,
     message: hostManager.statusMessage
-  };
-  writeDiagnosticLog('info', 'main', 'broadcast host status', status);
-  broadcast('host:status-changed', status);
+  });
+}
+
+function tryRelocateLogsFromParams(params) {
+  const gameFolderPath =
+    typeof params?.gameFolderPath === 'string'
+      ? params.gameFolderPath
+      : typeof params?.path === 'string'
+        ? params.path
+        : null;
+
+  if (gameFolderPath) {
+    relocateDiagnosticLogger(gameFolderPath);
+  }
 }
 
 function createWindow() {
   const preloadPath = path.join(__dirname, '..', 'preload', 'preload.cjs');
-  writeDiagnosticLog('info', 'main', 'creating window', { preloadPath });
 
   mainWindow = new BrowserWindow({
     width: 720,
@@ -49,12 +60,11 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
-    writeDiagnosticLog('info', 'main', 'renderer did-finish-load');
     broadcastHostStatus();
   });
 
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
-    writeDiagnosticLog('error', 'main', 'renderer did-fail-load', {
+    writeDiagnosticLog('error', 'main', 'renderer failed to load', {
       errorCode,
       errorDescription,
       validatedURL
@@ -62,18 +72,13 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('preload-error', (_event, preloadPathValue, error) => {
-    writeDiagnosticLog('error', 'main', 'preload-error', {
+    writeDiagnosticLog('error', 'main', 'preload error', {
       preloadPath: preloadPathValue,
       error: error?.message ?? String(error)
     });
   });
 
-  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
-    writeDiagnosticLog('info', 'renderer-console', message, { level, line, sourceId });
-  });
-
   const indexPath = path.join(__dirname, '..', 'renderer', 'index.html');
-  writeDiagnosticLog('info', 'main', 'loading renderer', { indexPath });
   mainWindow.loadFile(indexPath);
 }
 
@@ -83,44 +88,33 @@ hostManager.on('status-changed', () => {
 
 ipcMain.handle('asher:get-log-path', () => getDiagnosticLogPath());
 
+ipcMain.handle('asher:relocate-logs', (_event, gameFolderPath) =>
+  relocateDiagnosticLogger(gameFolderPath)
+);
+
 ipcMain.handle('asher:log', (_event, { level, source, message, data }) => {
   const normalizedLevel = level === 'error' || level === 'warn' ? level : 'info';
   writeDiagnosticLog(normalizedLevel, source ?? 'renderer', message, data);
 });
 
-ipcMain.handle('host:get-status', () => {
-  const status = {
-    status: hostManager.status,
-    message: hostManager.statusMessage,
-    hostPath: hostManager.hostPath
-  };
-  writeDiagnosticLog('info', 'ipc', 'host:get-status', status);
-  return status;
-});
+ipcMain.handle('host:get-status', () => ({
+  status: hostManager.status,
+  message: hostManager.statusMessage,
+  hostPath: hostManager.hostPath
+}));
 
 ipcMain.handle('host:start', async () => {
-  writeDiagnosticLog('info', 'ipc', 'host:start requested', {
-    currentStatus: hostManager.status
-  });
-
   if (hostManager.status === 'ready') {
-    const status = { status: hostManager.status, message: hostManager.statusMessage };
-    writeDiagnosticLog('info', 'ipc', 'host:start already ready', status);
-    return status;
+    return { status: hostManager.status, message: hostManager.statusMessage };
   }
 
   try {
     await hostManager.start();
-    const status = { status: hostManager.status, message: hostManager.statusMessage };
-    writeDiagnosticLog('info', 'ipc', 'host:start completed', status);
-    return status;
+    return { status: hostManager.status, message: hostManager.statusMessage };
   } catch (err) {
-    const status = {
-      status: hostManager.status,
-      message: err instanceof Error ? err.message : 'Failed to start host'
-    };
-    writeDiagnosticLog('error', 'ipc', 'host:start failed', status);
-    return status;
+    const message = err instanceof Error ? err.message : 'Failed to start host';
+    writeDiagnosticLog('error', 'host', 'start failed', { message });
+    return { status: hostManager.status, message };
   }
 });
 
@@ -138,50 +132,50 @@ ipcMain.handle('dialog:pick-folder', async () => {
 });
 
 ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, allowFailure }) => {
-  writeDiagnosticLog('info', 'ipc', `asher:invoke ${method}`, {
-    trackProgress: Boolean(trackProgress),
-    allowFailure: Boolean(allowFailure)
-  });
+  if (method === 'saveSettings' || method === 'markAsInstalled') {
+    tryRelocateLogsFromParams(params);
+  }
 
   const client = hostManager.client;
   if (!client || hostManager.status !== 'ready') {
     const error = new Error('Host is not available. Wait for connection or restart the application.');
-    writeDiagnosticLog('error', 'ipc', `asher:invoke blocked for ${method}`, {
-      hostStatus: hostManager.status
-    });
+    writeDiagnosticLog('error', 'ipc', `${method} blocked`, { hostStatus: hostManager.status });
     throw error;
   }
 
-  const progressEvents = [];
   /** @type {string | null} */
   let requestId = null;
 
-  const result = await client.request(method, params, {
-    allowFailure: allowFailure ?? false,
-    onStarted: (id) => {
-      requestId = id;
-      broadcast('asher:operation-started', { method, requestId: id });
-    },
-    onProgress: trackProgress
-      ? (progress) => {
-          const payload = { method, requestId, progress };
-          progressEvents.push(payload);
-          broadcast('asher:progress', payload);
-        }
-      : undefined
-  });
+  try {
+    const result = await client.request(method, params, {
+      allowFailure: allowFailure ?? false,
+      onStarted: (id) => {
+        requestId = id;
+        broadcast('asher:operation-started', { method, requestId: id });
+      },
+      onProgress: trackProgress
+        ? (progress) => {
+            broadcast('asher:progress', { method, requestId, progress });
+          }
+        : undefined
+    });
 
-  writeDiagnosticLog('info', 'ipc', `asher:invoke ${method} completed`, {
-    requestId,
-    progressCount: progressEvents.length
-  });
+    if (method === 'getSettings' && result?.gameFolderPath) {
+      relocateDiagnosticLogger(result.gameFolderPath);
+    }
 
-  return { requestId, result, progressCount: progressEvents.length };
+    return { requestId, result };
+  } catch (err) {
+    writeDiagnosticLog('error', 'ipc', `${method} failed`, {
+      requestId,
+      error: err instanceof Error ? err.message : String(err)
+    });
+    throw err;
+  }
 });
 
 app.whenReady().then(() => {
-  const logPath = initDiagnosticLogger(app.getPath('userData'));
-  writeDiagnosticLog('info', 'main', 'app ready', { logPath });
+  initDiagnosticLogger();
   createWindow();
 
   app.on('activate', () => {
@@ -192,14 +186,12 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  writeDiagnosticLog('info', 'main', 'window-all-closed');
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('before-quit', async (event) => {
-  writeDiagnosticLog('info', 'main', 'before-quit', { hostStatus: hostManager.status });
   if (hostManager.status === 'stopped' || hostManager.status === 'terminated') {
     return;
   }

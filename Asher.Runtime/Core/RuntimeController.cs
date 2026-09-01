@@ -24,9 +24,7 @@ namespace Asher.Runtime.Core
                 try
                 {
                     RuntimeLogger.Init(context.LogPath);
-                    RuntimeLogger.Info("=== Runtime Initialization Started ===");
-                    RuntimeLogger.Info($"Version: 1.0.0");
-                    RuntimeLogger.Info($"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    RuntimeLogger.Info("Runtime initialization started");
 
                     Validate(context);
                     PrepareDirectories(context);
@@ -35,7 +33,7 @@ namespace Asher.Runtime.Core
                     _context = context;
                     _initialized = true;
 
-                    RuntimeLogger.Info("=== Runtime Initialization Complete ===");
+                    RuntimeLogger.Info("Runtime initialization complete");
                 }
                 catch (Exception ex)
                 {
@@ -47,7 +45,8 @@ namespace Asher.Runtime.Core
 
         private void Validate(RuntimeContext context)
         {
-            RuntimeLogger.Info("Validating runtime context...");
+            if (string.IsNullOrWhiteSpace(context.GamePath))
+                throw new ArgumentException("GamePath cannot be empty", nameof(context.GamePath));
 
             if (!Directory.Exists(context.GamePath))
             {
@@ -56,65 +55,39 @@ namespace Asher.Runtime.Core
                 throw new DirectoryNotFoundException(error);
             }
 
-            RuntimeLogger.Info($"GamePath: {context.GamePath}");
-            RuntimeLogger.Info($"ModsPath: {context.ModsPath}");
-            RuntimeLogger.Info($"Profile: {context.ProfileName}");
-            RuntimeLogger.Info($"LogPath: {context.LogPath}");
-
-            if (string.IsNullOrWhiteSpace(context.GamePath))
-                throw new ArgumentException("GamePath cannot be empty", nameof(context.GamePath));
-
-            RuntimeLogger.Info("Context validation successful");
+            RuntimeLogger.Info(
+                $"Context OK | game={context.GamePath} | mods={context.ModsPath} | profile={context.ProfileName}");
         }
 
         private void PrepareDirectories(RuntimeContext context)
         {
-            RuntimeLogger.Info("Preparing directories...");
+            EnsureDirectory(context.ModsPath);
+            EnsureDirectory(Path.Combine(context.ModsPath, "config"));
+            EnsureDirectory(Path.Combine(context.ModsPath, "cache"));
+        }
 
-            if (!Directory.Exists(context.ModsPath))
-            {
-                Directory.CreateDirectory(context.ModsPath);
-                RuntimeLogger.Info($"Created mods directory: {context.ModsPath}");
-            }
-
-            var configPath = Path.Combine(context.ModsPath, "config");
-            if (!Directory.Exists(configPath))
-            {
-                Directory.CreateDirectory(configPath);
-                RuntimeLogger.Info($"Created config directory: {configPath}");
-            }
-
-            var cachePath = Path.Combine(context.ModsPath, "cache");
-            if (!Directory.Exists(cachePath))
-            {
-                Directory.CreateDirectory(cachePath);
-                RuntimeLogger.Info($"Created cache directory: {cachePath}");
-            }
-
-            RuntimeLogger.Info("Directory preparation complete");
+        private static void EnsureDirectory(string path)
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
         }
 
         private void LoadConfiguration(RuntimeContext context)
         {
-            RuntimeLogger.Info("Loading configuration...");
-
             var configFile = Path.Combine(context.ModsPath, "config", "runtime.cfg");
 
-            if (File.Exists(configFile))
+            if (!File.Exists(configFile))
+                return;
+
+            try
             {
-                try
-                {
-                    var configContent = File.ReadAllText(configFile);
-                    RuntimeLogger.Info($"Configuration loaded from: {configFile}");
-                    // TODO: Parse configuration
-                }
-                catch (Exception ex)
-                {
-                    RuntimeLogger.Warning($"Failed to load configuration: {ex.Message}");
-                }
+                File.ReadAllText(configFile);
+                RuntimeLogger.Info($"Loaded configuration from {configFile}");
             }
-            else
-                RuntimeLogger.Info("No configuration file found, using defaults");
+            catch (Exception ex)
+            {
+                RuntimeLogger.Warning($"Failed to load configuration: {ex.Message}");
+            }
         }
 
         public void Shutdown()
@@ -124,7 +97,7 @@ namespace Asher.Runtime.Core
                 if (!_initialized)
                     return;
 
-                RuntimeLogger.Info("=== Runtime Shutdown Started ===");
+                RuntimeLogger.Info("Runtime shutdown started");
 
                 try
                 {
@@ -132,7 +105,7 @@ namespace Asher.Runtime.Core
                     _initialized = false;
                     _context = null;
 
-                    RuntimeLogger.Info("=== Runtime Shutdown Complete ===");
+                    RuntimeLogger.Info("Runtime shutdown complete");
                 }
                 catch (Exception ex)
                 {

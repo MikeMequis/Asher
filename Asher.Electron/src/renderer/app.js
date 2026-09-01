@@ -592,10 +592,5 @@ retryHostButton.addEventListener('click', async () => {
   }
 });
 
-logDiagnostic('info', 'renderer', 'app.js bootstrap begin');
 await showDiagnosticLogPath(client);
 await shell.start();
-logDiagnostic('info', 'renderer', 'app.js bootstrap complete', {
-  shellPhase: shell.phase,
-  hostStatus: shell.hostStatus.status
-});

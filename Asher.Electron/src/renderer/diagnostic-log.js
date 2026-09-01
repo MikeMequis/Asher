@@ -34,8 +34,8 @@ export async function showDiagnosticLogPath(client) {
   try {
     const logPath = await client.getLogPath();
     pathEl.textContent = logPath
-      ? `Diagnostic log: ${logPath}`
-      : 'Diagnostic log: unavailable';
+      ? `Log file: ${logPath}`
+      : 'Log file: unavailable until a game folder is configured';
   } catch (err) {
     pathEl.textContent = `Diagnostic log: ${err instanceof Error ? err.message : String(err)}`;
   }
