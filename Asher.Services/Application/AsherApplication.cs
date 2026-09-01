@@ -26,10 +26,7 @@ namespace Asher.Services.Application
         public ApplicationMode GetApplicationMode()
         {
             var settings = _services.Settings.Load();
-            var fromManager = AsherPaths.TryGetGameFolderFromManagerLocation();
-            var candidate = !string.IsNullOrWhiteSpace(fromManager)
-                ? fromManager
-                : settings.GameFolderPath;
+            var candidate = settings.GameFolderPath;
 
             if (!string.IsNullOrWhiteSpace(candidate))
                 AsherPaths.MigrateLegacyLayout(candidate);
@@ -122,24 +119,6 @@ namespace Asher.Services.Application
                 return OperationResult.Succeeded();
 
             return OperationResult.Failed(errorMessage);
-        }
-
-        public OperationResult PreparePatchesFolder(string gameFolderPath)
-        {
-            if (string.IsNullOrWhiteSpace(gameFolderPath))
-            {
-                return OperationResult.Failed("A game folder path is required.");
-            }
-
-            try
-            {
-                _services.GameFolders.CreatePatchesFolder(gameFolderPath);
-                return OperationResult.Succeeded();
-            }
-            catch (Exception ex)
-            {
-                return OperationResult.Failed(ex.Message);
-            }
         }
 
         public void MarkInstalled(string gameFolderPath, string gameVersion) =>

@@ -37,7 +37,6 @@ namespace Asher.Host.Jsonl
             public const string Install = "install";
             public const string Uninstall = "uninstall";
             public const string LaunchGame = "launchGame";
-            public const string PreparePatchesFolder = "preparePatchesFolder";
             public const string MarkInstalled = "markInstalled";
             public const string MarkUninstalled = "markUninstalled";
             public const string Cancel = "cancel";

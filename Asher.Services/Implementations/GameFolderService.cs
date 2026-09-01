@@ -7,14 +7,9 @@ namespace Asher.Services.Implementations
     public class GameFolderService : IGameFolderService
     {
         private static readonly string[] DustFolderNames = { "DustAET", "Dust An Elysian Tail", "Dust: An Elysian Tail" };
-        private const string PatchesFolderName = AsherPaths.PatchesFolderName;
 
         public GameFolderInfo DetectGameFolder()
         {
-            var fromManagerLocation = AsherPaths.TryGetGameFolderFromManagerLocation();
-            if (!string.IsNullOrEmpty(fromManagerLocation))
-                return GetInfo(fromManagerLocation, "Installed");
-
             var settings = AsherSettings.Load();
             if (!string.IsNullOrWhiteSpace(settings.GameFolderPath))
             {
@@ -29,13 +24,6 @@ namespace Asher.Services.Implementations
                 ?? TryGetPath(FindAsherInstalledFolder(), "Installed")
                 ?? TryGetPath(SearchForDustFolder(), "Search")
                 ?? CreateEmptyInfo();
-        }
-
-        public void CreatePatchesFolder(string folderPath)
-        {
-            var patchesPath = AsherPaths.GetPatchesFolderPath(folderPath);
-            if (!Directory.Exists(patchesPath))
-                Directory.CreateDirectory(patchesPath);
         }
 
         private GameFolderInfo TryGetPath(string? path, string source)
@@ -63,16 +51,12 @@ namespace Asher.Services.Implementations
                 catch { }
             }
 
-            string patchesFolderPath = AsherPaths.GetPatchesFolderPath(folderPath);
-
             return new GameFolderInfo
             {
                 Path = folderPath,
                 Version = version,
                 IsValid = isValid,
-                Source = source,
-                HasPatchesFolder = Directory.Exists(patchesFolderPath),
-                PatchesFolderPath = patchesFolderPath
+                Source = source
             };
         }
 
@@ -83,9 +67,7 @@ namespace Asher.Services.Implementations
                 Path = string.Empty,
                 Version = string.Empty,
                 IsValid = false,
-                Source = string.Empty,
-                HasPatchesFolder = false,
-                PatchesFolderPath = string.Empty
+                Source = string.Empty
             };
         }
 

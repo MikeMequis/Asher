@@ -243,7 +243,7 @@ namespace Asher.Launcher
                 message.AppendLine();
                 message.AppendLine("Este executável deve rodar na pasta do jogo como DustAET.exe.");
                 message.AppendLine("Não execute Asher.Launcher.exe diretamente da pasta Distribution.");
-                message.AppendLine("Use o instalador (Asher.App.exe) ou inicie o jogo pelo Steam/GOG.");
+                message.AppendLine("Use o gerenciador Asher (Electron) ou inicie o jogo pelo Steam/GOG.");
             }
 
             if (!string.IsNullOrEmpty(logPath))

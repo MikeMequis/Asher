@@ -1,5 +1,7 @@
 # Asher GUI Architecture Investigation Report
 
+> **Historical reference:** This document describes the **retired WPF** UI (`Asher.App` + `Asher.UserInterface`). The shipping manager is now **Electron + `Asher.Host`**.
+
 Investigation of the current graphical interface architecture of the Asher project, with focus on UI structure, backend communication, and component interaction during the application lifecycle.
 
 **Status:** Investigation-only baseline (no implementation changes).  

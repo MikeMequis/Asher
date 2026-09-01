@@ -8,7 +8,7 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 
 - **Custom launcher** — wraps the game executable and controls startup order (`DustAET.exe` → original `DustAET.real.exe`)
 - **Runtime mod loader** — Harmony-based patching with PreInit, Patch, and Lifecycle stages
-- **Manager app** (`Asher.App`) — WPF installer and mod manager with Patch Manager, settings, and game launch
+- **Electron manager** (`Asher.Electron` + `Asher.Host`) — installer and mod manager UI with Patch Manager, settings, and game launch
 - **Mod SDK** — interfaces for building external mods loaded from `Asher/Mods/`
 
 ## Goals
@@ -21,10 +21,14 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 
 ## Quick start
 
-1. Build the solution as **x86 Release**
-2. Run `.\PrepareDistribution.ps1` from the repo root
-3. Run `Distribution\Asher.App.exe` and follow the install wizard
-4. Launch the game via **Steam** or the manager's **Launch Game** button
+1. From `Asher.Electron/`, build the host and start the app:
+   ```bash
+   npm install
+   npm run build:host:debug
+   npm start
+   ```
+2. Use **Setup** to detect and save your game folder, then **Install**
+3. Launch the game via **Steam** or the manager's **Launch Game** button
 
 ## Included mods
 

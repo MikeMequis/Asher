@@ -6,6 +6,5 @@ namespace Asher.Services.Interfaces
     {
         GameFolderInfo DetectGameFolder();
         GameFolderInfo GetInfo(string folderPath);
-        void CreatePatchesFolder(string folderPath);
     }
 }

@@ -44,9 +44,7 @@ async function main() {
         path: tempPath,
         version: 'test',
         isValid: false,
-        source: 'install-smoke',
-        hasPatchesFolder: false,
-        patchesFolderPath: ''
+        source: 'install-smoke'
       },
       {
         allowFailure: true,

@@ -90,25 +90,6 @@ namespace Asher.Services.Implementations
             }
         }
 
-        public Task<List<HarmonyPatchInfo>> GetAvailablePatchesAsync() => Task.FromResult(new List<HarmonyPatchInfo>());
-
-        public Task<List<HarmonyPatchInfo>> GetInstalledPatchesAsync() => Task.FromResult(new List<HarmonyPatchInfo>());
-
-        public Task<bool> InstallPatchesAsync(List<HarmonyPatchInfo> patches, IProgress<PatchProgress>? progress = null) =>
-            Task.FromResult(false);
-
-        public Task<bool> UninstallPatchesAsync(List<HarmonyPatchInfo> patches, IProgress<PatchProgress>? progress = null) =>
-            Task.FromResult(false);
-
-        public Task<HarmonyValidationResult> ValidatePatchesAsync(List<HarmonyPatchInfo> patches) =>
-            Task.FromResult(new HarmonyValidationResult { IsValid = true });
-
-        public Task<bool> CreateBackupAsync(string? backupName = null) => Task.FromResult(false);
-
-        public Task<bool> RestoreFromBackupAsync(string backupName) => Task.FromResult(false);
-
-        public Task<List<string>> GetAvailableBackupsAsync() => Task.FromResult(new List<string>());
-
         private static ManagedModInfo CreateModInfo(string fileName, bool isEnabled)
         {
             if (KnownMods.TryGetValue(fileName, out var metadata))

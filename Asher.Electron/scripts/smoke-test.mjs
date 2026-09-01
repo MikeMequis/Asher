@@ -71,9 +71,7 @@ async function main() {
         path: tempPath,
         version: 'test',
         isValid: false,
-        source: 'smoke-test',
-        hasPatchesFolder: false,
-        patchesFolderPath: ''
+        source: 'smoke-test'
       },
       {
         allowFailure: true,

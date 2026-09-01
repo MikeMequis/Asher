@@ -115,9 +115,7 @@ export class InstallationController {
       path: gameFolder.path,
       version: gameFolder.version ?? '',
       isValid: true,
-      source: gameFolder.source ?? '',
-      hasPatchesFolder: Boolean(gameFolder.hasPatchesFolder),
-      patchesFolderPath: gameFolder.patchesFolderPath ?? ''
+      source: gameFolder.source ?? ''
     };
 
     try {

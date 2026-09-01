@@ -294,36 +294,6 @@ namespace Asher.Host.Jsonl
                     return;
                 }
 
-                case JsonlProtocol.Methods.PreparePatchesFolder:
-                {
-                    if (!request.Params.TryGetProperty("gameFolderPath", out var folderPathElement))
-                    {
-                        await WriteInvalidParamsAsync(request.RequestId, "preparePatchesFolder requires params.gameFolderPath.");
-                        return;
-                    }
-
-                    var gameFolderPath = folderPathElement.GetString();
-                    if (string.IsNullOrWhiteSpace(gameFolderPath))
-                    {
-                        await WriteInvalidParamsAsync(request.RequestId, "params.gameFolderPath must be a non-empty string.");
-                        return;
-                    }
-
-                    var prepareResult = _application.PreparePatchesFolder(gameFolderPath);
-                    if (prepareResult.Success)
-                    {
-                        await WriteResponseAsync(request.RequestId, true, prepareResult, null);
-                        return;
-                    }
-
-                    await WriteResponseAsync(request.RequestId, false, prepareResult, new JsonlError
-                    {
-                        Code = JsonlProtocol.ErrorCodes.ApplicationError,
-                        Message = prepareResult.ErrorMessage ?? "Failed to prepare patches folder."
-                    });
-                    return;
-                }
-
                 case JsonlProtocol.Methods.MarkInstalled:
                 {
                     if (!request.Params.TryGetProperty("gameFolderPath", out var folderPathElement)

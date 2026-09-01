@@ -51,7 +51,6 @@ namespace Asher.Host.TestClient
             var failures = 0;
             failures += WaitForReady(reader);
             failures += TestGetSettings(writer, reader);
-            failures += TestPreparePatchesFolder(writer, reader);
             failures += TestMarkInstalledUninstalled(writer, reader);
             failures += TestDetectGameFolder(writer, reader);
             failures += TestGetMods(writer, reader);
@@ -100,45 +99,6 @@ namespace Asher.Host.TestClient
             WriteRequest(writer, "1", "getSettings");
             var response = ReadResponse(reader, "1");
             return response.Success ? 0 : 1;
-        }
-
-        private static int TestPreparePatchesFolder(StreamWriter writer, StreamReader reader)
-        {
-            var tempPath = Path.Combine(Path.GetTempPath(), "asher-jsonl-patches-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(tempPath);
-
-            try
-            {
-                WriteRequest(writer, "prep-1", "preparePatchesFolder", new { gameFolderPath = tempPath });
-                var response = ReadResponse(reader, "prep-1");
-                if (!response.Success)
-                {
-                    Console.Error.WriteLine("[FAIL] preparePatchesFolder");
-                    return 1;
-                }
-
-                var patchesPath = Path.Combine(tempPath, "Asher", "patches");
-                if (!Directory.Exists(patchesPath))
-                {
-                    Console.Error.WriteLine("[FAIL] preparePatchesFolder did not create patches directory");
-                    return 1;
-                }
-
-                Console.Error.WriteLine("[OK] preparePatchesFolder");
-                return 0;
-            }
-            finally
-            {
-                try
-                {
-                    if (Directory.Exists(tempPath))
-                        Directory.Delete(tempPath, recursive: true);
-                }
-                catch
-                {
-                    // Best-effort cleanup.
-                }
-            }
         }
 
         private static int TestMarkInstalledUninstalled(StreamWriter writer, StreamReader reader)
@@ -216,9 +176,7 @@ namespace Asher.Host.TestClient
                         path = tempPath,
                         version = "test",
                         isValid = false,
-                        source = "test-client",
-                        hasPatchesFolder = false,
-                        patchesFolderPath = string.Empty
+                        source = "test-client"
                     }
                 }, JsonOptions);
 

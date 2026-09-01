@@ -5,11 +5,9 @@
     /// </summary>
     public class GameFolderInfo
     {
-        public string Path { get; set; }
-        public string Version { get; set; }
+        public string Path { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
         public bool IsValid { get; set; }
-        public string Source { get; set; }
-        public bool HasPatchesFolder { get; set; }
-        public string PatchesFolderPath { get; set; }
+        public string Source { get; set; } = string.Empty;
     }
 }

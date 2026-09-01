@@ -2,6 +2,8 @@
 
 Implementation record for the Asher frontend transition. Architectural background is in `GUI-Architecture-Investigation.md` (not duplicated here).
 
+**WPF retired (2026-09-01):** `Asher.App`, `Asher.UserInterface`, `Asher.Localization`, and `PrepareDistribution.ps1` were removed. Electron + `Asher.Host` is the only manager UI. WPF-only services (`ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`) were removed from `Asher.Services`. `Asher.Core` no longer references WPF/MaterialDesign/Prism.
+
 ---
 
 ## Initial State
@@ -1560,6 +1562,8 @@ Optional live flags (not run in CI smoke):
 
 ### After Step 18 gate
 
+- [x] WPF stack removed (`Asher.App`, `Asher.UserInterface`, `Asher.Localization`, `PrepareDistribution.ps1`)
+- [x] WPF-only services removed; `Asher.Core` decoupled from WPF packages
 - [ ] Electron settings screen (prefs + path)
 - [ ] Electron home / hub navigation
 - [ ] Localization (renderer string tables)
@@ -1570,6 +1574,7 @@ Optional live flags (not run in CI smoke):
 
 | Date | Step | Summary |
 |------|------|---------|
+| 2026-09-01 | 19 | **WPF retired** — removed App/UI/Localization/Distribution script; slimmed Services/Core; Electron-only manager |
 | 2026-09-01 | 18 | **Gate passed** — game PC: fresh install, uninstall, reinstall, patched launch; payload staging fix (no Distribution overwrite); `build:host` builds patching projects |
 | 2026-09-01 | 18 | Payload bundling, contract additions, Electron flow updates, electron-builder packaging |
 | 2026-09-01 | 18 (plan) | Step 18 declared migration gate; contract additions; settings/home UI deferred until gate passes |

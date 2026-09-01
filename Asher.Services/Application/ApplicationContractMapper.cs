@@ -39,9 +39,7 @@ namespace Asher.Services.Application
             Path = info.Path ?? string.Empty,
             Version = info.Version ?? string.Empty,
             IsValid = info.IsValid,
-            Source = info.Source ?? string.Empty,
-            HasPatchesFolder = info.HasPatchesFolder,
-            PatchesFolderPath = info.PatchesFolderPath ?? string.Empty
+            Source = info.Source ?? string.Empty
         };
 
         public static GameFolderInfo ToCore(GameFolderDto dto) => new()
@@ -49,9 +47,7 @@ namespace Asher.Services.Application
             Path = dto.Path,
             Version = dto.Version,
             IsValid = dto.IsValid,
-            Source = dto.Source,
-            HasPatchesFolder = dto.HasPatchesFolder,
-            PatchesFolderPath = dto.PatchesFolderPath
+            Source = dto.Source
         };
 
         public static ManagedModDto ToDto(ManagedModInfo mod) => new()

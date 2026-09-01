@@ -36,8 +36,6 @@ namespace Asher.Services.Application
 
         OperationResult LaunchGame();
 
-        OperationResult PreparePatchesFolder(string gameFolderPath);
-
         void MarkInstalled(string gameFolderPath, string gameVersion);
 
         void MarkUninstalled();

@@ -7,16 +7,11 @@ namespace Asher.Services.Implementations
 {
     public class GameInstallationService : IGameInstallationService
     {
-        private readonly IManagerDeployService _managerDeployService;
-
         private const string OriginalExeName = AsherPaths.GameExecutableName;
         private const string BackupExeName = AsherPaths.RealGameExecutableName;
         private const string LauncherExeName = AsherPaths.LauncherExecutableName;
         private const string BackupFolderName = AsherPaths.BackupFolderName;
         private const string AsherFolderName = AsherPaths.RuntimeFolderName;
-        private const string ManagerFolderName = AsherPaths.ManagerFolderName;
-        private const string ManagerExeName = "Asher.App.exe";
-        private const string ModsFolderName = "Mods";
         private const string LogsFolderName = "AsherLogs";
 
         private static readonly string[] RequiredRuntimeFiles =
@@ -32,11 +27,6 @@ namespace Asher.Services.Implementations
             "Asher.Patching.IntroSkipper.dll",
             "Asher.Patching.GraphicsDeprofiler.dll"
         };
-
-        public GameInstallationService(IManagerDeployService managerDeployService)
-        {
-            _managerDeployService = managerDeployService;
-        }
 
         public async Task<InstallationResult> InstallAsync(
             GameFolderInfo gameInfo,
@@ -58,7 +48,6 @@ namespace Asher.Services.Implementations
 
                 await Task.Run(() => AsherPaths.MigrateLegacyLayout(gamePath));
 
-                // Verifica se já está instalado
                 if (IsInstalled(gamePath))
                 {
                     return new InstallationResult
@@ -68,7 +57,6 @@ namespace Asher.Services.Implementations
                     };
                 }
 
-                // Passo 1: Criar backup (20%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 10,
@@ -85,7 +73,6 @@ namespace Asher.Services.Implementations
                     Details = $"Backup salvo em {BackupFolderName}/"
                 });
 
-                // Passo 2: Criar estrutura de pastas (30%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 25,
@@ -93,15 +80,7 @@ namespace Asher.Services.Implementations
                     Details = "Configurando diretórios do Asher"
                 });
 
-                await Task.Run(() =>
-                {
-                    CreateFolderStructure(gamePath);
-
-                    if (UsesWpfManagerInstallSource())
-                        CacheInstallPayloadFromSource(gamePath, GetAsherInstallationPath());
-                    else if (!HasRequiredRuntimeFiles(GetAsherInstallationPath()))
-                        TryPopulateInstallPayloadIfMissing(gamePath);
-                });
+                await Task.Run(() => CreateFolderStructure(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
@@ -110,7 +89,6 @@ namespace Asher.Services.Implementations
                     Details = "Pastas Asher/, Mods/ e AsherLogs/ criadas"
                 });
 
-                // Passo 3: Copiar arquivos do runtime (50%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 35,
@@ -127,7 +105,6 @@ namespace Asher.Services.Implementations
                     Details = "Arquivos core do Asher copiados"
                 });
 
-                // Passo 4: Copiar mods padrão (65%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 55,
@@ -146,7 +123,6 @@ namespace Asher.Services.Implementations
                         : "Payload sem DefaultMods — patches não carregarão até mods serem adicionados"
                 });
 
-                // Passo 5: Renomear executável original (75%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 70,
@@ -163,7 +139,6 @@ namespace Asher.Services.Implementations
                     Details = "DustAET.real.exe criado"
                 });
 
-                // Passo 6: Copiar launcher (90%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 80,
@@ -180,7 +155,6 @@ namespace Asher.Services.Implementations
                     Details = "Novo DustAET.exe configurado"
                 });
 
-                // Passo 7: Verificação final (100%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 95,
@@ -189,27 +163,6 @@ namespace Asher.Services.Implementations
                 });
 
                 await Task.Run(() => VerifyInstallation(gamePath));
-
-                if (UsesWpfManagerInstallSource())
-                {
-                    progress?.Report(new InstallationProgress
-                    {
-                        Percentage = 92,
-                        Message = _managerDeployService.ShouldDeferDeploy(gamePath)
-                            ? "Preparando atualização do gerenciador..."
-                            : "Instalando Asher App...",
-                        Details = _managerDeployService.ShouldDeferDeploy(gamePath)
-                            ? "Os arquivos serão aplicados após reiniciar o aplicativo"
-                            : $"Copiando gerenciador para {ManagerFolderName}/"
-                    });
-
-                    await Task.Run(() => DeployManagerApp(gamePath));
-                    await Task.Run(() => CacheInstallPayload(gamePath));
-                }
-                else
-                {
-                    await Task.Run(() => _managerDeployService.ClearPendingPayload(gamePath));
-                }
 
                 progress?.Report(new InstallationProgress
                 {
@@ -334,7 +287,6 @@ namespace Asher.Services.Implementations
             var backupExePath = Path.Combine(gameFolderPath, BackupExeName);
             var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
 
-            // Considera instalado se existe o DustAET.real.exe E a pasta Asher
             return File.Exists(backupExePath) && Directory.Exists(asherFolder);
         }
 
@@ -348,11 +300,8 @@ namespace Asher.Services.Implementations
                 Directory.CreateDirectory(backupFolder);
 
             var backupExePath = Path.Combine(backupFolder, OriginalExeName);
-
-            // Copia o executável original para o backup
             File.Copy(originalExePath, backupExePath, overwrite: true);
 
-            // Cria arquivo de metadata do backup
             var metadataPath = Path.Combine(backupFolder, "backup_info.txt");
             File.WriteAllText(metadataPath,
                 $"Backup criado em: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n" +
@@ -397,7 +346,7 @@ namespace Asher.Services.Implementations
                     {
                         throw new InvalidOperationException(
                             "0Harmony.dll incompatível: foi copiada de um target .NET moderno (net8/net10). " +
-                            "Use a versão net472 de packages\\Lib.Harmony.2.4.2\\lib\\net472 e execute PrepareDistribution.ps1 novamente.");
+                            "Use a versão net472 de packages\\Lib.Harmony.2.4.2\\lib\\net472.");
                     }
                 }
             }
@@ -476,52 +425,24 @@ namespace Asher.Services.Implementations
 
         private void VerifyInstallation(string gamePath)
         {
-            // Verifica se DustAET.exe existe (novo launcher)
             var launcherPath = Path.Combine(gamePath, OriginalExeName);
             if (!File.Exists(launcherPath))
                 throw new InvalidOperationException("Launcher não foi instalado corretamente");
 
-            // Verifica se DustAET.real.exe existe
             var backupExePath = Path.Combine(gamePath, BackupExeName);
             if (!File.Exists(backupExePath))
                 throw new InvalidOperationException("Executável original não foi renomeado");
 
-            // Verifica se pasta Asher existe
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             if (!Directory.Exists(asherFolder))
                 throw new InvalidOperationException("Pasta Asher não foi criada");
 
-            // Verifica se arquivos do runtime existem
             foreach (var fileName in RequiredRuntimeFiles)
             {
                 var filePath = Path.Combine(asherFolder, fileName);
                 if (!File.Exists(filePath))
                     throw new InvalidOperationException($"Arquivo do runtime não encontrado: {fileName}");
             }
-        }
-
-        private void DeployManagerApp(string gamePath)
-        {
-            var sourceFolder = GetAsherInstallationPath();
-            if (!File.Exists(Path.Combine(sourceFolder, ManagerExeName)))
-            {
-                _managerDeployService.ClearPendingPayload(gamePath);
-                return;
-            }
-
-            if (_managerDeployService.IsRunningFromManagerOf(gamePath))
-            {
-                _managerDeployService.ClearPendingPayload(gamePath);
-                return;
-            }
-
-            if (_managerDeployService.ShouldDeferDeploy(gamePath))
-            {
-                _managerDeployService.StagePayload(sourceFolder, gamePath);
-                return;
-            }
-
-            _managerDeployService.DeployImmediate(sourceFolder, gamePath);
         }
 
         private static void RemoveLauncherFiles(string gameFolderPath)
@@ -582,23 +503,13 @@ namespace Asher.Services.Implementations
                 Directory.Delete(directory, true);
             }
 
-            var legacyManagerPath = Path.Combine(gameFolderPath, ManagerFolderName);
-            var installedManagerPath = AsherPaths.GetManagerFolderPath(gameFolderPath);
-            if (Directory.Exists(legacyManagerPath)
-                && !string.Equals(
-                    Path.GetFullPath(legacyManagerPath),
-                    Path.GetFullPath(installedManagerPath),
-                    StringComparison.OrdinalIgnoreCase))
-            {
+            var legacyManagerPath = Path.Combine(gameFolderPath, AsherPaths.ManagerFolderName);
+            if (Directory.Exists(legacyManagerPath))
                 Directory.Delete(legacyManagerPath, true);
-            }
         }
 
-        private string GetAsherInstallationPath() =>
+        private static string GetAsherInstallationPath() =>
             AppDomain.CurrentDomain.BaseDirectory;
-
-        private bool UsesWpfManagerInstallSource() =>
-            File.Exists(Path.Combine(GetAsherInstallationPath(), ManagerExeName));
 
         private string ResolveInstallSourceFolder(string gamePath)
         {
@@ -610,102 +521,18 @@ namespace Asher.Services.Implementations
 
             throw new FileNotFoundException(
                 "Arquivos de instalação do Asher não encontrados. " +
-                "Execute a instalação a partir da pasta Distribution ou reinstale após uma instalação completa anterior.");
+                "Reinstale a partir do Asher Host (Electron) ou verifique install-payload/ ao lado de Asher.Host.exe.");
         }
 
         private IEnumerable<string> GetInstallSourceCandidates(string gamePath)
         {
             yield return GetAsherInstallationPath();
             yield return Path.Combine(GetAsherInstallationPath(), AsherPaths.HostInstallPayloadFolderName);
-            yield return AsherPaths.GetInstallPayloadPath(gamePath);
-            yield return Path.Combine(AsherPaths.GetManagerFolderPath(gamePath), AsherPaths.InstallPayloadFolderName);
             yield return AsherPaths.GetRuntimeFolderPath(gamePath);
         }
 
         private static bool HasRequiredRuntimeFiles(string folder) =>
             RequiredRuntimeFiles.All(fileName => File.Exists(Path.Combine(folder, fileName)));
-
-        private void TryPopulateInstallPayloadIfMissing(string gamePath)
-        {
-            var payloadPath = AsherPaths.GetInstallPayloadPath(gamePath);
-            if (HasRequiredRuntimeFiles(payloadPath))
-                return;
-
-            foreach (var candidate in GetInstallSourceCandidates(gamePath))
-            {
-                if (string.Equals(
-                    Path.GetFullPath(candidate),
-                    Path.GetFullPath(payloadPath),
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (HasRequiredRuntimeFiles(candidate))
-                {
-                    CacheInstallPayloadFromSource(gamePath, candidate);
-                    return;
-                }
-            }
-        }
-
-        private void CacheInstallPayload(string gamePath) =>
-            CacheInstallPayloadFromSource(gamePath, AsherPaths.GetRuntimeFolderPath(gamePath));
-
-        private void CacheInstallPayloadFromSource(string gamePath, string sourceFolder)
-        {
-            var payloadPath = AsherPaths.GetInstallPayloadPath(gamePath);
-            Directory.CreateDirectory(payloadPath);
-
-            foreach (var fileName in RequiredRuntimeFiles)
-            {
-                var sourcePath = Path.Combine(sourceFolder, fileName);
-                if (File.Exists(sourcePath))
-                    File.Copy(sourcePath, Path.Combine(payloadPath, fileName), overwrite: true);
-            }
-
-            var launcherSource = Path.Combine(sourceFolder, LauncherExeName);
-            if (File.Exists(launcherSource))
-            {
-                File.Copy(launcherSource, Path.Combine(payloadPath, LauncherExeName), overwrite: true);
-
-                var launcherConfigSource = launcherSource + ".config";
-                if (File.Exists(launcherConfigSource))
-                {
-                    File.Copy(
-                        launcherConfigSource,
-                        Path.Combine(payloadPath, LauncherExeName) + ".config",
-                        overwrite: true);
-                }
-            }
-
-            CopyDefaultModsToInstallPayload(sourceFolder, payloadPath);
-        }
-
-        private void CopyDefaultModsToInstallPayload(string sourceFolder, string payloadPath)
-        {
-            var defaultModsDest = Path.Combine(payloadPath, AsherPaths.DefaultModsFolderName);
-            if (Directory.Exists(defaultModsDest))
-                Directory.Delete(defaultModsDest, true);
-
-            var copied = 0;
-            foreach (var fileName in DefaultModFiles)
-            {
-                var fromDefaultMods = Path.Combine(sourceFolder, AsherPaths.DefaultModsFolderName, fileName);
-                var fromSourceRoot = Path.Combine(sourceFolder, fileName);
-                var sourcePath = File.Exists(fromDefaultMods) ? fromDefaultMods : fromSourceRoot;
-
-                if (!File.Exists(sourcePath))
-                    continue;
-
-                Directory.CreateDirectory(defaultModsDest);
-                File.Copy(sourcePath, Path.Combine(defaultModsDest, fileName), overwrite: true);
-                copied++;
-            }
-
-            if (copied == 0 && Directory.Exists(defaultModsDest) && !Directory.EnumerateFileSystemEntries(defaultModsDest).Any())
-                Directory.Delete(defaultModsDest);
-        }
 
         #endregion
     }
