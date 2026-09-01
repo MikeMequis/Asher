@@ -15,6 +15,7 @@ namespace Asher.Services.Implementations
         private const string BackupFolderName = AsherPaths.BackupFolderName;
         private const string AsherFolderName = AsherPaths.RuntimeFolderName;
         private const string ManagerFolderName = AsherPaths.ManagerFolderName;
+        private const string ManagerExeName = "Asher.App.exe";
         private const string ModsFolderName = "Mods";
         private const string LogsFolderName = "AsherLogs";
 
@@ -96,9 +97,9 @@ namespace Asher.Services.Implementations
                 {
                     CreateFolderStructure(gamePath);
 
-                    if (HasRequiredRuntimeFiles(GetAsherInstallationPath()))
+                    if (UsesWpfManagerInstallSource())
                         CacheInstallPayloadFromSource(gamePath, GetAsherInstallationPath());
-                    else
+                    else if (!HasRequiredRuntimeFiles(GetAsherInstallationPath()))
                         TryPopulateInstallPayloadIfMissing(gamePath);
                 });
 
@@ -189,19 +190,26 @@ namespace Asher.Services.Implementations
 
                 await Task.Run(() => VerifyInstallation(gamePath));
 
-                progress?.Report(new InstallationProgress
+                if (UsesWpfManagerInstallSource())
                 {
-                    Percentage = 92,
-                    Message = _managerDeployService.ShouldDeferDeploy(gamePath)
-                        ? "Preparando atualização do gerenciador..."
-                        : "Instalando Asher App...",
-                    Details = _managerDeployService.ShouldDeferDeploy(gamePath)
-                        ? "Os arquivos serão aplicados após reiniciar o aplicativo"
-                        : $"Copiando gerenciador para {ManagerFolderName}/"
-                });
+                    progress?.Report(new InstallationProgress
+                    {
+                        Percentage = 92,
+                        Message = _managerDeployService.ShouldDeferDeploy(gamePath)
+                            ? "Preparando atualização do gerenciador..."
+                            : "Instalando Asher App...",
+                        Details = _managerDeployService.ShouldDeferDeploy(gamePath)
+                            ? "Os arquivos serão aplicados após reiniciar o aplicativo"
+                            : $"Copiando gerenciador para {ManagerFolderName}/"
+                    });
 
-                await Task.Run(() => DeployManagerApp(gamePath));
-                await Task.Run(() => CacheInstallPayload(gamePath));
+                    await Task.Run(() => DeployManagerApp(gamePath));
+                    await Task.Run(() => CacheInstallPayload(gamePath));
+                }
+                else
+                {
+                    await Task.Run(() => _managerDeployService.ClearPendingPayload(gamePath));
+                }
 
                 progress?.Report(new InstallationProgress
                 {
@@ -356,14 +364,8 @@ namespace Asher.Services.Implementations
         {
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             Directory.CreateDirectory(asherFolder);
-
             Directory.CreateDirectory(AsherPaths.GetModsFolderPath(gamePath));
             Directory.CreateDirectory(Path.Combine(asherFolder, LogsFolderName));
-            Directory.CreateDirectory(AsherPaths.GetPatchesFolderPath(gamePath));
-            Directory.CreateDirectory(AsherPaths.GetBackupFolderPath(gamePath));
-            Directory.CreateDirectory(AsherPaths.GetDisabledModsFolderPath(gamePath));
-            Directory.CreateDirectory(Path.Combine(AsherPaths.GetModsFolderPath(gamePath), "config"));
-            Directory.CreateDirectory(Path.Combine(AsherPaths.GetModsFolderPath(gamePath), "cache"));
         }
 
         private void CopyRuntimeFiles(string gamePath)
@@ -500,13 +502,18 @@ namespace Asher.Services.Implementations
 
         private void DeployManagerApp(string gamePath)
         {
-            if (_managerDeployService.IsRunningFromManagerOf(gamePath))
+            var sourceFolder = GetAsherInstallationPath();
+            if (!File.Exists(Path.Combine(sourceFolder, ManagerExeName)))
             {
                 _managerDeployService.ClearPendingPayload(gamePath);
                 return;
             }
 
-            var sourceFolder = GetAsherInstallationPath();
+            if (_managerDeployService.IsRunningFromManagerOf(gamePath))
+            {
+                _managerDeployService.ClearPendingPayload(gamePath);
+                return;
+            }
 
             if (_managerDeployService.ShouldDeferDeploy(gamePath))
             {
@@ -569,12 +576,8 @@ namespace Asher.Services.Implementations
             foreach (var directory in Directory.GetDirectories(asherFolder))
             {
                 var directoryName = Path.GetFileName(directory);
-                if (directoryName.Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(AsherPaths.InstallPayloadFolderName, StringComparison.OrdinalIgnoreCase))
-                {
+                if (directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase))
                     continue;
-                }
 
                 Directory.Delete(directory, true);
             }
@@ -593,6 +596,9 @@ namespace Asher.Services.Implementations
 
         private string GetAsherInstallationPath() =>
             AppDomain.CurrentDomain.BaseDirectory;
+
+        private bool UsesWpfManagerInstallSource() =>
+            File.Exists(Path.Combine(GetAsherInstallationPath(), ManagerExeName));
 
         private string ResolveInstallSourceFolder(string gamePath)
         {
@@ -673,30 +679,32 @@ namespace Asher.Services.Implementations
                 }
             }
 
-            var defaultModsSource = Path.Combine(sourceFolder, AsherPaths.DefaultModsFolderName);
-            var defaultModsDest = Path.Combine(payloadPath, AsherPaths.DefaultModsFolderName);
-            if (Directory.Exists(defaultModsSource))
-            {
-                if (Directory.Exists(defaultModsDest))
-                    Directory.Delete(defaultModsDest, true);
-
-                CopyDirectoryRecursive(defaultModsSource, defaultModsDest);
-            }
+            CopyDefaultModsToInstallPayload(sourceFolder, payloadPath);
         }
 
-        private static void CopyDirectoryRecursive(string sourceFolder, string destinationFolder)
+        private void CopyDefaultModsToInstallPayload(string sourceFolder, string payloadPath)
         {
-            Directory.CreateDirectory(destinationFolder);
+            var defaultModsDest = Path.Combine(payloadPath, AsherPaths.DefaultModsFolderName);
+            if (Directory.Exists(defaultModsDest))
+                Directory.Delete(defaultModsDest, true);
 
-            foreach (var file in Directory.GetFiles(sourceFolder))
-                File.Copy(file, Path.Combine(destinationFolder, Path.GetFileName(file)), overwrite: true);
-
-            foreach (var directory in Directory.GetDirectories(sourceFolder))
+            var copied = 0;
+            foreach (var fileName in DefaultModFiles)
             {
-                CopyDirectoryRecursive(
-                    directory,
-                    Path.Combine(destinationFolder, Path.GetFileName(directory)));
+                var fromDefaultMods = Path.Combine(sourceFolder, AsherPaths.DefaultModsFolderName, fileName);
+                var fromSourceRoot = Path.Combine(sourceFolder, fileName);
+                var sourcePath = File.Exists(fromDefaultMods) ? fromDefaultMods : fromSourceRoot;
+
+                if (!File.Exists(sourcePath))
+                    continue;
+
+                Directory.CreateDirectory(defaultModsDest);
+                File.Copy(sourcePath, Path.Combine(defaultModsDest, fileName), overwrite: true);
+                copied++;
             }
+
+            if (copied == 0 && Directory.Exists(defaultModsDest) && !Directory.EnumerateFileSystemEntries(defaultModsDest).Any())
+                Directory.Delete(defaultModsDest);
         }
 
         #endregion

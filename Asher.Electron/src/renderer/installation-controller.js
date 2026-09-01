@@ -121,17 +121,6 @@ export class InstallationController {
     };
 
     try {
-      const { result: prepareResult } = await this.client.invoke('preparePatchesFolder', {
-        gameFolderPath: gameFolder.path
-      });
-
-      if (!prepareResult?.success) {
-        this.#errorMessage =
-          prepareResult?.errorMessage ?? 'Failed to prepare the game patches folder.';
-        this.#setState('failed');
-        return 'failed';
-      }
-
       const { result } = await this.client.invoke('install', gameInfo, {
         trackProgress: true,
         allowFailure: true

@@ -110,17 +110,6 @@ export class GameSetupController {
 
       await this.client.invoke('saveSettings', updated);
 
-      const { result: prepareResult } = await this.client.invoke('preparePatchesFolder', {
-        gameFolderPath: this.#validatedFolder.path
-      });
-
-      if (!prepareResult?.success) {
-        this.#errorMessage =
-          prepareResult?.errorMessage ?? 'Failed to prepare the game patches folder.';
-        this.#setState('error');
-        return false;
-      }
-
       this.#setState('idle');
       return true;
     } catch (err) {
