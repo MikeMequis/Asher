@@ -8,6 +8,15 @@ echo Building Asher install payload dependencies (%CONFIG% x86)...
 dotnet build "%~dp0..\Asher.SDK\Asher.SDK.csproj" -c %CONFIG% -p:Platform=x86
 if errorlevel 1 exit /b 1
 
+dotnet build "%~dp0..\Asher.Patching.DebugEnabler\Asher.Patching.DebugEnabler.csproj" -c %CONFIG% -p:Platform=x86
+if errorlevel 1 exit /b 1
+
+dotnet build "%~dp0..\Asher.Patching.IntroSkipper\Asher.Patching.IntroSkipper.csproj" -c %CONFIG% -p:Platform=x86
+if errorlevel 1 exit /b 1
+
+dotnet build "%~dp0..\Asher.Patching.GraphicsDeprofiler\Asher.Patching.GraphicsDeprofiler.csproj" -c %CONFIG% -p:Platform=x86
+if errorlevel 1 exit /b 1
+
 dotnet build "%~dp0..\Asher.Runtime\Asher.Runtime.csproj" -c %CONFIG% -p:Platform=x86
 if errorlevel 1 exit /b 1
 

@@ -53,22 +53,42 @@
           SkipUnchangedFiles="true"
           Condition="!Exists('$(_InstallPayloadDir)\0Harmony.dll') AND Exists('$(_DistributionOut)0Harmony.dll')" />
 
+    <!-- Canonical default mods only — matches GameInstallationService.DefaultModFiles -->
     <ItemGroup>
       <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.DebugEnabler\bin\x86\$(Configuration)\Asher.Patching.DebugEnabler.dll" />
       <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.IntroSkipper\bin\x86\$(Configuration)\Asher.Patching.IntroSkipper.dll" />
       <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.GraphicsDeprofiler\bin\x86\$(Configuration)\Asher.Patching.GraphicsDeprofiler.dll" />
-      <_DistributionModDll Include="$(_DistributionOut)DefaultMods\*.dll"
-                           Condition="Exists('$(_DistributionOut)DefaultMods')" />
       <_ExistingDefaultModDll Include="@(_DefaultModDll)" Condition="Exists('%(Identity)')" />
     </ItemGroup>
 
+    <!-- Clear DefaultMods so legacy Distribution copies cannot linger -->
+    <ItemGroup>
+      <_StagedModDll Include="$(_InstallPayloadModsDir)\*.dll" Condition="Exists('$(_InstallPayloadModsDir)')" />
+    </ItemGroup>
+    <Delete Files="@(_StagedModDll)" ContinueOnError="true" />
+
+    <!-- Project bin outputs always win -->
     <Copy SourceFiles="@(_ExistingDefaultModDll)"
           DestinationFolder="$(_InstallPayloadModsDir)"
-          SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(_DistributionModDll)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true" />
+
+    <!-- Distribution fallback: per-mod only when project output is still missing -->
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.DebugEnabler.dll"
           DestinationFolder="$(_InstallPayloadModsDir)"
-          SkipUnchangedFiles="true"
-          Condition="'@(_DistributionModDll)' != ''" />
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.DebugEnabler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.DebugEnabler.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.IntroSkipper.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.IntroSkipper.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.IntroSkipper.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.GraphicsDeprofiler.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.GraphicsDeprofiler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.GraphicsDeprofiler.dll')" />
 
     <ItemGroup>
       <_StagedModDll Include="$(_InstallPayloadModsDir)\*.dll" />
@@ -84,7 +104,7 @@
              Condition="!Exists('$(_InstallPayloadDir)\Asher.SDK.dll')" />
     <Warning Text="Install payload missing: $(_InstallPayloadDir)\0Harmony.dll. Restore NuGet packages (Lib.Harmony.2.4.2 net472)."
              Condition="!Exists('$(_InstallPayloadDir)\0Harmony.dll')" />
-    <Warning Text="Install payload has no default mod DLLs in DefaultMods/. Build Asher.Patching.* (x86 $(Configuration)) or run PrepareDistribution.ps1, then rebuild Asher.Host."
+    <Warning Text="Install payload has no default mod DLLs in DefaultMods/. Build Asher.Patching.* (x86 $(Configuration)), then rebuild Asher.Host."
              Condition="'@(_StagedModDll)' == ''" />
   </Target>
 </Project>

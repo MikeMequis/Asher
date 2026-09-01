@@ -9,6 +9,12 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..', '..');
 
+const DEFAULT_MOD_FILES = [
+  'Asher.Patching.DebugEnabler.dll',
+  'Asher.Patching.IntroSkipper.dll',
+  'Asher.Patching.GraphicsDeprofiler.dll'
+];
+
 const hostDirs = [
   path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0-windows'),
   path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Release', 'net8.0-windows')
@@ -35,7 +41,7 @@ function pass(message) {
 }
 
 if (!hostDir) {
-  fail('Asher.Host.exe not found — run: dotnet build Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86');
+  fail('Asher.Host.exe not found — run: npm run build:host:debug');
   process.exit(1);
 }
 
@@ -68,11 +74,19 @@ const defaultModsDir = path.join(payloadDir, 'DefaultMods');
 if (!fs.existsSync(defaultModsDir)) {
   fail('DefaultMods directory missing');
 } else {
-  const modCount = fs.readdirSync(defaultModsDir).filter((name) => name.endsWith('.dll')).length;
-  if (modCount === 0) {
-    fail('DefaultMods has no DLLs — build patching projects or run PrepareDistribution.ps1 before Asher.Host');
-  } else {
-    pass(`DefaultMods (${modCount} dll(s))`);
+  const stagedMods = fs.readdirSync(defaultModsDir).filter((name) => name.endsWith('.dll'));
+  const unexpected = stagedMods.filter((name) => !DEFAULT_MOD_FILES.includes(name));
+  if (unexpected.length > 0) {
+    fail(`unexpected mods in DefaultMods: ${unexpected.join(', ')}`);
+  }
+
+  for (const fileName of DEFAULT_MOD_FILES) {
+    const filePath = path.join(defaultModsDir, fileName);
+    if (!fs.existsSync(filePath)) {
+      fail(`missing default mod ${fileName}`);
+    } else {
+      pass(`DefaultMods/${fileName}`);
+    }
   }
 }
 
