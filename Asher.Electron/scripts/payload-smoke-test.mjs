@@ -65,11 +65,15 @@ for (const fileName of requiredFiles) {
 }
 
 const defaultModsDir = path.join(payloadDir, 'DefaultMods');
-if (fs.existsSync(defaultModsDir)) {
-  const modCount = fs.readdirSync(defaultModsDir).filter((name) => name.endsWith('.dll')).length;
-  pass(`DefaultMods (${modCount} dll(s))`);
-} else {
+if (!fs.existsSync(defaultModsDir)) {
   fail('DefaultMods directory missing');
+} else {
+  const modCount = fs.readdirSync(defaultModsDir).filter((name) => name.endsWith('.dll')).length;
+  if (modCount === 0) {
+    fail('DefaultMods has no DLLs — build patching projects or run PrepareDistribution.ps1 before Asher.Host');
+  } else {
+    pass(`DefaultMods (${modCount} dll(s))`);
+  }
 }
 
 process.exit(failures === 0 ? 0 : 1);

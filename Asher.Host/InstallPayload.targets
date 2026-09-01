@@ -70,6 +70,10 @@
           SkipUnchangedFiles="true"
           Condition="'@(_DistributionModDll)' != ''" />
 
+    <ItemGroup>
+      <_StagedModDll Include="$(_InstallPayloadModsDir)\*.dll" />
+    </ItemGroup>
+
     <Message Importance="high" Text="Install payload staged at $(_InstallPayloadDir)" />
 
     <Warning Text="Install payload missing: $(_InstallPayloadDir)\Asher.Launcher.exe. Build Asher.Launcher (x86 $(Configuration))."
@@ -80,5 +84,7 @@
              Condition="!Exists('$(_InstallPayloadDir)\Asher.SDK.dll')" />
     <Warning Text="Install payload missing: $(_InstallPayloadDir)\0Harmony.dll. Restore NuGet packages (Lib.Harmony.2.4.2 net472)."
              Condition="!Exists('$(_InstallPayloadDir)\0Harmony.dll')" />
+    <Warning Text="Install payload has no default mod DLLs in DefaultMods/. Build Asher.Patching.* (x86 $(Configuration)) or run PrepareDistribution.ps1, then rebuild Asher.Host."
+             Condition="'@(_StagedModDll)' == ''" />
   </Target>
 </Project>

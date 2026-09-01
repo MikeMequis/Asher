@@ -134,13 +134,15 @@ namespace Asher.Services.Implementations
                     Details = "Copiando DebugEnabler, IntroSkipper, GraphicsDeprofiler"
                 });
 
-                await Task.Run(() => CopyDefaultMods(gamePath));
+                var modsCopied = await Task.Run(() => CopyDefaultMods(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 65,
-                    Message = "Mods padrão instalados",
-                    Details = "3 mods básicos instalados"
+                    Message = modsCopied > 0 ? "Mods padrão instalados" : "Nenhum mod padrão no payload",
+                    Details = modsCopied > 0
+                        ? $"{modsCopied} mod(s) copiado(s) para Asher/Mods/"
+                        : "Payload sem DefaultMods — patches não carregarão até mods serem adicionados"
                 });
 
                 // Passo 5: Renomear executável original (75%)
@@ -211,7 +213,9 @@ namespace Asher.Services.Implementations
                 return new InstallationResult
                 {
                     Success = true,
-                    Message = "Instalação concluída com sucesso!",
+                    Message = modsCopied > 0
+                        ? "Instalação concluída com sucesso!"
+                        : "Instalação concluída, mas nenhum mod padrão foi copiado. Reinstale após incluir DefaultMods no payload.",
                     GameFolderPath = gamePath
                 };
             }
@@ -405,23 +409,39 @@ namespace Asher.Services.Implementations
             }
         }
 
-        private void CopyDefaultMods(string gamePath)
+        private int CopyDefaultMods(string gamePath)
         {
             var modsFolder = AsherPaths.GetModsFolderPath(gamePath);
-            var sourceFolder = Path.Combine(
-                ResolveInstallSourceFolder(gamePath),
-                AsherPaths.DefaultModsFolderName);
+            Directory.CreateDirectory(modsFolder);
 
-            if (!Directory.Exists(sourceFolder))
-                return;
-
-            foreach (var fileName in DefaultModFiles)
+            var copied = 0;
+            foreach (var sourceFolder in GetDefaultModsSourceCandidates(gamePath))
             {
-                var sourcePath = Path.Combine(sourceFolder, fileName);
-                var destPath = Path.Combine(modsFolder, fileName);
+                if (!Directory.Exists(sourceFolder))
+                    continue;
 
-                if (File.Exists(sourcePath))
-                    File.Copy(sourcePath, destPath, overwrite: true);
+                foreach (var fileName in DefaultModFiles)
+                {
+                    var sourcePath = Path.Combine(sourceFolder, fileName);
+                    if (!File.Exists(sourcePath))
+                        continue;
+
+                    File.Copy(sourcePath, Path.Combine(modsFolder, fileName), overwrite: true);
+                    copied++;
+                }
+
+                if (copied > 0)
+                    return copied;
+            }
+
+            return copied;
+        }
+
+        private IEnumerable<string> GetDefaultModsSourceCandidates(string gamePath)
+        {
+            foreach (var candidate in GetInstallSourceCandidates(gamePath))
+            {
+                yield return Path.Combine(candidate, AsherPaths.DefaultModsFolderName);
             }
         }
 
