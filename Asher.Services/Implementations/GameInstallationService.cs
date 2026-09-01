@@ -590,6 +590,7 @@ namespace Asher.Services.Implementations
         private IEnumerable<string> GetInstallSourceCandidates(string gamePath)
         {
             yield return GetAsherInstallationPath();
+            yield return Path.Combine(GetAsherInstallationPath(), AsherPaths.HostInstallPayloadFolderName);
             yield return AsherPaths.GetInstallPayloadPath(gamePath);
             yield return Path.Combine(AsherPaths.GetManagerFolderPath(gamePath), AsherPaths.InstallPayloadFolderName);
             yield return AsherPaths.GetRuntimeFolderPath(gamePath);

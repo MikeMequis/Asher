@@ -6,5 +6,7 @@ namespace Asher.Services.Interfaces
     {
         AsherSettings Load();
         void Save(AsherSettings settings);
+        void MarkAsInstalled(string gameFolderPath, string gameVersion);
+        void MarkAsUninstalled();
     }
 }

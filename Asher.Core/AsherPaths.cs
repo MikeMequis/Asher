@@ -10,6 +10,7 @@ namespace Asher.Core
         public const string PatchesFolderName = "patches";
         public const string DefaultModsFolderName = "DefaultMods";
         public const string InstallPayloadFolderName = "InstallPayload";
+        public const string HostInstallPayloadFolderName = "install-payload";
         public const string ModsFolderName = "Mods";
         public const string DisabledModsFolderName = "disabled";
         public const string SettingsFileName = "settings.json";

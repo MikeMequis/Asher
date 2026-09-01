@@ -170,12 +170,7 @@ export class UninstallationController {
   }
 
   async #markUninstalled() {
-    const { result: settings } = await this.client.invoke('getSettings');
-    await this.client.invoke('saveSettings', {
-      ...settings,
-      isInstalled: false,
-      installationDate: null
-    });
+    await this.client.invoke('markUninstalled');
   }
 
   async cancelUninstall() {

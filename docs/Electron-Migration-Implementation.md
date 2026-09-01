@@ -1164,14 +1164,16 @@ Intentionally excluded:
 
 ### Recommended next target
 
-**Launch game** — best next step.
+> **Superseded (2026-09-01):** Launch game was implemented in Step 17. **Step 18 is now the migration gate** — payload bundling, contract additions, and fresh-install validation before further UI (settings, home/hub). See Step 18.
+
+**Launch game** — best next step *(completed Step 17)*.
 
 - Contract and JSONL already expose `launchGame`; no protocol change.
 - Reuses existing shell, error classifier, and configured-state checks.
 - Tests the primary “use Asher to play” path independent of new screens.
 - Safe to implement alone: single invoke, no progress/cancel, no filesystem work in Electron.
 
-**Following targets (do not implement yet):**
+**Following targets (deferred until Step 18 gate — see Step 18 “Deferred until gate passes”):**
 
 1. **Settings screen** — unify path + preference editing via existing `getSettings` / `saveSettings`.
 2. **Home / hub navigation** — launch + links to Manager and Settings; optional polish.
@@ -1247,6 +1249,17 @@ Diagnostic log file: `%APPDATA%\\asher-electron\\asher-electron.log` (path also 
 
 ## Step 18 — Electron-Owned Installation & Distribution
 
+### Gate
+
+**Step 18 is the migration gate.** No further Electron UI work (settings screen, home/hub, localization, install onboarding chrome) should start until Step 18 is complete and validated on a clean game folder.
+
+Rationale:
+
+- Steps 11–17 built install/uninstall UI and flows, but **fresh install cannot succeed** without bundled payload files — UI polish does not unblock the configure→install→play loop for new users.
+- End-to-end validation (Setup → Install → Launch → Uninstall on a folder with no prior Asher runtime) is the acceptance test for calling Electron **installable**, not merely a spike against an already-patched game.
+
+**After the gate:** resume Priority B items from Step 16 (settings screen, home/hub). Transport choice (JSONL vs HTTP) for production packaging can be decided during Step 18 packaging work; do not maintain two full transports long-term.
+
 ### Decision
 
 **The full Asher installation workflow moves to Electron.** End users should install Asher onto a game folder through the Electron app (Setup → Install), not by running `PrepareDistribution.ps1` and launching `Distribution\Asher.App.exe` first.
@@ -1287,15 +1300,30 @@ Manager (mods, launch, uninstall)
 
 All install/uninstall behavior stays in C#. Electron only provides UI and invokes `install` / `uninstall` over JSONL.
 
+### Contract additions (planned with Step 18 C# work)
+
+Two small additions to `IAsherApplication` + JSONL — implement alongside payload/host changes, not as a separate phase. WPF continues using `I*Service` directly; only Electron/JSONL consumers required initially.
+
+| Addition | Maps to | Why now |
+|----------|---------|---------|
+| **`PreparePatchesFolder(gameFolderPath)`** | `IGameFolderService.CreatePatchesFolder` | WPF runs this on Game Detection **Continue** before install; Electron skips it today (Step 11, Step 16 risk). Call from setup continue or install preflight so install matches WPF. |
+| **`MarkInstalled(path, version)`** / **`MarkUninstalled()`** | `AsherSettings.MarkAsInstalled` / `MarkAsUninstalled` via `ISettingsService` | Electron today merges install/uninstall flags through `getSettings` + `saveSettings` (Steps 14–15). Dedicated commands reduce DTO merge drift and match §12.5 intent. |
+
+**Out of scope for these additions:** `CompleteInstall` (shortcut, relaunch, payload deploy) — remains deferred per Step 16.
+
+Suggested JSONL methods: `preparePatchesFolder`, `markInstalled`, `markUninstalled`.
+
 ### Required work (not yet implemented)
 
 | Item | Purpose |
 |------|---------|
+| **Contract additions** | `PreparePatchesFolder`, `MarkInstalled`, `MarkUninstalled` on `IAsherApplication` + JSONL (see above) |
 | **Install payload bundling** | Ship Launcher, Runtime, SDK, Harmony, and DefaultMods with Electron/Host — not via manual `PrepareDistribution.ps1` step |
 | **Build integration** | MSBuild or Electron packaging step copies payload from project `bin` outputs into a known folder (e.g. `Asher.Host/install-payload/` or `Asher.Electron/resources/install-payload/`) |
 | **Host payload resolution** | Ensure `ResolveInstallSourceFolder()` finds bundled payload when Host runs from Electron (extend candidate paths or set host working directory — minimal C# change only if bundling beside Host is insufficient) |
 | **Production packaging** | `electron-builder` (or equivalent) packages Electron + `Asher.Host` + install payload as one distributable |
 | **Dev workflow** | `npm start` works for fresh install after `dotnet build` — no separate Distribution folder step |
+| **Electron install flow update** | Call `preparePatchesFolder` before install where WPF did; use `markInstalled` / `markUninstalled` instead of settings merge |
 
 ### Explicit non-goals
 
@@ -1307,19 +1335,88 @@ All install/uninstall behavior stays in C#. Electron only provides UI and invoke
 
 | Step | Status |
 |------|--------|
-| 11 Setup | Done — folder detect/validate/save |
-| 14 Install UI | Done — progress, cancel, post-install refresh |
-| 15 Uninstall UI | Done |
+| 11 Setup | Done — folder detect/validate/save; will call `preparePatchesFolder` when contract lands |
+| 14 Install UI | Done — progress, cancel, post-install refresh; will switch to `markInstalled` |
+| 15 Uninstall UI | Done — will switch to `markUninstalled` |
 | 17 Launch | Done |
-| **18 Payload + packaging** | **Next** — closes gap between install UI and installable fresh game |
+| **18 Payload + contract + packaging** | **Next (gate)** — closes gap between install UI and installable fresh game |
 
-### Validation plan (when payload bundling lands)
+### Deferred until Step 18 gate passes
+
+| Item | Was planned in | Why wait |
+|------|----------------|----------|
+| Settings screen (prefs + path) | Step 16 Priority A | No value proving prefs UI until fresh install works |
+| Home / hub navigation | Step 16 Priority B | Launch already on Manager; hub is polish |
+| Localization | Step 16 Priority B | English-only acceptable until installable build |
+| Install welcome / wizard stepper | Step 16 Priority C | Ready + Setup cover function |
+
+### Validation plan (when Step 18 lands)
 
 1. Clean game folder (no `Asher\` runtime).
 2. `npm start` only — no `PrepareDistribution.ps1`.
-3. Setup → Install → verify `DustAET.exe` launcher, runtime files, DefaultMods in game folder.
-4. Manager → Launch → play.
-5. Uninstall → restore backup → return to Setup.
+3. Setup → validate → save → **`preparePatchesFolder`** (when implemented) → Install → verify `DustAET.exe` launcher, runtime files, DefaultMods in game folder.
+4. Confirm **`markInstalled`** updated settings (not manual `saveSettings` merge).
+5. Manager → Launch → play.
+6. Uninstall → confirm **`markUninstalled`** → restore backup → return to Setup.
+
+**Gate exit criteria:** all six steps pass on a machine that did not have Asher pre-installed in the target game folder.
+
+---
+
+## Step 18 — Implementation (completed)
+
+### Contract additions
+
+| Method | JSONL | Implementation |
+|--------|-------|----------------|
+| `PreparePatchesFolder(path)` | `preparePatchesFolder` | `IGameFolderService.CreatePatchesFolder` via `AsherApplication` |
+| `MarkInstalled(path, version)` | `markInstalled` | `ISettingsService.MarkAsInstalled` |
+| `MarkUninstalled()` | `markUninstalled` | `ISettingsService.MarkAsUninstalled` |
+
+Files: `IAsherApplication.cs`, `AsherApplication.cs`, `ISettingsService.cs`, `SettingsService.cs`, `JsonlProtocol.cs`, `JsonlHostSession.cs`.
+
+### Install payload bundling
+
+| Item | Detail |
+|------|--------|
+| **MSBuild target** | `Asher.Host/InstallPayload.targets` — copies payload to `bin/.../install-payload/` after each Host build |
+| **Payload contents** | `Asher.Launcher.exe`, runtime DLLs, `0Harmony.dll`, `DefaultMods/` (when built) |
+| **Sources** | Project `bin` outputs + `packages/Lib.Harmony.2.4.2`; fallback to `Distribution/` when present |
+| **Host resolution** | `GameInstallationService.GetInstallSourceCandidates` checks `install-payload` beside `Asher.Host.exe` (`AsherPaths.HostInstallPayloadFolderName`) |
+| **Dev build script** | `Asher.Host/build-with-payload.cmd`; `npm run build:host` / `build:host:debug` in `Asher.Electron` |
+
+### Electron flow updates
+
+| Flow | Change |
+|------|--------|
+| Setup save | Calls `preparePatchesFolder` after `saveSettings` |
+| Install | Preflight `preparePatchesFolder`; post-success uses `markInstalled` (not settings merge) |
+| Uninstall | Post-success uses `markUninstalled` (not settings merge) |
+
+### Production packaging
+
+| Item | Detail |
+|------|--------|
+| **Tool** | `electron-builder` (portable win ia32) |
+| **Command** | `npm run dist` (builds Release host + packages to `Asher.Electron/dist/`) |
+| **Bundled host** | `extraResources` → `resources/asher-host/` (full Host output including `install-payload/`) |
+| **Packaged resolution** | `resolve-host-path.js` uses `process.resourcesPath/asher-host/Asher.Host.exe` when `app.isPackaged` |
+
+### Validation
+
+| Check | Result |
+|-------|--------|
+| `Asher.Host` / `Asher.App` build | **Success** |
+| `Asher.Host.TestClient` | **Passed** (incl. new contract methods) |
+| `npm run smoke:payload` | **Passed** — Launcher, Runtime, SDK, Harmony, DefaultMods |
+| All existing `npm run smoke*` | **Passed** |
+| Live fresh install on clean game folder | **Not run** — requires Dust install on dev/game machine |
+
+### Limitations
+
+- Default mod DLLs copy only when patching projects are built (XNA refs may block `dotnet build` on some machines); install works without default mods.
+- `npm run dist` requires Release host build; dev workflow uses Debug + `npm start`.
+- Live end-to-end fresh install validation remains manual on a game PC.
 
 ---
 
@@ -1377,7 +1474,7 @@ Optional live flags (not run in CI smoke):
 2. **Transitive UI assemblies** — Host still loads `Asher.Core` (`UseWPF`, MaterialDesign, Prism) even though it does not start WPF. Full decoupling deferred per investigation §11.8.
 3. **Duplicate DI wiring** — ~~WPF (`App.xaml.cs`) and `AsherServiceHost` both construct services; drift risk until unified.~~ Resolved in Step 5 via `ApplicationServices`.
 4. **Mutating operations** — Install/uninstall not automated in smoke to avoid destructive changes.
-5. **Fresh install via Electron** — Install UI exists, but install payload is not bundled with Host/Electron yet; `PrepareDistribution.ps1` still required indirectly for payload files (see Step 18).
+5. **Fresh install via Electron** — ~~Install UI exists, but install payload is not bundled with Host/Electron yet~~ Payload bundled via `install-payload/` MSBuild target; live fresh-install validation pending on game machine (see Step 18).
 6. **No automated test project** — validation is manual console output only.
 
 ---
@@ -1393,17 +1490,20 @@ Optional live flags (not run in CI smoke):
 | Exclude `INavigationItemsManager` from host | Presentation-only; not part of application contract |
 | Electron owns end-user installation | Full install via in-app flow; `PrepareDistribution.ps1` is WPF legacy only, not an Electron prerequisite |
 | Install payload bundled with Electron/Host | Fresh install must work without manual Distribution folder assembly |
+| Step 18 is the migration gate | Block further Electron UI until payload bundling + contract additions + fresh-install validation pass |
+| Add `PreparePatchesFolder`, `MarkInstalled`, `MarkUninstalled` with Step 18 | Align Electron install flow with WPF; replace fragile `saveSettings` merge for install markers |
 
 ---
 
 ## Remaining Work
 
+### Completed (Steps 1–17)
+
 - [x] POCO-ify `ManagedModInfo` (remove `BindableBase` from Core)
 - [x] Add `ISettingsService` wrapper; remove direct `AsherSettings` from ViewModels
 - [x] Unify WPF DI with `AsherServiceHost` or shared registration module
 - [x] Introduce in-process `IAsherApplication` contract
-- [ ] Live validation on machine with Asher-installed game (install, launch, mod toggle, uninstall) — **partial**: launch/mods/manager validated on game PC; fresh install not yet tested
-- [x] Freeze §12.5 contract as serializable API surface
+- [x] Freeze §12.5 **core** contract as serializable API surface (partial — `CompleteInstall` / `PreparePatchesFolder` deferred until Step 18)
 - [x] IPC / transport investigation (separate phase)
 - [x] JSONL transport prototype (`Asher.Host --jsonl` + test client)
 - [x] Electron frontend spike (`Asher.Electron` + JSONL client)
@@ -1413,10 +1513,22 @@ Optional live flags (not run in CI smoke):
 - [x] Electron installation flow (install, progress, cancel)
 - [x] Electron uninstallation flow (uninstall, progress, cancel, post-uninstall refresh)
 - [x] Electron launch game flow
-- [ ] Electron install payload bundling (remove `PrepareDistribution.ps1` dependency for fresh install)
-- [ ] Electron production packaging (Host + install payload + frontend)
-- [ ] Electron settings screen
+- [ ] Live validation on machine with Asher-installed game — **partial**: launch/mods/manager validated on game PC; **fresh install blocked until Step 18**
+
+### Step 18 gate (completed — pending live fresh-install validation)
+
+- [x] Contract: `PreparePatchesFolder`, `MarkInstalled`, `MarkUninstalled` on `IAsherApplication` + JSONL
+- [x] Electron install/uninstall flows: use new contract methods instead of `saveSettings` merge
+- [x] Install payload bundling (MSBuild `install-payload/` beside Host)
+- [x] Host payload resolution for Electron-spawned `Asher.Host`
+- [x] Electron production packaging (`electron-builder`, `npm run dist`)
+- [ ] Fresh-install validation on clean game folder (gate exit — manual on game PC)
+
+### After Step 18 gate
+
+- [ ] Electron settings screen (prefs + path)
 - [ ] Electron home / hub navigation
+- [ ] Localization (renderer string tables)
 
 ---
 
@@ -1424,6 +1536,8 @@ Optional live flags (not run in CI smoke):
 
 | Date | Step | Summary |
 |------|------|---------|
+| 2026-09-01 | 18 | Payload bundling, contract additions, Electron flow updates, electron-builder packaging |
+| 2026-09-01 | 18 (plan) | Step 18 declared migration gate; contract additions; settings/home UI deferred until gate passes |
 | 2026-08-28 | 18 | Electron-owned installation; payload bundling plan; Distribution script out of user path |
 | 2026-08-28 | 17+ | Host startup sync fix; preload.cjs; diagnostic logging |
 | 2026-08-28 | 17 | Launch game; Manager button via existing `launchGame` JSONL |

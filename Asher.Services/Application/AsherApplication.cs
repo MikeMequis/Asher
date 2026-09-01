@@ -124,6 +124,30 @@ namespace Asher.Services.Application
             return OperationResult.Failed(errorMessage);
         }
 
+        public OperationResult PreparePatchesFolder(string gameFolderPath)
+        {
+            if (string.IsNullOrWhiteSpace(gameFolderPath))
+            {
+                return OperationResult.Failed("A game folder path is required.");
+            }
+
+            try
+            {
+                _services.GameFolders.CreatePatchesFolder(gameFolderPath);
+                return OperationResult.Succeeded();
+            }
+            catch (Exception ex)
+            {
+                return OperationResult.Failed(ex.Message);
+            }
+        }
+
+        public void MarkInstalled(string gameFolderPath, string gameVersion) =>
+            _services.Settings.MarkAsInstalled(gameFolderPath, gameVersion);
+
+        public void MarkUninstalled() =>
+            _services.Settings.MarkAsUninstalled();
+
         private static IProgress<InstallationProgress> CreateProgress(IProgress<InstallationProgressDto>? progress)
         {
             if (progress == null)

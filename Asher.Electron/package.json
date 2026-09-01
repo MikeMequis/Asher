@@ -1,22 +1,49 @@
 {
   "name": "asher-electron",
   "version": "0.1.0",
-  "description": "Electron frontend spike for Asher (JSONL transport to Asher.Host)",
+  "description": "Electron frontend for Asher (JSONL transport to Asher.Host)",
   "private": true,
   "main": "src/main/main.js",
   "type": "module",
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
+    "build:host": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Release -p:Platform=x86",
+    "build:host:debug": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86",
+    "dist": "npm run build:host && electron-builder --win portable --ia32",
     "smoke": "node scripts/smoke-test.mjs",
     "smoke:setup": "node scripts/setup-smoke-test.mjs",
     "smoke:manager": "node scripts/manager-smoke-test.mjs",
     "smoke:shell": "node scripts/shell-smoke-test.mjs",
     "smoke:install": "node scripts/install-smoke-test.mjs",
     "smoke:uninstall": "node scripts/uninstall-smoke-test.mjs",
-    "smoke:launch": "node scripts/launch-smoke-test.mjs"
+    "smoke:launch": "node scripts/launch-smoke-test.mjs",
+    "smoke:payload": "node scripts/payload-smoke-test.mjs"
+  },
+  "build": {
+    "appId": "com.asher.manager",
+    "productName": "Asher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../Asher.Host/bin/x86/Release/net8.0-windows",
+        "to": "asher-host",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": ["portable"],
+      "arch": ["ia32"]
+    }
   },
   "devDependencies": {
-    "electron": "^35.0.0"
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8"
   }
 }

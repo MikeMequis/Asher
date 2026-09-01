@@ -35,5 +35,11 @@ namespace Asher.Services.Application
             CancellationToken cancellationToken = default);
 
         OperationResult LaunchGame();
+
+        OperationResult PreparePatchesFolder(string gameFolderPath);
+
+        void MarkInstalled(string gameFolderPath, string gameVersion);
+
+        void MarkUninstalled();
     }
 }

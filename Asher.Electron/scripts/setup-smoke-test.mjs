@@ -93,6 +93,18 @@ async function main() {
   }
 
   try {
+    const patchesPath = path.join(os.tmpdir(), `asher-setup-patches-${Date.now()}`);
+    const prepareResult = await client.request('preparePatchesFolder', { gameFolderPath: patchesPath });
+    if (!prepareResult?.success) {
+      fail('preparePatchesFolder should succeed for temp folder');
+    } else {
+      pass('preparePatchesFolder');
+    }
+  } catch (err) {
+    fail(`preparePatchesFolder: ${err.message}`);
+  }
+
+  try {
     const detection = await client.request('detectGameFolder');
     if (!detection || typeof detection !== 'object') {
       fail('detectGameFolder returned unexpected result');

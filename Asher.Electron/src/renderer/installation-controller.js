@@ -121,6 +121,17 @@ export class InstallationController {
     };
 
     try {
+      const { result: prepareResult } = await this.client.invoke('preparePatchesFolder', {
+        gameFolderPath: gameFolder.path
+      });
+
+      if (!prepareResult?.success) {
+        this.#errorMessage =
+          prepareResult?.errorMessage ?? 'Failed to prepare the game patches folder.';
+        this.#setState('failed');
+        return 'failed';
+      }
+
       const { result } = await this.client.invoke('install', gameInfo, {
         trackProgress: true,
         allowFailure: true
@@ -168,14 +179,9 @@ export class InstallationController {
    * @param {object} gameFolder
    */
   async #markInstalled(gameFolder) {
-    const { result: settings } = await this.client.invoke('getSettings');
-    await this.client.invoke('saveSettings', {
-      ...settings,
+    await this.client.invoke('markInstalled', {
       gameFolderPath: gameFolder.path,
-      gameVersion: gameFolder.version ?? settings.gameVersion ?? '',
-      isInstalled: true,
-      installationDate: new Date().toISOString(),
-      firstRun: false
+      gameVersion: gameFolder.version ?? ''
     });
   }
 

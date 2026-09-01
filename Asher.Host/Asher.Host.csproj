@@ -16,4 +16,6 @@
     <ProjectReference Include="..\Asher.Services\Asher.Services.csproj" />
   </ItemGroup>
 
+  <Import Project="InstallPayload.targets" />
+
 </Project>

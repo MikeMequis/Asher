@@ -1,11 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
+const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function getElectronApp() {
+  try {
+    return require('electron').app;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Locate Asher.Host.exe for development.
+ * Locate Asher.Host.exe for development or packaged builds.
  * Override with ASHER_HOST_PATH environment variable.
  */
 export function resolveHostPath() {
@@ -15,6 +25,14 @@ export function resolveHostPath() {
       throw new Error(`ASHER_HOST_PATH does not exist: ${resolved}`);
     }
     return resolved;
+  }
+
+  const app = getElectronApp();
+  if (app?.isPackaged) {
+    const packagedHost = path.join(process.resourcesPath, 'asher-host', 'Asher.Host.exe');
+    if (fs.existsSync(packagedHost)) {
+      return packagedHost;
+    }
   }
 
   const repoRoot = path.resolve(__dirname, '..', '..', '..');
