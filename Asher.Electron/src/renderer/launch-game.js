@@ -1,4 +1,5 @@
 import { classifyError } from './errors.js';
+import { t } from './localization.js';
 
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 
@@ -54,8 +55,7 @@ export class LaunchGameController {
     this.#successMessage = null;
 
     if (!canLaunch) {
-      this.#errorMessage =
-        'The game cannot be launched. Configure a valid game folder and complete Asher installation first.';
+      this.#errorMessage = t('home.launchError');
       this.#notify();
       return false;
     }
@@ -67,11 +67,11 @@ export class LaunchGameController {
       const { result } = await this.client.invoke('launchGame');
 
       if (result?.success) {
-        this.#successMessage = 'Game launch started.';
+        this.#successMessage = t('home.launchSuccess');
         return true;
       }
 
-      this.#errorMessage = result?.errorMessage ?? 'Failed to launch the game.';
+      this.#errorMessage = result?.errorMessage ?? t('home.launchError');
       return false;
     } catch (err) {
       this.#errorMessage = classifyError(err).message;

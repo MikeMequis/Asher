@@ -4,7 +4,7 @@ import { logDiagnostic } from './diagnostic-log.js';
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 /** @typedef {import('./application-state.js').ApplicationState} ApplicationState */
 /** @typedef {'booting' | 'connecting' | 'loading-app' | 'ready' | 'host-error'} ShellPhase */
-/** @typedef {'setup' | 'manager' | 'install' | 'uninstall'} AppScreen */
+/** @typedef {'setup' | 'home' | 'manager' | 'settings' | 'install' | 'uninstall'} AppScreen */
 
 /**
  * Central application shell — startup, host lifecycle, navigation, shared state.
@@ -72,12 +72,32 @@ export class ApplicationShell {
     return Boolean(this.#applicationState?.canUninstall);
   }
 
+  get isManagerMode() {
+    return this.#applicationState?.mode === 'manager';
+  }
+
+  get canShowHome() {
+    return this.isManagerMode && this.canShowManager;
+  }
+
   get canLaunchGame() {
     return Boolean(this.#applicationState?.canLaunchGame);
   }
 
+  get sidebarCollapsed() {
+    return this.#sidebarCollapsed;
+  }
+
+  /** @type {boolean} */
+  #sidebarCollapsed = false;
+
   get isEditingSetup() {
     return this.#editingSetup;
+  }
+
+  toggleSidebar() {
+    this.#sidebarCollapsed = !this.#sidebarCollapsed;
+    this.#notify();
   }
 
   #notify() {
@@ -167,7 +187,7 @@ export class ApplicationShell {
       }
       this.#applicationState = state;
 
-      if (!this.#screen || (this.#screen === 'manager' && !state.isConfigured)) {
+      if (!this.#screen || (this.#screen === 'manager' && !state.isConfigured) || (this.#screen === 'home' && !state.isConfigured)) {
         this.#screen = state.recommendedScreen;
       }
 
@@ -200,6 +220,17 @@ export class ApplicationShell {
    */
   async navigateTo(screen, options = {}) {
     if (!this.isApplicationReady) {
+      return;
+    }
+
+    if (screen === 'home' && !this.canShowHome && !options.force) {
+      this.#screen = this.canShowManager ? 'manager' : 'setup';
+      this.#notify();
+      await this.#enterScreen(this.#screen);
+      return;
+    }
+
+    if (screen === 'settings' && !this.isApplicationReady && !options.force) {
       return;
     }
 
@@ -246,7 +277,7 @@ export class ApplicationShell {
       return;
     }
     if (this.canShowManager) {
-      await this.navigateTo('manager');
+      await this.navigateTo(this.canShowHome ? 'home' : 'manager');
     }
   }
 
@@ -271,7 +302,7 @@ export class ApplicationShell {
   async handleInstallComplete(outcome) {
     if (outcome === 'completed') {
       await this.refreshApplicationState();
-      await this.navigateTo('manager');
+      await this.navigateTo(this.canShowHome ? 'home' : 'manager');
       return;
     }
     this.#notify();

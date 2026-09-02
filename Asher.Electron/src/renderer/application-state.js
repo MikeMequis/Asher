@@ -11,7 +11,7 @@ import { classifyError } from './errors.js';
  * @property {boolean} needsInstallation
  * @property {boolean} canUninstall
  * @property {boolean} canLaunchGame
- * @property {'setup' | 'manager'} recommendedScreen
+ * @property {'setup' | 'home' | 'manager' | 'settings'} recommendedScreen
  */
 
 /**
@@ -50,7 +50,13 @@ export async function fetchApplicationState(client) {
     }
   }
 
-  const recommendedScreen = needsInstallation ? 'setup' : isConfigured ? 'manager' : 'setup';
+  const recommendedScreen = needsInstallation
+    ? 'setup'
+    : isConfigured
+      ? mode === 'manager'
+        ? 'home'
+        : 'setup'
+      : 'setup';
 
   return {
     mode,

@@ -4,7 +4,15 @@ import { logDiagnostic, showDiagnosticLogPath } from './diagnostic-log.js';
 import { GameSetupController } from './game-setup.js';
 import { InstallationController } from './installation-controller.js';
 import { LaunchGameController } from './launch-game.js';
+import {
+  applyLanguageFromSettings,
+  getLanguageOptions,
+  onLanguageChange,
+  t
+} from './localization.js';
 import { ModManagerController } from './mod-manager.js';
+import { SettingsController } from './settings-controller.js';
+import { applyTheme, applyThemeFromSettings } from './theme.js';
 import { UninstallationController } from './uninstallation-controller.js';
 
 if (!window.asher) {
@@ -33,12 +41,14 @@ const installation = new InstallationController(client);
 const uninstallation = new UninstallationController(client);
 const manager = new ModManagerController(client);
 const launchGame = new LaunchGameController(client);
+const settings = new SettingsController(client);
+
+const appShell = document.querySelector('.app-shell');
+const sidebar = document.getElementById('sidebar');
+const sidebarNav = document.getElementById('sidebar-nav');
+const sidebarToggle = document.getElementById('sidebar-toggle');
 
 const pageSubtitle = document.getElementById('page-subtitle');
-const mainNav = document.getElementById('main-nav');
-const navSetupButton = document.getElementById('nav-setup');
-const navManagerButton = document.getElementById('nav-manager');
-
 const statusBadge = document.getElementById('status-badge');
 const statusMessage = document.getElementById('status-message');
 
@@ -49,6 +59,13 @@ const hostErrorPanel = document.getElementById('host-error-panel');
 const hostErrorMessage = document.getElementById('host-error-message');
 const retryHostButton = document.getElementById('retry-host');
 const appContent = document.getElementById('app-content');
+
+const homeView = document.getElementById('home-view');
+const homeLaunchSuccess = document.getElementById('home-launch-success');
+const homeLaunchError = document.getElementById('home-launch-error');
+const homeCardManager = document.getElementById('home-card-manager');
+const homeCardSettings = document.getElementById('home-card-settings');
+const homeCardLaunch = document.getElementById('home-card-launch');
 
 const readyView = document.getElementById('ready-view');
 const readySummary = document.getElementById('ready-summary');
@@ -113,9 +130,6 @@ const setupError = document.getElementById('setup-error');
 
 const managerView = document.getElementById('manager-view');
 const refreshModsButton = document.getElementById('refresh-mods');
-const launchGameButton = document.getElementById('launch-game');
-const managerLaunchSuccess = document.getElementById('manager-launch-success');
-const managerLaunchError = document.getElementById('manager-launch-error');
 const managerLoading = document.getElementById('manager-loading');
 const managerEmpty = document.getElementById('manager-empty');
 const managerError = document.getElementById('manager-error');
@@ -124,14 +138,167 @@ const modList = document.getElementById('mod-list');
 const managerStats = document.getElementById('manager-stats');
 const activeCountEl = document.getElementById('active-count');
 const totalCountEl = document.getElementById('total-count');
-const uninstallAsherButton = document.getElementById('uninstall-asher');
+
+const settingsView = document.getElementById('settings-view');
+const settingsStatus = document.getElementById('settings-status');
+const settingsError = document.getElementById('settings-error');
+const settingsGamePath = document.getElementById('settings-game-path');
+const settingsBrowse = document.getElementById('settings-browse');
+const settingsPathStatus = document.getElementById('settings-path-status');
+const settingsAutoLaunch = document.getElementById('settings-auto-launch');
+const settingsBackup = document.getElementById('settings-backup');
+const settingsLanguage = document.getElementById('settings-language');
+const settingsTheme = document.getElementById('settings-theme');
+const settingsCheckUpdates = document.getElementById('settings-check-updates');
+const settingsUninstallCard = document.getElementById('settings-uninstall-card');
+const settingsUninstallButton = document.getElementById('settings-uninstall');
+const settingsResetButton = document.getElementById('settings-reset');
+const settingsSaveButton = document.getElementById('settings-save');
 
 shell.onChange = renderShell;
 setup.onChange = renderSetup;
 installation.onChange = renderInstall;
 uninstallation.onChange = renderUninstall;
 manager.onChange = renderManager;
-launchGame.onChange = renderManager;
+launchGame.onChange = renderHome;
+settings.onChange = renderSettings;
+
+onLanguageChange(() => {
+  applyLocalizedText();
+  renderShell();
+});
+
+function applyLocalizedText() {
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (key) {
+      el.textContent = t(key);
+    }
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) {
+      el.setAttribute('placeholder', t(key));
+    }
+  });
+
+  document.title = t('app.title');
+}
+
+function populateLanguageSelect() {
+  settingsLanguage.innerHTML = '';
+  for (const option of getLanguageOptions()) {
+    const el = document.createElement('option');
+    el.value = option.value;
+    el.textContent = option.label;
+    settingsLanguage.appendChild(el);
+  }
+}
+
+function getInstallWizardStep() {
+  if (shell.screen === 'install') {
+    if (installation.state === 'completed') {
+      return 'complete';
+    }
+    return 'installing';
+  }
+
+  if (shell.screen === 'setup') {
+    const appState = shell.applicationState;
+    if (appState?.isConfigured && !shell.isEditingSetup) {
+      return 'welcome';
+    }
+    return 'gameDetection';
+  }
+
+  return 'welcome';
+}
+
+function renderSidebar() {
+  const showNav = shell.isApplicationReady;
+  sidebarNav.hidden = !showNav;
+  appShell.classList.toggle('sidebar-collapsed', shell.sidebarCollapsed);
+
+  if (!showNav) {
+    sidebarNav.innerHTML = '';
+    return;
+  }
+
+  const items = shell.isManagerMode
+    ? [
+        { id: 'home', label: t('nav.home'), icon: '&#8962;', screen: 'home', enabled: shell.canShowHome },
+        {
+          id: 'manager',
+          label: t('nav.patchManager'),
+          icon: '&#9881;',
+          screen: 'manager',
+          enabled: shell.canShowManager
+        },
+        { id: 'settings', label: t('nav.settings'), icon: '&#9881;', screen: 'settings', enabled: true }
+      ]
+    : [
+        { id: 'welcome', label: t('nav.welcome'), icon: '&#9733;', screen: 'setup', step: 'welcome' },
+        {
+          id: 'gameDetection',
+          label: t('nav.gameDetection'),
+          icon: '&#128269;',
+          screen: 'setup',
+          step: 'gameDetection'
+        },
+        {
+          id: 'installing',
+          label: t('nav.installing'),
+          icon: '&#8635;',
+          screen: 'install',
+          step: 'installing',
+          enabled: shell.canShowManager
+        },
+        {
+          id: 'complete',
+          label: t('nav.complete'),
+          icon: '&#10003;',
+          screen: 'install',
+          step: 'complete',
+          enabled: installation.state === 'completed'
+        }
+      ];
+
+  const currentStep = getInstallWizardStep();
+  sidebarNav.innerHTML = '';
+
+  for (const item of items) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'sidebar-nav-item';
+    button.dataset.screen = item.screen;
+
+    const isActive = shell.isManagerMode
+      ? shell.screen === item.screen
+      : item.step === currentStep;
+
+    const isEnabled = shell.isManagerMode
+      ? item.enabled !== false
+      : item.enabled !== false &&
+        (item.step === 'welcome' ||
+          item.step === currentStep ||
+          (item.step === 'gameDetection' && ['gameDetection', 'installing', 'complete'].includes(currentStep)) ||
+          (item.step === 'installing' && ['installing', 'complete'].includes(currentStep)));
+
+    button.classList.toggle('active', isActive);
+    button.disabled = !isEnabled;
+    button.innerHTML = `<span class="sidebar-nav-icon" aria-hidden="true">${item.icon}</span><span class="sidebar-nav-label">${item.label}</span>`;
+
+    button.addEventListener('click', () => {
+      if (item.screen === 'setup' && shell.applicationState?.isConfigured && !shell.isEditingSetup) {
+        return;
+      }
+      shell.navigateTo(/** @type {import('./application-shell.js').AppScreen} */ (item.screen));
+    });
+
+    sidebarNav.appendChild(button);
+  }
+}
 
 async function runInstall() {
   const folder = shell.applicationState?.folder;
@@ -159,6 +326,12 @@ shell.onEnterScreen = async (screen) => {
     return;
   }
 
+  if (screen === 'settings') {
+    await settings.loadFromHost();
+    syncSettingsForm();
+    return;
+  }
+
   if (screen === 'install' && installation.state === 'idle') {
     await runInstall();
     return;
@@ -170,20 +343,23 @@ shell.onEnterScreen = async (screen) => {
 };
 
 function renderShell() {
+  applyLocalizedText();
   renderHostStatus();
   renderShellPhase();
-  renderNavigation();
+  renderSidebar();
+  renderHome();
   renderSetup();
   renderInstall();
   renderUninstall();
   renderManager();
+  renderSettings();
 }
 
 function renderHostStatus() {
   const { status, message } = shell.hostStatus;
   statusBadge.textContent = status;
   statusBadge.className = `badge badge-${status}`;
-  statusMessage.textContent = message ?? status;
+  statusMessage.textContent = message ?? t('host.notConnected');
 }
 
 function renderShellPhase() {
@@ -194,34 +370,42 @@ function renderShellPhase() {
   appContent.hidden = phase !== 'ready';
 
   if (phase === 'booting' || phase === 'connecting') {
-    shellLoadingTitle.textContent = 'Starting application';
-    shellLoadingMessage.textContent = 'Connecting to Asher.Host...';
-    pageSubtitle.textContent = 'Connecting...';
+    shellLoadingTitle.textContent = t('shell.starting');
+    shellLoadingMessage.textContent = t('shell.connecting');
+    pageSubtitle.textContent = t('app.subtitle.connecting');
   } else if (phase === 'loading-app') {
-    shellLoadingTitle.textContent = 'Loading application';
-    shellLoadingMessage.textContent = 'Reading configuration from the application...';
-    pageSubtitle.textContent = 'Loading...';
+    shellLoadingTitle.textContent = t('shell.loading');
+    shellLoadingMessage.textContent = t('shell.loadingConfig');
+    pageSubtitle.textContent = t('app.subtitle.loading');
   } else if (phase === 'host-error') {
-    hostErrorMessage.textContent =
-      shell.errorMessage ?? 'The Asher application host is not available.';
-    pageSubtitle.textContent = 'Disconnected';
+    hostErrorMessage.textContent = shell.errorMessage ?? t('shell.hostError');
+    pageSubtitle.textContent = t('app.subtitle.disconnected');
   } else if (phase === 'ready') {
-    if (shell.screen === 'install') {
-      pageSubtitle.textContent = 'Installing Asher';
-    } else if (shell.screen === 'uninstall') {
-      pageSubtitle.textContent = 'Uninstalling Asher';
-    } else {
-      pageSubtitle.textContent = shell.screen === 'manager' ? 'Mod Manager' : 'Game setup';
-    }
+    const subtitles = {
+      install: 'app.subtitle.install',
+      uninstall: 'app.subtitle.uninstall',
+      home: 'app.subtitle.home',
+      manager: 'app.subtitle.manager',
+      settings: 'app.subtitle.settings',
+      setup: 'app.subtitle.setup'
+    };
+    pageSubtitle.textContent = t(subtitles[shell.screen] ?? 'app.subtitle.setup');
   }
 
+  homeView.hidden = true;
   readyView.hidden = true;
   setupView.hidden = true;
   managerView.hidden = true;
+  settingsView.hidden = true;
   installView.hidden = true;
   uninstallView.hidden = true;
 
   if (phase !== 'ready') {
+    return;
+  }
+
+  if (shell.screen === 'home') {
+    homeView.hidden = false;
     return;
   }
 
@@ -240,17 +424,21 @@ function renderShellPhase() {
     return;
   }
 
+  if (shell.screen === 'settings') {
+    settingsView.hidden = false;
+    return;
+  }
+
   const appState = shell.applicationState;
   if (appState?.isConfigured && appState.folder && !shell.isEditingSetup) {
     readyView.hidden = false;
     readyPath.textContent = appState.folder.path;
     readyVersion.textContent = appState.folder.version || '—';
     readySource.textContent = appState.folder.source || '—';
-    readyMode.textContent = appState.mode === 'manager' ? 'Manager' : 'Install wizard';
+    readyMode.textContent =
+      appState.mode === 'manager' ? t('ready.modeManager') : t('ready.modeWizard');
     readySummary.textContent =
-      appState.mode === 'manager'
-        ? 'A valid Asher installation was found for this game folder.'
-        : 'The game folder is configured. Install Asher to enable mod support.';
+      appState.mode === 'manager' ? t('ready.configured') : t('ready.needsInstall');
     startInstallButton.hidden = !appState.needsInstallation;
     openManagerButton.hidden = appState.needsInstallation;
   } else {
@@ -258,13 +446,18 @@ function renderShellPhase() {
   }
 }
 
-function renderNavigation() {
-  const showNav = shell.isApplicationReady;
-  mainNav.hidden = !showNav;
-  navManagerButton.disabled = !shell.canShowManager || shell.needsInstallation;
+function renderHome() {
+  if (!shell.isApplicationReady || shell.screen !== 'home') {
+    return;
+  }
 
-  navSetupButton.classList.toggle('nav-active', shell.screen === 'setup');
-  navManagerButton.classList.toggle('nav-active', shell.screen === 'manager');
+  homeCardLaunch.hidden = !shell.canLaunchGame;
+  homeCardLaunch.disabled = !shell.canLaunchGame || launchGame.launching;
+
+  homeLaunchSuccess.hidden = !launchGame.successMessage;
+  homeLaunchSuccess.textContent = launchGame.successMessage ?? '';
+  homeLaunchError.hidden = !launchGame.errorMessage;
+  homeLaunchError.textContent = launchGame.errorMessage ?? '';
 }
 
 function renderInstall() {
@@ -283,9 +476,7 @@ function renderInstall() {
   if (['starting', 'installing', 'cancelling'].includes(state)) {
     const progress = installation.progress;
     installStatus.textContent =
-      state === 'cancelling'
-        ? 'Cancelling installation...'
-        : progress?.message || 'Installing...';
+      state === 'cancelling' ? t('install.cancelling') : progress?.message || t('install.inProgress');
     installProgress.value = progress?.percentage ?? 0;
     installProgress.indeterminate = state === 'starting' && !progress;
     installDetails.hidden = !progress?.details;
@@ -295,17 +486,15 @@ function renderInstall() {
   }
 
   if (state === 'completed') {
-    installSuccessMessage.textContent =
-      installation.result?.message || 'Installation completed successfully.';
+    installSuccessMessage.textContent = installation.result?.message || t('install.success');
   }
 
   if (state === 'failed') {
-    installFailureMessage.textContent = installation.errorMessage ?? 'Installation failed.';
+    installFailureMessage.textContent = installation.errorMessage ?? t('install.failed');
   }
 
   if (state === 'cancelled') {
-    installCancelledMessage.textContent =
-      installation.errorMessage ?? 'Installation was cancelled.';
+    installCancelledMessage.textContent = installation.errorMessage ?? t('install.cancelled');
   }
 }
 
@@ -326,8 +515,8 @@ function renderUninstall() {
     const progress = uninstallation.progress;
     uninstallStatus.textContent =
       state === 'cancelling'
-        ? 'Cancelling uninstallation...'
-        : progress?.message || 'Uninstalling...';
+        ? t('uninstall.cancelling')
+        : progress?.message || t('uninstall.inProgress');
     uninstallProgress.value = progress?.percentage ?? 0;
     uninstallProgress.indeterminate = state === 'starting' && !progress;
     uninstallDetails.hidden = !progress?.details;
@@ -337,17 +526,15 @@ function renderUninstall() {
   }
 
   if (state === 'completed') {
-    uninstallSuccessMessage.textContent =
-      uninstallation.result?.message || 'Uninstallation completed successfully.';
+    uninstallSuccessMessage.textContent = uninstallation.result?.message || t('uninstall.success');
   }
 
   if (state === 'failed') {
-    uninstallFailureMessage.textContent = uninstallation.errorMessage ?? 'Uninstallation failed.';
+    uninstallFailureMessage.textContent = uninstallation.errorMessage ?? t('uninstall.failed');
   }
 
   if (state === 'cancelled') {
-    uninstallCancelledMessage.textContent =
-      uninstallation.errorMessage ?? 'Uninstallation was cancelled.';
+    uninstallCancelledMessage.textContent = uninstallation.errorMessage ?? t('uninstall.cancelled');
   }
 }
 
@@ -385,25 +572,28 @@ function renderSetup() {
     case 'validating':
       setupStatus.hidden = false;
       setupStatus.className = 'setup-status status-validating';
-      setupStatus.textContent = 'Validating game folder...';
+      setupStatus.textContent = t('setup.validating');
       break;
     case 'valid':
       setupStatus.hidden = false;
       setupStatus.className = 'setup-status status-valid';
-      setupStatus.textContent = `Valid game found — version ${setup.validatedFolder?.version || 'unknown'} (${setup.validatedFolder?.source || 'unknown source'})`;
+      setupStatus.textContent = t('setup.valid', {
+        version: setup.validatedFolder?.version || 'unknown',
+        source: setup.validatedFolder?.source || 'unknown source'
+      });
       break;
     case 'invalid':
       setupError.hidden = false;
-      setupError.textContent = setup.errorMessage ?? 'Invalid game folder.';
+      setupError.textContent = setup.errorMessage ?? t('setup.invalid');
       break;
     case 'saving':
       setupStatus.hidden = false;
       setupStatus.className = 'setup-status status-validating';
-      setupStatus.textContent = 'Saving configuration...';
+      setupStatus.textContent = t('setup.saving');
       break;
     case 'error':
       setupError.hidden = false;
-      setupError.textContent = setup.errorMessage ?? 'An unexpected error occurred.';
+      setupError.textContent = setup.errorMessage ?? t('common.error');
       break;
     default:
       break;
@@ -416,21 +606,7 @@ function renderManager() {
   }
 
   refreshModsButton.disabled =
-    !shell.isHostReady ||
-    manager.togglingFileName !== null ||
-    manager.loadState === 'loading' ||
-    launchGame.launching;
-
-  launchGameButton.hidden = !shell.canLaunchGame;
-  launchGameButton.disabled =
-    !shell.isHostReady || launchGame.launching || manager.togglingFileName !== null;
-
-  managerLaunchSuccess.hidden = !launchGame.successMessage;
-  managerLaunchSuccess.textContent = launchGame.successMessage ?? '';
-  managerLaunchError.hidden = !launchGame.errorMessage;
-  managerLaunchError.textContent = launchGame.errorMessage ?? '';
-
-  uninstallAsherButton.hidden = !shell.canUninstall;
+    !shell.isHostReady || manager.togglingFileName !== null || manager.loadState === 'loading';
 
   managerLoading.hidden = manager.loadState !== 'loading';
   managerEmpty.hidden = manager.loadState !== 'empty';
@@ -483,10 +659,10 @@ function renderManager() {
     const toggleText = document.createElement('span');
     toggleText.textContent =
       manager.togglingFileName === mod.fileName
-        ? 'Updating...'
+        ? t('manager.updating')
         : mod.isEnabled
-          ? 'Enabled'
-          : 'Disabled';
+          ? t('manager.enabled')
+          : t('manager.disabled');
 
     toggleLabel.append(checkbox, toggleText);
     item.append(info, toggleLabel);
@@ -494,13 +670,76 @@ function renderManager() {
   }
 }
 
-navSetupButton.addEventListener('click', () => shell.navigateTo('setup'));
-navManagerButton.addEventListener('click', () => shell.navigateTo('manager'));
+function syncSettingsForm() {
+  const draft = settings.draft;
+  settingsGamePath.value = draft.gameFolderPath ?? '';
+  settingsAutoLaunch.checked = Boolean(draft.autoLaunchEnabled);
+  settingsBackup.checked = Boolean(draft.backupEnabled);
+  settingsLanguage.value = draft.language ?? 'en-US';
+  settingsTheme.value = draft.theme ?? 'Light';
+  settingsCheckUpdates.checked = Boolean(draft.checkForUpdatesEnabled);
+  settingsUninstallCard.hidden = !shell.canUninstall;
+}
+
+function renderSettings() {
+  if (!shell.isApplicationReady || shell.screen !== 'settings') {
+    return;
+  }
+
+  settingsSaveButton.disabled = settings.state === 'saving' || settings.state === 'loading';
+  settingsResetButton.disabled = settings.state === 'saving' || settings.state === 'loading';
+  settingsBrowse.disabled = settings.state === 'saving' || settings.state === 'loading';
+  settingsUninstallCard.hidden = !shell.canUninstall;
+
+  settingsStatus.hidden = settings.state !== 'saved';
+  settingsStatus.textContent = settings.statusMessage ?? t('settings.saved');
+  settingsError.hidden = settings.state !== 'error';
+  settingsError.textContent = settings.errorMessage ?? '';
+
+  settingsPathStatus.hidden = settings.pathState === 'idle';
+  if (settings.pathState === 'validating') {
+    settingsPathStatus.textContent = t('settings.pathValidating');
+    settingsPathStatus.className = 'field-hint';
+  } else if (settings.pathState === 'valid') {
+    settingsPathStatus.textContent = t('settings.pathValid');
+    settingsPathStatus.className = 'field-hint valid';
+  } else if (settings.pathState === 'invalid') {
+    settingsPathStatus.textContent = t('settings.pathInvalid');
+    settingsPathStatus.className = 'field-hint invalid';
+  }
+
+  if (settings.state === 'saving') {
+    settingsStatus.hidden = false;
+    settingsStatus.className = 'setup-status status-validating';
+    settingsStatus.textContent = t('settings.saving');
+  }
+}
+
+async function saveSettingsAndApply() {
+  const saved = await settings.save();
+  if (!saved) {
+    return;
+  }
+
+  applyLanguageFromSettings(settings.draft);
+  applyThemeFromSettings(settings.draft);
+  await shell.refreshApplicationState();
+  settings.statusMessage = t('settings.saved');
+  renderSettings();
+}
+
+homeCardManager.addEventListener('click', () => shell.navigateTo('manager'));
+homeCardSettings.addEventListener('click', () => shell.navigateTo('settings'));
+homeCardLaunch.addEventListener('click', async () => {
+  launchGame.clearMessages();
+  await launchGame.launchGame(shell.canLaunchGame);
+});
+
 openManagerButton.addEventListener('click', () => shell.navigateTo('manager'));
 startInstallButton.addEventListener('click', () => shell.navigateTo('install'));
 beginInstallButton.addEventListener('click', () => runInstall());
 cancelInstallButton.addEventListener('click', () => installation.cancelInstall());
-installContinueButton.addEventListener('click', () => shell.navigateTo('manager'));
+installContinueButton.addEventListener('click', () => shell.navigateTo(shell.canShowHome ? 'home' : 'manager'));
 retryInstallButton.addEventListener('click', async () => {
   installation.reset();
   await runInstall();
@@ -518,11 +757,11 @@ installBackSetupCancelledButton.addEventListener('click', () => {
   shell.navigateTo('setup');
 });
 
-uninstallAsherButton.addEventListener('click', () => shell.navigateTo('uninstall'));
+settingsUninstallButton.addEventListener('click', () => shell.navigateTo('uninstall'));
 confirmUninstallButton.addEventListener('click', () => runUninstall());
 cancelUninstallConfirmButton.addEventListener('click', () => {
   uninstallation.cancelConfirmation();
-  shell.navigateTo('manager');
+  shell.navigateTo('settings');
 });
 cancelUninstallButton.addEventListener('click', () => uninstallation.cancelUninstall());
 uninstallContinueButton.addEventListener('click', () => {
@@ -578,10 +817,31 @@ refreshModsButton.addEventListener('click', async () => {
   }
 });
 
-launchGameButton.addEventListener('click', async () => {
-  launchGame.clearMessages();
-  await launchGame.launchGame(shell.canLaunchGame);
+settingsBrowse.addEventListener('click', () => settings.browsePath());
+settingsAutoLaunch.addEventListener('change', () => {
+  settings.updateDraft({ autoLaunchEnabled: settingsAutoLaunch.checked });
 });
+settingsBackup.addEventListener('change', () => {
+  settings.updateDraft({ backupEnabled: settingsBackup.checked });
+});
+settingsLanguage.addEventListener('change', () => {
+  settings.updateDraft({ language: settingsLanguage.value });
+});
+settingsTheme.addEventListener('change', () => {
+  settings.updateDraft({ theme: settingsTheme.value });
+  applyTheme(settingsTheme.value === 'Dark' ? 'Dark' : 'Light');
+});
+settingsCheckUpdates.addEventListener('change', () => {
+  settings.updateDraft({ checkForUpdatesEnabled: settingsCheckUpdates.checked });
+});
+settingsResetButton.addEventListener('click', () => {
+  settings.resetDraft();
+  syncSettingsForm();
+  applyTheme('Light');
+});
+settingsSaveButton.addEventListener('click', () => saveSettingsAndApply());
+
+sidebarToggle.addEventListener('click', () => shell.toggleSidebar());
 
 retryHostButton.addEventListener('click', async () => {
   retryHostButton.disabled = true;
@@ -592,5 +852,14 @@ retryHostButton.addEventListener('click', async () => {
   }
 });
 
+populateLanguageSelect();
+applyLocalizedText();
+
 await showDiagnosticLogPath(client);
 await shell.start();
+
+if (shell.applicationState?.settings) {
+  applyLanguageFromSettings(shell.applicationState.settings);
+  applyThemeFromSettings(shell.applicationState.settings);
+  applyLocalizedText();
+}
