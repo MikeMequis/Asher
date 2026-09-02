@@ -196,7 +196,10 @@ namespace Asher.Host.Jsonl
 
                     await WriteResponseAsync(request.RequestId, true, new
                     {
-                        installed = _application.IsGameInstalled(path)
+                        installed = _application.IsGameInstalled(path),
+                        markers = string.IsNullOrWhiteSpace(path)
+                            ? null
+                            : _application.DescribeInstallState(path)
                     }, null);
                     return;
                 }

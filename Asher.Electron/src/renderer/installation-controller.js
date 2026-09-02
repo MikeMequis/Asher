@@ -1,4 +1,5 @@
 import { classifyError } from './errors.js';
+import { logDiagnostic } from './diagnostic-log.js';
 
 /** @typedef {'idle' | 'starting' | 'installing' | 'cancelling' | 'completed' | 'failed' | 'cancelled'} InstallState */
 
@@ -25,6 +26,8 @@ export class InstallationController {
   #result = null;
   /** @type {string | null} */
   #errorMessage = null;
+  /** @type {string | null} */
+  #errorDetails = null;
 
   /** @param {ApplicationClient} client */
   constructor(client) {
@@ -72,6 +75,10 @@ export class InstallationController {
     return this.#errorMessage;
   }
 
+  get errorDetails() {
+    return this.#errorDetails;
+  }
+
   get canCancel() {
     return this.#state === 'installing' && Boolean(this.#requestId);
   }
@@ -91,6 +98,7 @@ export class InstallationController {
     this.#progress = null;
     this.#result = null;
     this.#errorMessage = null;
+    this.#errorDetails = null;
     this.#notify();
   }
 
@@ -101,6 +109,7 @@ export class InstallationController {
   async startInstall(gameFolder) {
     if (!gameFolder?.isValid) {
       this.#errorMessage = 'A valid game folder is required before installation.';
+      this.#errorDetails = null;
       this.#setState('failed');
       return 'failed';
     }
@@ -109,6 +118,7 @@ export class InstallationController {
     this.#progress = null;
     this.#result = null;
     this.#errorMessage = null;
+    this.#errorDetails = null;
     this.#setState('starting');
 
     const gameInfo = {
@@ -119,13 +129,22 @@ export class InstallationController {
     };
 
     try {
+      logDiagnostic('info', 'install', 'startInstall invoking host', { path: gameFolder.path });
+
       const { result } = await this.client.invoke('install', gameInfo, {
         trackProgress: true,
         allowFailure: true
       });
 
+      logDiagnostic('info', 'install', 'startInstall host response', {
+        success: result?.success,
+        message: result?.message ?? result?.result?.message,
+        details: result?.details ?? result?.result?.details
+      });
+
       if (result?.success === false && result?.error?.code === 'cancelled') {
         this.#errorMessage = result.error?.message ?? 'Installation was cancelled.';
+        this.#errorDetails = null;
         this.#setState('cancelled');
         return 'cancelled';
       }
@@ -139,12 +158,30 @@ export class InstallationController {
           installResult?.message ??
           result?.error?.message ??
           'Installation failed.';
+        this.#errorDetails = installResult?.details || null;
         this.#setState('failed');
         return 'failed';
       }
 
       this.#result = installResult;
+
+      const { result: installed } = await this.client.invoke('isGameInstalled', {
+        gameFolderPath: gameFolder.path
+      });
+      logDiagnostic('info', 'install', 'startInstall post-verify', {
+        installed: installed?.installed,
+        markers: installed?.markers
+      });
+      if (!installed?.installed) {
+        this.#errorMessage =
+          'Installation finished but Asher was not detected on disk. Try again.';
+        this.#errorDetails = installResult?.details || installResult?.message || null;
+        this.#setState('failed');
+        return 'failed';
+      }
+
       await this.#markInstalled(gameFolder);
+      logDiagnostic('info', 'install', 'startInstall markInstalled complete');
       this.#setState('completed');
       return 'completed';
     } catch (err) {
@@ -155,6 +192,7 @@ export class InstallationController {
           : err instanceof Error && err.code === 'cancelled'
             ? 'Installation was cancelled.'
             : message;
+      this.#errorDetails = null;
       this.#setState(err instanceof Error && err.code === 'cancelled' ? 'cancelled' : 'failed');
       return err instanceof Error && err.code === 'cancelled' ? 'cancelled' : 'failed';
     } finally {
@@ -183,6 +221,7 @@ export class InstallationController {
       await this.client.cancel(this.#requestId);
     } catch (err) {
       this.#errorMessage = classifyError(err).message;
+      this.#errorDetails = null;
       this.#setState('failed');
     }
   }

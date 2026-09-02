@@ -17,6 +17,7 @@ namespace Asher.Services.Application
         string? ResolveGameFolderPath();
         bool IsGameInstalled(string? gameFolderPath = null);
         bool HasRestorableBackup(string? gameFolderPath = null);
+        string DescribeInstallState(string? gameFolderPath = null);
 
         Task<IReadOnlyList<ManagedModDto>> GetModsAsync(CancellationToken cancellationToken = default);
         Task<OperationResult> SetModEnabledAsync(

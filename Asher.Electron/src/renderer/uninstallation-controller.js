@@ -1,4 +1,5 @@
 import { classifyError } from './errors.js';
+import { logDiagnostic } from './diagnostic-log.js';
 
 /** @typedef {'idle' | 'confirming' | 'starting' | 'uninstalling' | 'cancelling' | 'completed' | 'failed' | 'cancelled'} UninstallState */
 
@@ -25,6 +26,8 @@ export class UninstallationController {
   #result = null;
   /** @type {string | null} */
   #errorMessage = null;
+  /** @type {string | null} */
+  #errorDetails = null;
 
   /** @param {ApplicationClient} client */
   constructor(client) {
@@ -68,6 +71,10 @@ export class UninstallationController {
     return this.#errorMessage;
   }
 
+  get errorDetails() {
+    return this.#errorDetails;
+  }
+
   get canCancel() {
     return this.#state === 'uninstalling' && Boolean(this.#requestId);
   }
@@ -87,11 +94,13 @@ export class UninstallationController {
     this.#progress = null;
     this.#result = null;
     this.#errorMessage = null;
+    this.#errorDetails = null;
     this.#notify();
   }
 
   requestConfirmation() {
     this.#errorMessage = null;
+    this.#errorDetails = null;
     this.#setState('confirming');
   }
 
@@ -107,6 +116,7 @@ export class UninstallationController {
   async startUninstall(gameFolderPath, canUninstall) {
     if (!gameFolderPath?.trim()) {
       this.#errorMessage = 'No game folder is configured for uninstallation.';
+      this.#errorDetails = null;
       this.#setState('failed');
       return 'failed';
     }
@@ -114,6 +124,7 @@ export class UninstallationController {
     if (!canUninstall) {
       this.#errorMessage =
         'Asher cannot be uninstalled. The game may not be installed or no restorable backup was found.';
+      this.#errorDetails = null;
       this.#setState('failed');
       return 'failed';
     }
@@ -122,17 +133,27 @@ export class UninstallationController {
     this.#progress = null;
     this.#result = null;
     this.#errorMessage = null;
+    this.#errorDetails = null;
     this.#setState('starting');
 
     try {
+      logDiagnostic('info', 'uninstall', 'startUninstall invoking host', { gameFolderPath });
+
       const { result } = await this.client.invoke(
         'uninstall',
         { gameFolderPath },
         { trackProgress: true, allowFailure: true }
       );
 
+      logDiagnostic('info', 'uninstall', 'startUninstall host response', {
+        success: result?.success,
+        message: result?.message ?? result?.result?.message,
+        details: result?.details ?? result?.result?.details
+      });
+
       if (result?.error?.code === 'cancelled') {
         this.#errorMessage = result.error?.message ?? 'Uninstallation was cancelled.';
+        this.#errorDetails = null;
         this.#setState('cancelled');
         return 'cancelled';
       }
@@ -146,12 +167,30 @@ export class UninstallationController {
           uninstallResult?.message ??
           result?.error?.message ??
           'Uninstallation failed.';
+        this.#errorDetails = uninstallResult?.details || null;
         this.#setState('failed');
         return 'failed';
       }
 
       this.#result = uninstallResult;
+
+      const { result: installed } = await this.client.invoke('isGameInstalled', {
+        gameFolderPath
+      });
+      logDiagnostic('info', 'uninstall', 'startUninstall post-verify', {
+        installed: installed?.installed,
+        markers: installed?.markers
+      });
+      if (installed?.installed) {
+        this.#errorMessage =
+          'Uninstallation finished but Asher is still detected on disk. Try again.';
+        this.#errorDetails = uninstallResult?.details || uninstallResult?.message || null;
+        this.#setState('failed');
+        return 'failed';
+      }
+
       await this.#markUninstalled();
+      logDiagnostic('info', 'uninstall', 'startUninstall markUninstalled complete');
       this.#setState('completed');
       return 'completed';
     } catch (err) {
@@ -162,6 +201,7 @@ export class UninstallationController {
           : err instanceof Error && err.code === 'cancelled'
             ? 'Uninstallation was cancelled.'
             : message;
+      this.#errorDetails = null;
       this.#setState(err instanceof Error && err.code === 'cancelled' ? 'cancelled' : 'failed');
       return err instanceof Error && err.code === 'cancelled' ? 'cancelled' : 'failed';
     } finally {
@@ -184,6 +224,7 @@ export class UninstallationController {
       await this.client.cancel(this.#requestId);
     } catch (err) {
       this.#errorMessage = classifyError(err).message;
+      this.#errorDetails = null;
       this.#setState('failed');
     }
   }

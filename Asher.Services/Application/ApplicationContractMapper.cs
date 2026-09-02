@@ -62,6 +62,7 @@ namespace Asher.Services.Application
         {
             Success = result.Success,
             Message = result.Message,
+            Details = result.Details ?? string.Empty,
             GameFolderPath = result.GameFolderPath,
             ErrorMessage = result.Error?.Message
         };

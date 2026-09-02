@@ -1,5 +1,6 @@
 ﻿using Asher.Core;
 using Asher.Core.Models;
+using Asher.Services;
 using Asher.Services.Interfaces;
 using System.Reflection;
 
@@ -48,16 +49,24 @@ namespace Asher.Services.Implementations
                 var gamePath = gameInfo.Path;
                 var originalExePath = Path.Combine(gamePath, OriginalExeName);
 
-                await Task.Run(() => AsherPaths.MigrateLegacyLayout(gamePath));
+                InstallFlowTrace.Log("InstallAsync start", $"path={gamePath}");
 
                 if (IsInstalled(gamePath))
                 {
+                    var details = DescribeInstallMarkers(gamePath);
+                    InstallFlowTrace.Log("InstallAsync blocked", details);
                     return new InstallationResult
                     {
                         Success = false,
-                        Message = "O Asher já está instalado neste jogo"
+                        Message = "O Asher já está instalado neste jogo. Desinstale-o antes de instalar novamente.",
+                        Details = DescribeInstallMarkers(gamePath)
                     };
                 }
+
+                await Task.Run(() => RemoveStaleInstallMarkers(gamePath));
+                await Task.Run(() => AsherPaths.MigrateLegacyLayout(gamePath));
+
+                InstallFlowTrace.Log("InstallAsync proceeding", DescribeInstallMarkers(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
@@ -166,6 +175,8 @@ namespace Asher.Services.Implementations
 
                 await Task.Run(() => VerifyInstallation(gamePath));
 
+                InstallFlowTrace.Log("InstallAsync complete", $"path={gamePath}");
+
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 100,
@@ -199,6 +210,8 @@ namespace Asher.Services.Implementations
         {
             try
             {
+                InstallFlowTrace.Log("UninstallAsync start", $"path={gameFolderPath} installed={IsInstalled(gameFolderPath)}");
+
                 if (!IsInstalled(gameFolderPath))
                 {
                     return new InstallationResult
@@ -246,6 +259,30 @@ namespace Asher.Services.Implementations
 
                 progress?.Report(new InstallationProgress
                 {
+                    Percentage = 90,
+                    Message = "Verificando remoção...",
+                    Details = "Confirmando que os marcadores de instalação foram removidos"
+                });
+
+                await Task.Run(() => EnsureInstallMarkersRemoved(gameFolderPath));
+
+                var stillInstalled = IsInstalled(gameFolderPath);
+                InstallFlowTrace.Log(
+                    "UninstallAsync verify",
+                    $"path={gameFolderPath} stillInstalled={stillInstalled} {DescribeInstallMarkers(gameFolderPath)}");
+
+                if (stillInstalled)
+                {
+                    return new InstallationResult
+                    {
+                        Success = false,
+                        Message = "A desinstalação não removeu todos os marcadores. O Asher ainda parece instalado.",
+                        Details = DescribeInstallMarkers(gameFolderPath)
+                    };
+                }
+
+                progress?.Report(new InstallationProgress
+                {
                     Percentage = 100,
                     Message = "Restauração concluída",
                     Details = "O jogo foi restaurado ao estado original"
@@ -260,6 +297,7 @@ namespace Asher.Services.Implementations
             }
             catch (Exception ex)
             {
+                InstallFlowTrace.Log("UninstallAsync error", ex.Message);
                 return new InstallationResult
                 {
                     Success = false,
@@ -286,10 +324,55 @@ namespace Asher.Services.Implementations
 
         public bool IsInstalled(string gameFolderPath)
         {
-            var backupExePath = Path.Combine(gameFolderPath, BackupExeName);
-            var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
+            if (string.IsNullOrWhiteSpace(gameFolderPath))
+                return false;
 
-            return File.Exists(backupExePath) && Directory.Exists(asherFolder);
+            var realExePath = Path.Combine(gameFolderPath, BackupExeName);
+            var hasRealExe = File.Exists(realExePath);
+            var hasRuntime = HasActiveRuntime(gameFolderPath);
+            var installed = hasRealExe && hasRuntime;
+
+            InstallFlowTrace.Log(
+                "IsInstalled",
+                $"path={gameFolderPath} realExe={hasRealExe} runtime={hasRuntime} => {installed}");
+
+            return installed;
+        }
+
+        public string DescribeInstallState(string gameFolderPath) =>
+            DescribeInstallMarkers(gameFolderPath);
+
+        private static bool HasActiveRuntime(string gameFolderPath)
+        {
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return false;
+
+            return RequiredRuntimeFiles.Any(fileName =>
+                File.Exists(Path.Combine(asherFolder, fileName)));
+        }
+
+        private static string DescribeInstallMarkers(string gameFolderPath)
+        {
+            var markers = new List<string>();
+
+            var realExePath = Path.Combine(gameFolderPath, BackupExeName);
+            if (File.Exists(realExePath))
+                markers.Add(BackupExeName);
+
+            var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
+            if (Directory.Exists(asherFolder))
+            {
+                if (HasActiveRuntime(gameFolderPath))
+                    markers.Add($"pasta {AsherFolderName}/ (runtime ativo)");
+                else
+                    markers.Add($"pasta {AsherFolderName}/ (resíduo — não bloqueia reinstalação)");
+            }
+
+            if (markers.Count == 0)
+                return "Nenhum marcador de instalação ativo encontrado.";
+
+            return $"Marcadores encontrados: {string.Join(", ", markers)}";
         }
 
         #region Private Methods
@@ -485,6 +568,66 @@ namespace Asher.Services.Implementations
 
             if (File.Exists(renamedOriginalPath))
                 File.Delete(renamedOriginalPath);
+        }
+
+        /// <summary>
+        /// Removes leftover install markers so a subsequent install is not blocked.
+        /// Keeps Asher.Backup for safety.
+        /// </summary>
+        private static void EnsureInstallMarkersRemoved(string gameFolderPath)
+        {
+            TryForceDelete(Path.Combine(gameFolderPath, BackupExeName));
+
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return;
+
+            foreach (var file in Directory.GetFiles(asherFolder))
+                TryForceDelete(file);
+
+            foreach (var directory in Directory.GetDirectories(asherFolder))
+            {
+                var directoryName = Path.GetFileName(directory);
+                if (directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                try
+                {
+                    Directory.Delete(directory, true);
+                }
+                catch
+                {
+                    // Best effort — uninstall already reported runtime cleanup.
+                }
+            }
+        }
+
+        private static void RemoveStaleInstallMarkers(string gameFolderPath)
+        {
+            var realExePath = Path.Combine(gameFolderPath, BackupExeName);
+            if (!File.Exists(realExePath) || HasActiveRuntime(gameFolderPath))
+                return;
+
+            TryForceDelete(realExePath);
+        }
+
+        private static void TryForceDelete(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            try
+            {
+                var attributes = File.GetAttributes(path);
+                if ((attributes & FileAttributes.ReadOnly) != 0)
+                    File.SetAttributes(path, attributes & ~FileAttributes.ReadOnly);
+
+                File.Delete(path);
+            }
+            catch
+            {
+                // Caller verifies markers via IsInstalled after cleanup.
+            }
         }
 
         private static void CleanRuntimeFiles(string gameFolderPath)

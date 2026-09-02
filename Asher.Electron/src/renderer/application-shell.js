@@ -4,7 +4,7 @@ import { logDiagnostic } from './diagnostic-log.js';
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 /** @typedef {import('./application-state.js').ApplicationState} ApplicationState */
 /** @typedef {'booting' | 'connecting' | 'loading-app' | 'ready' | 'host-error'} ShellPhase */
-/** @typedef {'setup' | 'home' | 'manager' | 'settings' | 'install' | 'uninstall'} AppScreen */
+/** @typedef {'welcome' | 'setup' | 'home' | 'manager' | 'settings' | 'install' | 'uninstall'} AppScreen */
 
 /**
  * Central application shell — startup, host lifecycle, navigation, shared state.
@@ -158,7 +158,7 @@ export class ApplicationShell {
       if (this.#phase === 'ready' || this.#phase === 'loading-app') {
         return;
       }
-      await this.#loadApplicationState();
+      await this.#loadApplicationState({ reenterScreen: true });
       return;
     }
 
@@ -176,9 +176,15 @@ export class ApplicationShell {
     }
   }
 
-  async #loadApplicationState() {
+  async #loadApplicationState(options = {}) {
+    const reenterScreen = options.reenterScreen === true;
     this.#setPhase('loading-app');
     this.#errorMessage = null;
+
+    logDiagnostic('info', 'shell', 'loadApplicationState start', {
+      screen: this.#screen,
+      reenterScreen
+    });
 
     try {
       const state = await fetchApplicationState(this.client);
@@ -187,12 +193,28 @@ export class ApplicationShell {
       }
       this.#applicationState = state;
 
-      if (!this.#screen || (this.#screen === 'manager' && !state.isConfigured) || (this.#screen === 'home' && !state.isConfigured)) {
+      logDiagnostic('info', 'shell', 'loadApplicationState fetched', {
+        mode: state.mode,
+        needsInstallation: state.needsInstallation,
+        settingsIsInstalled: state.settings?.isInstalled,
+        gameFolderPath: state.settings?.gameFolderPath,
+        canUninstall: state.canUninstall
+      });
+
+      if (
+        !this.#screen ||
+        (this.#screen === 'manager' && !state.isConfigured) ||
+        (this.#screen === 'home' && !state.isConfigured) ||
+        (this.#screen === 'welcome' && state.mode === 'manager' && state.isConfigured)
+      ) {
         this.#screen = state.recommendedScreen;
       }
 
       this.#setPhase('ready');
-      await this.#enterScreen(this.#screen);
+
+      if (reenterScreen) {
+        await this.#enterScreen(this.#screen);
+      }
     } catch (err) {
       const { message } = mapApplicationError(this.client, err);
       logDiagnostic('error', 'shell', 'loadApplicationState() failed', {
@@ -208,10 +230,11 @@ export class ApplicationShell {
 
   async refreshApplicationState() {
     if (!this.isHostReady) {
+      logDiagnostic('warn', 'shell', 'refreshApplicationState skipped — host not ready');
       return;
     }
 
-    await this.#loadApplicationState();
+    await this.#loadApplicationState({ reenterScreen: false });
   }
 
   /**
@@ -249,9 +272,16 @@ export class ApplicationShell {
     }
 
     if (screen === 'uninstall' && !this.canUninstall) {
-      this.#screen = 'manager';
+      this.#screen = 'settings';
       this.#notify();
-      await this.#enterScreen('manager');
+      await this.#enterScreen('settings');
+      return;
+    }
+
+    if (screen === 'welcome' && this.isManagerMode && !options.force) {
+      this.#screen = this.canShowHome ? 'home' : 'manager';
+      this.#notify();
+      await this.#enterScreen(this.#screen);
       return;
     }
 
@@ -288,35 +318,44 @@ export class ApplicationShell {
   }
 
   async returnToSetup(reason = null) {
-    this.#screen = 'setup';
+    this.#screen = 'welcome';
     if (reason) {
       this.#errorMessage = reason;
     }
     this.#notify();
-    await this.#enterScreen('setup');
+    await this.#enterScreen('welcome');
   }
 
   /**
+   * Stay on the install Complete screen until the user finishes.
+   * Defer mode refresh so the wizard sidebar remains until Finish.
    * @param {'completed' | 'failed' | 'cancelled'} outcome
    */
   async handleInstallComplete(outcome) {
-    if (outcome === 'completed') {
-      await this.refreshApplicationState();
-      await this.navigateTo(this.canShowHome ? 'home' : 'manager');
-      return;
-    }
+    logDiagnostic('info', 'shell', 'handleInstallComplete', {
+      outcome,
+      mode: this.#applicationState?.mode
+    });
     this.#notify();
   }
 
   /**
+   * Finish the install wizard and enter manager mode.
+   */
+  async finishInstallation() {
+    await this.refreshApplicationState();
+    await this.navigateTo(this.canShowHome ? 'home' : 'manager');
+  }
+
+  /**
+   * Stay on the uninstall Complete screen until the user continues.
+   * Defer mode refresh so success feedback remains visible.
    * @param {'completed' | 'failed' | 'cancelled'} outcome
    */
   async handleUninstallComplete(outcome) {
+    logDiagnostic('info', 'shell', 'handleUninstallComplete', { outcome });
     if (outcome === 'completed') {
       await this.refreshApplicationState();
-      const screen = this.#applicationState?.recommendedScreen ?? 'setup';
-      await this.navigateTo(screen);
-      return;
     }
     this.#notify();
   }

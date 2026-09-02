@@ -25,7 +25,7 @@
       <div class="main-area">
         <header class="app-header">
           <div>
-            <h1 data-i18n="app.title">Asher</h1>
+            <h1 id="app-heading" data-i18n="app.title">Asher</h1>
             <p id="page-subtitle" class="subtitle" data-i18n="app.subtitle.connecting">Starting...</p>
           </div>
           <div class="host-chip" aria-live="polite">
@@ -33,6 +33,8 @@
             <span id="status-message" class="status-message" data-i18n="host.notConnected">Not connected</span>
           </div>
         </header>
+
+        <div id="action-banner" class="action-banner" hidden aria-live="polite"></div>
 
         <section id="shell-loading" class="panel shell-state">
           <h2 id="shell-loading-title" data-i18n="shell.starting">Starting application</h2>
@@ -42,10 +44,35 @@
         <section id="host-error-panel" class="panel error-panel shell-state" hidden>
           <h2 data-i18n="shell.unavailable">Application Unavailable</h2>
           <p id="host-error-message"></p>
-          <button id="retry-host" data-i18n="shell.retry">Retry Connection</button>
+          <button id="retry-host" class="primary" data-i18n="shell.retry">Retry Connection</button>
         </section>
 
         <main id="app-content" hidden>
+          <section id="welcome-view" class="panel page-view" hidden>
+            <div class="page-header">
+              <h2 data-i18n="welcome.title">Welcome to Asher</h2>
+              <p class="help-text" data-i18n="welcome.description">
+                Asher prepares Dust: An Elysian Tail for mod support with a short guided setup.
+              </p>
+            </div>
+
+            <div class="info-note-list">
+              <div class="info-note">
+                <span class="info-note-icon" aria-hidden="true">&#128190;</span>
+                <span data-i18n="welcome.info.backup">An automatic backup is created before game files are changed.</span>
+              </div>
+              <div class="info-note">
+                <span class="info-note-icon" aria-hidden="true">&#9881;</span>
+                <span data-i18n="welcome.info.modify">Game files will be modified so mods can load safely.</span>
+              </div>
+            </div>
+
+            <div class="action-row action-row-end">
+              <button id="welcome-begin" class="primary" type="button" data-i18n="welcome.begin">Begin Installation</button>
+            </div>
+            <p class="footer-note" data-i18n="welcome.footer">This is a one-time setup for each game installation.</p>
+          </section>
+
           <section id="home-view" class="panel page-view" hidden>
             <div class="page-header">
               <h2 data-i18n="home.title">Welcome to Asher</h2>
@@ -57,7 +84,7 @@
 
             <div class="action-grid">
               <button id="home-card-manager" class="action-card" type="button">
-                <span class="action-card-icon" aria-hidden="true">&#9881;</span>
+                <span class="action-card-icon" aria-hidden="true">&#128230;</span>
                 <span class="action-card-title" data-i18n="home.card.manager">Patch Manager</span>
                 <span class="action-card-desc" data-i18n="home.card.managerDesc">Enable or disable individual mods</span>
               </button>
@@ -74,50 +101,67 @@
             </div>
           </section>
 
-          <section id="ready-view" class="panel page-view" hidden>
-            <div class="page-header">
-              <h2 data-i18n="ready.title">Game Configured</h2>
-              <p id="ready-summary" class="ready-summary"></p>
-            </div>
-            <dl class="info-list">
-              <div><dt data-i18n="ready.folder">Folder</dt><dd id="ready-path"></dd></div>
-              <div><dt data-i18n="ready.version">Version</dt><dd id="ready-version"></dd></div>
-              <div><dt data-i18n="ready.source">Source</dt><dd id="ready-source"></dd></div>
-              <div><dt data-i18n="ready.mode">Mode</dt><dd id="ready-mode"></dd></div>
-            </dl>
-            <div class="action-row">
-              <button id="start-install" hidden data-i18n="ready.install">Install Asher</button>
-              <button id="open-manager" data-i18n="ready.openManager">Open Patch Manager</button>
-              <button id="reconfigure" class="secondary" data-i18n="ready.reconfigure">Change Game Folder</button>
-            </div>
-          </section>
-
           <section id="install-view" class="panel page-view" hidden>
             <div class="page-header">
-              <h2 data-i18n="install.title">Installing Asher</h2>
-              <p class="help-text" data-i18n="install.help">Preparing the game for mod support. Do not close the application during installation.</p>
+              <h2 id="install-heading" data-i18n="install.title">Installing Asher</h2>
+              <p id="install-help" class="help-text" data-i18n="install.help">Preparing the game for mod support.</p>
             </div>
 
             <div id="install-idle" class="install-state" hidden>
-              <button id="begin-install" data-i18n="install.start">Start Installation</button>
+              <button id="begin-install" class="primary" data-i18n="install.start">Start Installation</button>
             </div>
 
             <div id="install-active" class="install-state" hidden>
-              <div id="install-status" class="install-status" data-i18n="install.starting">Starting installation...</div>
-              <progress id="install-progress" max="100" value="0"></progress>
-              <div id="install-details" class="install-details" hidden></div>
+              <div class="progress-block">
+                <div class="progress-ring" aria-hidden="true">
+                  <svg viewBox="0 0 36 36">
+                    <path class="progress-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path id="install-progress-ring" class="progress-ring-fg" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  </svg>
+                  <span id="install-progress-pct" class="progress-ring-label">0%</span>
+                </div>
+                <div class="progress-copy">
+                  <div id="install-status" class="install-status" data-i18n="install.starting">Starting installation...</div>
+                  <progress id="install-progress" max="100" value="0"></progress>
+                  <div id="install-details" class="install-details" hidden></div>
+                </div>
+              </div>
+              <div class="info-note warning-note">
+                <span class="info-note-icon" aria-hidden="true">&#9888;</span>
+                <span data-i18n="install.warning">Do not close the application during installation.</span>
+              </div>
               <button id="cancel-install" class="secondary" hidden data-i18n="install.cancel">Cancel</button>
             </div>
 
-            <div id="install-completed" class="install-state setup-status status-valid" hidden>
-              <p id="install-success-message" data-i18n="install.success">Installation completed successfully.</p>
-              <button id="install-continue" data-i18n="install.continue">Continue to Home</button>
+            <div id="install-completed" class="install-state" hidden>
+              <div class="result-banner result-success">
+                <span class="result-icon" aria-hidden="true">&#10003;</span>
+                <p id="install-success-message" data-i18n="install.success">Installation completed successfully.</p>
+              </div>
+              <div class="next-steps">
+                <h3 class="next-steps-title" data-i18n="install.nextSteps">Next steps</h3>
+                <ul class="next-steps-list">
+                  <li data-i18n="install.next.manager">Open Patch Manager to enable or disable mods</li>
+                  <li data-i18n="install.next.launch">Launch the game from Home when you are ready</li>
+                  <li data-i18n="install.next.settings">Review Settings for language, theme, and backups</li>
+                </ul>
+              </div>
+              <div class="action-row action-row-end">
+                <button id="install-continue" class="primary" data-i18n="install.finish">Finish</button>
+              </div>
             </div>
 
             <div id="install-failed" class="error install-state" hidden>
-              <p id="install-failure-message"></p>
+              <div class="result-banner result-error">
+                <span class="result-icon" aria-hidden="true">&#10007;</span>
+                <p id="install-failure-message"></p>
+              </div>
+              <details id="install-error-details" class="error-details" hidden>
+                <summary data-i18n="install.errorDetails">Technical details</summary>
+                <pre id="install-error-details-body"></pre>
+              </details>
               <div class="action-row">
-                <button id="retry-install" data-i18n="install.retry">Try Again</button>
+                <button id="retry-install" class="primary" data-i18n="install.retry">Try Again</button>
                 <button id="install-back-setup" class="secondary" data-i18n="install.backSetup">Back to Setup</button>
               </div>
             </div>
@@ -125,7 +169,7 @@
             <div id="install-cancelled" class="install-state" hidden>
               <p id="install-cancelled-message" data-i18n="install.cancelled">Installation was cancelled.</p>
               <div class="action-row">
-                <button id="retry-install-cancelled" data-i18n="install.retry">Try Again</button>
+                <button id="retry-install-cancelled" class="primary" data-i18n="install.retry">Try Again</button>
                 <button id="install-back-setup-cancelled" class="secondary" data-i18n="install.backSetup">Back to Setup</button>
               </div>
             </div>
@@ -134,12 +178,12 @@
           <section id="setup-view" class="panel page-view" hidden>
             <div class="page-header">
               <h2 data-i18n="setup.title">Locate Game Installation</h2>
-              <p class="help-text" data-i18n="setup.help">Find the installation folder for <em>Dust: An Elysian Tail</em>.</p>
+              <p class="help-text" data-i18n="setup.help">A valid game folder is required before Asher can be installed.</p>
             </div>
             <div id="setup-context-error" class="error" hidden></div>
 
             <div class="action-row">
-              <button id="auto-detect" disabled data-i18n="setup.autoDetect">Detect Automatically</button>
+              <button id="auto-detect" class="secondary" disabled data-i18n="setup.autoDetect">Detect Automatically</button>
             </div>
 
             <div class="path-row">
@@ -154,13 +198,12 @@
               <button id="browse-folder" class="secondary" disabled data-i18n="setup.browse">Browse...</button>
             </div>
 
-            <div class="action-row">
-              <button id="validate-path" class="secondary" disabled data-i18n="setup.validate">Validate</button>
-              <button id="save-config" disabled data-i18n="setup.save">Save Configuration</button>
-            </div>
-
             <div id="setup-status" class="setup-status" hidden></div>
             <div id="setup-error" class="error" hidden></div>
+
+            <div class="action-row action-row-end">
+              <button id="save-config" class="primary" disabled data-i18n="setup.continue">Continue</button>
+            </div>
           </section>
 
           <section id="manager-view" class="panel page-view" hidden>
@@ -237,40 +280,59 @@
 
             <div class="action-row settings-actions">
               <button id="settings-reset" class="secondary" type="button" data-i18n="settings.reset">Reset to Defaults</button>
-              <button id="settings-save" type="button" data-i18n="settings.save">Save Settings</button>
+              <button id="settings-save" class="primary" type="button" data-i18n="settings.save">Save Settings</button>
             </div>
           </section>
 
           <section id="uninstall-view" class="panel page-view" hidden>
             <div class="page-header">
               <h2 data-i18n="uninstall.title">Uninstalling Asher</h2>
-              <p class="help-text" data-i18n="uninstall.help">This will remove Asher from the configured game folder and restore the original game files where possible.</p>
+              <p class="help-text" data-i18n="uninstall.help">Remove Asher and restore original game files where possible.</p>
             </div>
 
             <div id="uninstall-confirm" class="install-state" hidden>
               <p data-i18n="uninstall.confirm">Are you sure you want to uninstall Asher from this game installation?</p>
               <div class="action-row">
-                <button id="confirm-uninstall" data-i18n="uninstall.action">Uninstall</button>
+                <button id="confirm-uninstall" class="danger" data-i18n="uninstall.action">Uninstall</button>
                 <button id="cancel-uninstall-confirm" class="secondary" data-i18n="uninstall.cancel">Cancel</button>
               </div>
             </div>
 
             <div id="uninstall-active" class="install-state" hidden>
-              <div id="uninstall-status" class="install-status" data-i18n="uninstall.starting">Starting uninstallation...</div>
-              <progress id="uninstall-progress" max="100" value="0"></progress>
-              <div id="uninstall-details" class="install-details" hidden></div>
+              <div class="progress-block">
+                <div class="progress-ring" aria-hidden="true">
+                  <svg viewBox="0 0 36 36">
+                    <path class="progress-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path id="uninstall-progress-ring" class="progress-ring-fg" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  </svg>
+                  <span id="uninstall-progress-pct" class="progress-ring-label">0%</span>
+                </div>
+                <div class="progress-copy">
+                  <div id="uninstall-status" class="install-status" data-i18n="uninstall.starting">Starting uninstallation...</div>
+                  <progress id="uninstall-progress" max="100" value="0"></progress>
+                  <div id="uninstall-details" class="install-details" hidden></div>
+                </div>
+              </div>
+              <div class="info-note warning-note">
+                <span class="info-note-icon" aria-hidden="true">&#9888;</span>
+                <span data-i18n="uninstall.warning">Do not close the application during uninstall.</span>
+              </div>
               <button id="cancel-uninstall" class="secondary" hidden data-i18n="uninstall.cancel">Cancel</button>
             </div>
 
             <div id="uninstall-completed" class="install-state setup-status status-valid" hidden>
               <p id="uninstall-success-message" data-i18n="uninstall.success">Uninstallation completed successfully.</p>
-              <button id="uninstall-continue" data-i18n="uninstall.continue">Continue</button>
+              <button id="uninstall-continue" class="primary" data-i18n="uninstall.continue">Continue</button>
             </div>
 
             <div id="uninstall-failed" class="error install-state" hidden>
               <p id="uninstall-failure-message"></p>
+              <details id="uninstall-error-details" class="error-details" hidden>
+                <summary data-i18n="uninstall.errorDetails">Technical details</summary>
+                <pre id="uninstall-error-details-body"></pre>
+              </details>
               <div class="action-row">
-                <button id="retry-uninstall" data-i18n="uninstall.retry">Try Again</button>
+                <button id="retry-uninstall" class="primary" data-i18n="uninstall.retry">Try Again</button>
                 <button id="uninstall-back-manager" class="secondary" data-i18n="uninstall.backManager">Back to Patch Manager</button>
               </div>
             </div>
@@ -278,7 +340,7 @@
             <div id="uninstall-cancelled" class="install-state" hidden>
               <p id="uninstall-cancelled-message" data-i18n="uninstall.cancelled">Uninstallation was cancelled.</p>
               <div class="action-row">
-                <button id="retry-uninstall-cancelled" data-i18n="uninstall.retry">Try Again</button>
+                <button id="retry-uninstall-cancelled" class="primary" data-i18n="uninstall.retry">Try Again</button>
                 <button id="uninstall-back-manager-cancelled" class="secondary" data-i18n="uninstall.backManager">Back to Patch Manager</button>
               </div>
             </div>

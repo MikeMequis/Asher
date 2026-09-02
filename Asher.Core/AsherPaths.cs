@@ -80,8 +80,22 @@ namespace Asher.Core
             if (!IsValidGameFolder(gameFolderPath))
                 return false;
 
-            return File.Exists(Path.Combine(gameFolderPath, RealGameExecutableName))
-                && Directory.Exists(GetRuntimeFolderPath(gameFolderPath));
+            var realExePath = Path.Combine(gameFolderPath, RealGameExecutableName);
+            if (!File.Exists(realExePath))
+                return false;
+
+            return HasActiveRuntimeFiles(gameFolderPath);
+        }
+
+        private static bool HasActiveRuntimeFiles(string gameFolderPath)
+        {
+            var asherFolder = GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return false;
+
+            return File.Exists(Path.Combine(asherFolder, "Asher.Runtime.dll"))
+                   || File.Exists(Path.Combine(asherFolder, "Asher.SDK.dll"))
+                   || File.Exists(Path.Combine(asherFolder, "0Harmony.dll"));
         }
 
         public static void MigrateLegacyLayout(string gameFolderPath)

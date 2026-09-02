@@ -1,4 +1,5 @@
 import { classifyError } from './errors.js';
+import { logDiagnostic } from './diagnostic-log.js';
 
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 
@@ -11,7 +12,7 @@ import { classifyError } from './errors.js';
  * @property {boolean} needsInstallation
  * @property {boolean} canUninstall
  * @property {boolean} canLaunchGame
- * @property {'setup' | 'home' | 'manager' | 'settings'} recommendedScreen
+ * @property {'welcome' | 'setup' | 'home' | 'manager' | 'settings'} recommendedScreen
  */
 
 /**
@@ -39,26 +40,24 @@ export async function fetchApplicationState(client) {
 
   let canUninstall = false;
   let canLaunchGame = false;
+  let hostReportsInstalled = false;
   if (savedPath && mode === 'manager') {
     const { result: installed } = await client.invoke('isGameInstalled', { gameFolderPath: savedPath });
-    const isInstalled = Boolean(installed?.installed);
-    canLaunchGame = isConfigured && isInstalled;
+    hostReportsInstalled = Boolean(installed?.installed);
+    canLaunchGame = isConfigured && hostReportsInstalled;
 
-    if (isInstalled) {
+    if (hostReportsInstalled) {
       const { result: backup } = await client.invoke('hasRestorableBackup', { gameFolderPath: savedPath });
       canUninstall = Boolean(backup?.hasBackup);
     }
   }
 
-  const recommendedScreen = needsInstallation
-    ? 'setup'
-    : isConfigured
-      ? mode === 'manager'
-        ? 'home'
-        : 'setup'
-      : 'setup';
+  const recommendedScreen =
+    mode === 'manager' && isConfigured
+      ? 'home'
+      : 'welcome';
 
-  return {
+  const state = {
     mode,
     settings: settings ?? {},
     folder,
@@ -68,6 +67,18 @@ export async function fetchApplicationState(client) {
     canLaunchGame,
     recommendedScreen
   };
+
+  logDiagnostic('info', 'app-state', 'fetchApplicationState', {
+    mode,
+    savedPath,
+    isConfigured,
+    needsInstallation,
+    canUninstall,
+    hostReportsInstalled,
+    settingsIsInstalled: settings?.isInstalled
+  });
+
+  return state;
 }
 
 /**

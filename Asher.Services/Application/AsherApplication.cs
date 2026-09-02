@@ -1,5 +1,6 @@
 using Asher.Core;
 using Asher.Core.Models;
+using Asher.Services;
 using Asher.Services.Application.Contracts;
 using Asher.Services.Hosting;
 
@@ -27,14 +28,15 @@ namespace Asher.Services.Application
         {
             var settings = _services.Settings.Load();
             var candidate = settings.GameFolderPath;
+            var installed = !string.IsNullOrWhiteSpace(candidate)
+                            && _services.Installation.IsInstalled(candidate);
+            var mode = installed ? ApplicationMode.Manager : ApplicationMode.InstallWizard;
 
-            if (!string.IsNullOrWhiteSpace(candidate))
-                AsherPaths.MigrateLegacyLayout(candidate);
+            InstallFlowTrace.Log(
+                "GetApplicationMode",
+                $"path={candidate ?? "(none)"} settings.IsInstalled={settings.IsInstalled} diskInstalled={installed} => {mode}");
 
-            return !string.IsNullOrWhiteSpace(candidate)
-                   && _services.Installation.IsInstalled(candidate)
-                ? ApplicationMode.Manager
-                : ApplicationMode.InstallWizard;
+            return mode;
         }
 
         public GameFolderDto DetectGameFolder() =>
@@ -48,7 +50,14 @@ namespace Asher.Services.Application
         public bool IsGameInstalled(string? gameFolderPath = null)
         {
             var path = gameFolderPath ?? ResolveGameFolderPath();
-            return !string.IsNullOrWhiteSpace(path) && _services.Installation.IsInstalled(path);
+            var installed = !string.IsNullOrWhiteSpace(path) && _services.Installation.IsInstalled(path);
+            var markers = !string.IsNullOrWhiteSpace(path)
+                ? _services.Installation.DescribeInstallState(path)
+                : "(no path)";
+
+            InstallFlowTrace.Log("IsGameInstalled", $"path={path ?? "(none)"} => {installed} | {markers}");
+
+            return installed;
         }
 
         public bool HasRestorableBackup(string? gameFolderPath = null)
@@ -56,6 +65,14 @@ namespace Asher.Services.Application
             var path = gameFolderPath ?? ResolveGameFolderPath();
             return !string.IsNullOrWhiteSpace(path)
                    && _services.Installation.HasRestorableBackup(path);
+        }
+
+        public string DescribeInstallState(string? gameFolderPath = null)
+        {
+            var path = gameFolderPath ?? ResolveGameFolderPath();
+            return string.IsNullOrWhiteSpace(path)
+                ? "Nenhum caminho de jogo configurado."
+                : _services.Installation.DescribeInstallState(path);
         }
 
         public async Task<IReadOnlyList<ManagedModDto>> GetModsAsync(CancellationToken cancellationToken = default)
@@ -121,11 +138,17 @@ namespace Asher.Services.Application
             return OperationResult.Failed(errorMessage);
         }
 
-        public void MarkInstalled(string gameFolderPath, string gameVersion) =>
+        public void MarkInstalled(string gameFolderPath, string gameVersion)
+        {
+            InstallFlowTrace.Log("MarkInstalled", $"path={gameFolderPath} version={gameVersion}");
             _services.Settings.MarkAsInstalled(gameFolderPath, gameVersion);
+        }
 
-        public void MarkUninstalled() =>
+        public void MarkUninstalled()
+        {
+            InstallFlowTrace.Log("MarkUninstalled", "settings flag cleared");
             _services.Settings.MarkAsUninstalled();
+        }
 
         private static IProgress<InstallationProgress> CreateProgress(IProgress<InstallationProgressDto>? progress)
         {

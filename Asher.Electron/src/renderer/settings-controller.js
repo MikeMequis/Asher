@@ -74,9 +74,43 @@ export class SettingsController {
     this.#notify();
   }
 
-  async loadFromHost() {
+  /**
+   * @param {string | null} message
+   * @param {{ state?: SettingsState }} [options]
+   */
+  setStatusMessage(message, options = {}) {
+    this.#statusMessage = message;
     this.#errorMessage = null;
+    if (options.state) {
+      this.#setState(options.state);
+    } else if (message) {
+      this.#setState('saved');
+    } else {
+      this.#notify();
+    }
+  }
+
+  clearStatusMessage() {
     this.#statusMessage = null;
+    if (this.#state === 'saved') {
+      this.#setState('idle');
+    } else {
+      this.#notify();
+    }
+  }
+
+  /**
+   * @param {{ keepStatus?: boolean }} [options]
+   */
+  async loadFromHost(options = {}) {
+    const keepStatus = Boolean(options.keepStatus);
+    const preservedStatus = keepStatus ? this.#statusMessage : null;
+    const wasSaved = keepStatus && this.#state === 'saved';
+
+    this.#errorMessage = null;
+    if (!keepStatus) {
+      this.#statusMessage = null;
+    }
     this.#setState('loading');
 
     try {
@@ -84,7 +118,14 @@ export class SettingsController {
       this.#draft = { ...DEFAULT_SETTINGS, ...settings };
       this.#validatedFolder = null;
       this.#pathState = 'idle';
-      this.#setState('idle');
+
+      if (wasSaved && preservedStatus) {
+        this.#statusMessage = preservedStatus;
+        this.#setState('saved');
+      } else {
+        this.#statusMessage = null;
+        this.#setState('idle');
+      }
     } catch (err) {
       this.#errorMessage = classifyError(err).message;
       this.#setState('error');
@@ -156,9 +197,10 @@ export class SettingsController {
   }
 
   /**
+   * @param {string} [statusMessage]
    * @returns {Promise<boolean>}
    */
-  async save() {
+  async save(statusMessage) {
     if (this.#state === 'saving') {
       return false;
     }
@@ -184,6 +226,7 @@ export class SettingsController {
 
       await this.client.invoke('saveSettings', payload);
       this.#draft = payload;
+      this.#statusMessage = statusMessage ?? null;
       this.#setState('saved');
       return true;
     } catch (err) {

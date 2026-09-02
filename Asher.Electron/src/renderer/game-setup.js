@@ -1,4 +1,5 @@
 import { classifyError } from './errors.js';
+import { logDiagnostic } from './diagnostic-log.js';
 
 /** @typedef {'idle' | 'validating' | 'valid' | 'invalid' | 'saving' | 'error'} SetupState */
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
@@ -102,10 +103,20 @@ export class GameSetupController {
 
     try {
       const { result: settings } = await this.client.invoke('getSettings');
+      const { result: installed } = await this.client.invoke('isGameInstalled', {
+        gameFolderPath: this.#validatedFolder.path
+      });
+      logDiagnostic('info', 'setup', 'saveConfiguration isGameInstalled', {
+        path: this.#validatedFolder.path,
+        installed: installed?.installed,
+        markers: installed?.markers,
+        previousSettingsIsInstalled: settings?.isInstalled
+      });
       const updated = {
         ...settings,
         gameFolderPath: this.#validatedFolder.path,
-        gameVersion: this.#validatedFolder.version ?? settings.gameVersion ?? ''
+        gameVersion: this.#validatedFolder.version ?? settings.gameVersion ?? '',
+        isInstalled: Boolean(installed?.installed)
       };
 
       await this.client.invoke('saveSettings', updated);
