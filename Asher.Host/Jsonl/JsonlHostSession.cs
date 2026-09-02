@@ -347,10 +347,9 @@ namespace Asher.Host.Jsonl
                 return;
             }
 
-            if (_operations.TryRemove(targetRequestId, out var cts))
+            if (_operations.TryGetValue(targetRequestId, out var cts))
             {
                 cts.Cancel();
-                cts.Dispose();
                 await WriteResponseAsync(request.RequestId, true, new { cancelled = true, targetRequestId }, null);
                 return;
             }
@@ -409,21 +408,19 @@ namespace Asher.Host.Jsonl
                 return;
             }
 
+            var acceptProgress = true;
             var progress = new Progress<InstallationProgressDto>(update =>
             {
-                if (operationCts.Token.IsCancellationRequested)
+                if (!acceptProgress)
                     return;
 
-                _ = WriteStdoutAsync(new JsonlProgressMessage
-                {
-                    RequestId = requestId,
-                    Progress = update
-                });
+                _ = WriteProgressUpdateAsync(requestId, update);
             });
 
             try
             {
                 var result = await action(progress, operationCts.Token);
+                acceptProgress = false;
                 await WriteResponseAsync(requestId, result.Success, result, result.Success
                     ? null
                     : new JsonlError
@@ -434,6 +431,7 @@ namespace Asher.Host.Jsonl
             }
             catch (OperationCanceledException)
             {
+                acceptProgress = false;
                 await WriteResponseAsync(requestId, false, null, new JsonlError
                 {
                     Code = JsonlProtocol.ErrorCodes.Cancelled,
@@ -442,7 +440,24 @@ namespace Asher.Host.Jsonl
             }
             finally
             {
+                acceptProgress = false;
                 _operations.TryRemove(requestId, out _);
+            }
+        }
+
+        private async Task WriteProgressUpdateAsync(string requestId, InstallationProgressDto update)
+        {
+            try
+            {
+                await WriteStdoutAsync(new JsonlProgressMessage
+                {
+                    RequestId = requestId,
+                    Progress = update
+                });
+            }
+            catch (Exception ex)
+            {
+                LogDiagnostic($"Progress write failed for {requestId}: {ex.Message}");
             }
         }
 
