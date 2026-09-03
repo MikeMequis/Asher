@@ -17,6 +17,7 @@ const STRINGS = {
     'app.subtitle.install': 'Installing Asher',
     'app.subtitle.uninstall': 'Uninstalling Asher',
     'host.notConnected': 'Not connected',
+    'host.connected': 'Connected to Asher.Host',
 
     'shell.starting': 'Starting application',
     'shell.connecting': 'Connecting to Asher.Host...',
@@ -74,6 +75,7 @@ const STRINGS = {
     'install.cancel': 'Cancel',
     'install.success': 'Installation completed successfully.',
     'install.finish': 'Finish',
+    'install.autoLaunch': 'Launch game when I press Finish',
     'install.nextSteps': 'Next steps',
     'install.next.manager': 'Open Patch Manager to enable or disable mods',
     'install.next.launch': 'Launch the game from Home when you are ready',
@@ -111,10 +113,14 @@ const STRINGS = {
     'settings.uninstallDesc': 'Remove Asher from the game folder and restore original files where possible.',
     'settings.uninstallAction': 'Uninstall Asher',
     'settings.reset': 'Reset to Defaults',
-    'settings.save': 'Save Settings',
     'settings.saving': 'Saving settings...',
-    'settings.saved': 'Settings saved successfully.',
-    'settings.resetDone': 'Defaults restored — save to persist.',
+    'settings.saved': 'Settings saved.',
+    'settings.resetDone': 'Defaults restored.',
+    'settings.invalidPathSave': 'Select a valid game folder before saving.',
+    'settings.version': 'Version {version}',
+    'settings.logLoading': 'Log file: loading...',
+    'settings.logUnavailable': 'Log file: unavailable until a game folder is configured.',
+    'settings.logError': 'Diagnostic log: {message}',
     'settings.pathValidating': 'Validating game folder...',
     'settings.pathValid': 'Valid game folder.',
     'settings.pathInvalid': 'Invalid game folder.',
@@ -146,9 +152,14 @@ const STRINGS = {
     'action.verifyUninstallFailed': 'Uninstallation finished but Asher is still detected on disk.',
 
     'common.cancel': 'Cancel',
+    'common.dismiss': 'Dismiss',
     'common.error': 'An unexpected error occurred.',
     'common.configLost': 'Game configuration is no longer valid. Please set up the game folder again.',
-    'common.logFile': 'Log file: {path}'
+    'common.logFile': 'Log file: {path}',
+
+    'lang.en': 'English',
+    'lang.pt': 'Português (Brasil)',
+    'lang.es': 'Español'
   },
   'pt-BR': {
     'app.title': 'Asher',
@@ -165,6 +176,7 @@ const STRINGS = {
     'app.subtitle.install': 'Instalando Asher',
     'app.subtitle.uninstall': 'Desinstalando Asher',
     'host.notConnected': 'Não conectado',
+    'host.connected': 'Conectado ao Asher.Host',
 
     'shell.starting': 'Iniciando aplicativo',
     'shell.connecting': 'Conectando ao Asher.Host...',
@@ -222,6 +234,7 @@ const STRINGS = {
     'install.cancel': 'Cancelar',
     'install.success': 'Instalação concluída com sucesso.',
     'install.finish': 'Concluir',
+    'install.autoLaunch': 'Iniciar o jogo ao pressionar Concluir',
     'install.nextSteps': 'Próximos passos',
     'install.next.manager': 'Abra o Gerenciador de Patches para ativar ou desativar mods',
     'install.next.launch': 'Inicie o jogo a partir do Início quando estiver pronto',
@@ -259,10 +272,14 @@ const STRINGS = {
     'settings.uninstallDesc': 'Remover o Asher da pasta do jogo e restaurar os arquivos originais quando possível.',
     'settings.uninstallAction': 'Desinstalar Asher',
     'settings.reset': 'Restaurar Padrões',
-    'settings.save': 'Salvar Configurações',
     'settings.saving': 'Salvando configurações...',
-    'settings.saved': 'Configurações salvas com sucesso.',
-    'settings.resetDone': 'Padrões restaurados — salve para persistir.',
+    'settings.saved': 'Configurações salvas.',
+    'settings.resetDone': 'Padrões restaurados.',
+    'settings.invalidPathSave': 'Selecione uma pasta de jogo válida antes de salvar.',
+    'settings.version': 'Versão {version}',
+    'settings.logLoading': 'Arquivo de log: carregando...',
+    'settings.logUnavailable': 'Arquivo de log: indisponível até configurar a pasta do jogo.',
+    'settings.logError': 'Log de diagnóstico: {message}',
     'settings.pathValidating': 'Validando pasta do jogo...',
     'settings.pathValid': 'Pasta do jogo válida.',
     'settings.pathInvalid': 'Pasta do jogo inválida.',
@@ -294,9 +311,14 @@ const STRINGS = {
     'action.verifyUninstallFailed': 'A desinstalação terminou, mas o Asher ainda está detectado no disco.',
 
     'common.cancel': 'Cancelar',
+    'common.dismiss': 'Fechar',
     'common.error': 'Ocorreu um erro inesperado.',
     'common.configLost': 'A configuração do jogo não é mais válida. Configure a pasta do jogo novamente.',
-    'common.logFile': 'Arquivo de log: {path}'
+    'common.logFile': 'Arquivo de log: {path}',
+
+    'lang.en': 'English',
+    'lang.pt': 'Português (Brasil)',
+    'lang.es': 'Español'
   },
   'es-ES': {
     'app.title': 'Asher',
@@ -313,6 +335,7 @@ const STRINGS = {
     'app.subtitle.install': 'Instalando Asher',
     'app.subtitle.uninstall': 'Desinstalando Asher',
     'host.notConnected': 'No conectado',
+    'host.connected': 'Conectado a Asher.Host',
 
     'shell.starting': 'Iniciando aplicación',
     'shell.connecting': 'Conectando a Asher.Host...',
@@ -370,6 +393,7 @@ const STRINGS = {
     'install.cancel': 'Cancelar',
     'install.success': 'Instalación completada con éxito.',
     'install.finish': 'Finalizar',
+    'install.autoLaunch': 'Iniciar el juego al pulsar Finalizar',
     'install.nextSteps': 'Próximos pasos',
     'install.next.manager': 'Abre el Gestor de Parches para activar o desactivar mods',
     'install.next.launch': 'Inicia el juego desde Inicio cuando estés listo',
@@ -407,10 +431,14 @@ const STRINGS = {
     'settings.uninstallDesc': 'Eliminar Asher de la carpeta del juego y restaurar archivos originales cuando sea posible.',
     'settings.uninstallAction': 'Desinstalar Asher',
     'settings.reset': 'Restaurar Valores',
-    'settings.save': 'Guardar Ajustes',
     'settings.saving': 'Guardando ajustes...',
-    'settings.saved': 'Ajustes guardados correctamente.',
-    'settings.resetDone': 'Valores predeterminados restaurados — guarda para persistir.',
+    'settings.saved': 'Ajustes guardados.',
+    'settings.resetDone': 'Valores predeterminados restaurados.',
+    'settings.invalidPathSave': 'Selecciona una carpeta de juego válida antes de guardar.',
+    'settings.version': 'Versión {version}',
+    'settings.logLoading': 'Archivo de registro: cargando...',
+    'settings.logUnavailable': 'Archivo de registro: no disponible hasta configurar la carpeta del juego.',
+    'settings.logError': 'Registro de diagnóstico: {message}',
     'settings.pathValidating': 'Validando carpeta del juego...',
     'settings.pathValid': 'Carpeta del juego válida.',
     'settings.pathInvalid': 'Carpeta del juego no válida.',
@@ -442,9 +470,14 @@ const STRINGS = {
     'action.verifyUninstallFailed': 'La desinstalación terminó, pero Asher sigue detectado en el disco.',
 
     'common.cancel': 'Cancelar',
+    'common.dismiss': 'Cerrar',
     'common.error': 'Ocurrió un error inesperado.',
     'common.configLost': 'La configuración del juego ya no es válida. Configura la carpeta del juego de nuevo.',
-    'common.logFile': 'Archivo de registro: {path}'
+    'common.logFile': 'Archivo de registro: {path}',
+
+    'lang.en': 'English',
+    'lang.pt': 'Português (Brasil)',
+    'lang.es': 'Español'
   }
 };
 
@@ -514,9 +547,9 @@ export function normalizeLanguage(language) {
 /** @returns {{ value: SupportedLanguage, label: string }[]} */
 export function getLanguageOptions() {
   return [
-    { value: 'en-US', label: 'English' },
-    { value: 'pt-BR', label: 'Português (Brasil)' },
-    { value: 'es-ES', label: 'Español' }
+    { value: 'en-US', label: t('lang.en') },
+    { value: 'pt-BR', label: t('lang.pt') },
+    { value: 'es-ES', label: t('lang.es') }
   ];
 }
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -7,6 +7,7 @@ import {
   relocateDiagnosticLogger,
   writeDiagnosticLog
 } from './diagnostic-logger.js';
+import { resolveGameFolderFromSettings } from './log-path-resolver.js';
 import { HostManager } from './host-manager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,6 +52,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 720,
     height: 640,
+    minWidth: 1000,
+    minHeight: 700,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -87,6 +91,14 @@ hostManager.on('status-changed', () => {
 });
 
 ipcMain.handle('asher:get-log-path', () => getDiagnosticLogPath());
+
+ipcMain.handle('app:get-version', () => app.getVersion());
+
+ipcMain.handle('window:minimize', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.minimize();
+  }
+});
 
 ipcMain.handle('asher:relocate-logs', (_event, gameFolderPath) =>
   relocateDiagnosticLogger(gameFolderPath)
@@ -164,6 +176,10 @@ ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, a
       relocateDiagnosticLogger(result.gameFolderPath);
     }
 
+    if (method === 'markUninstalled') {
+      relocateDiagnosticLogger(resolveGameFolderFromSettings());
+    }
+
     return { requestId, result };
   } catch (err) {
     writeDiagnosticLog('error', 'ipc', `${method} failed`, {
@@ -175,6 +191,7 @@ ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, a
 });
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   initDiagnosticLogger();
   createWindow();
 

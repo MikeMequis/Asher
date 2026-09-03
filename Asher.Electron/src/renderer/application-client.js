@@ -87,6 +87,22 @@ export class ApplicationClient {
     return this.api.pickFolder();
   }
 
+  getAppVersion() {
+    if (!this.api.getAppVersion) {
+      return Promise.resolve('0.1.0');
+    }
+
+    return this.api.getAppVersion();
+  }
+
+  minimizeWindow() {
+    if (!this.api.minimizeWindow) {
+      return Promise.resolve();
+    }
+
+    return this.api.minimizeWindow();
+  }
+
   /**
    * @param {string} method
    * @param {object} [params]

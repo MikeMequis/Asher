@@ -31,7 +31,7 @@ namespace Asher.Services.Hosting
         public static ApplicationServices Create()
         {
             var settings = new SettingsService();
-            var installation = new GameInstallationService();
+            var installation = new GameInstallationService(settings);
             var gameFolders = new GameFolderService();
             var launch = new GameLaunchService(gameFolders, installation);
             var patches = new PatchManagerService(launch);

@@ -1,5 +1,5 @@
 import { fetchApplicationState, mapApplicationError } from './application-state.js';
-import { logDiagnostic } from './diagnostic-log.js';
+import { logDiagnostic, refreshDiagnosticLogFooter } from './diagnostic-log.js';
 
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 /** @typedef {import('./application-state.js').ApplicationState} ApplicationState */
@@ -189,7 +189,7 @@ export class ApplicationShell {
     try {
       const state = await fetchApplicationState(this.client);
       if (state.settings?.gameFolderPath) {
-        await this.client.relocateLogs(state.settings.gameFolderPath);
+        await this.#relocateLogs(state.settings.gameFolderPath);
       }
       this.#applicationState = state;
 
@@ -235,6 +235,16 @@ export class ApplicationShell {
     }
 
     await this.#loadApplicationState({ reenterScreen: false });
+  }
+
+  async #relocateLogs(gameFolderPath) {
+    if (!gameFolderPath?.trim()) {
+      return;
+    }
+
+    const logPath = await this.client.relocateLogs(gameFolderPath);
+    await refreshDiagnosticLogFooter(this.client);
+    logDiagnostic('info', 'shell', 'relocateLogs', { gameFolderPath, logPath });
   }
 
   /**

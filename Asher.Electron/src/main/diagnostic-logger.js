@@ -83,8 +83,10 @@ export function getDiagnosticLogPath() {
 export function relocateDiagnosticLogger(gameFolderPath) {
   const logsDir = resolveGameLogsDir(gameFolderPath);
   if (!logsDir) {
-    return null;
+    return logFilePath;
   }
+
+  fs.mkdirSync(logsDir, { recursive: true });
 
   const resolvedLogsDir = path.resolve(logsDir);
   if (logFilePath && path.resolve(logFilePath).startsWith(resolvedLogsDir)) {

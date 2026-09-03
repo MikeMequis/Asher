@@ -70,7 +70,7 @@ export function resolveGameFolderFromSettings() {
       ? settings.gameFolderPath.trim()
       : '';
 
-    if (isValidGameFolder(gameFolderPath)) {
+    if (isConfiguredGameFolder(gameFolderPath)) {
       return gameFolderPath;
     }
   }
@@ -96,7 +96,7 @@ export function resolveGameFolderFromSettings() {
       ? managerSettings.gameFolderPath.trim()
       : gameFolderPath;
 
-    if (isValidGameFolder(managerGameFolder)) {
+    if (isConfiguredGameFolder(managerGameFolder)) {
       return managerGameFolder;
     }
   }
@@ -106,15 +106,34 @@ export function resolveGameFolderFromSettings() {
 
 /**
  * @param {string | null | undefined} gameFolderPath
+ * @returns {boolean}
+ */
+export function isConfiguredGameFolder(gameFolderPath) {
+  if (!gameFolderPath?.trim()) {
+    return false;
+  }
+
+  return fs.existsSync(gameFolderPath.trim());
+}
+
+/**
+ * @param {string | null | undefined} gameFolderPath
  * @returns {string | null}
  */
 export function resolveGameLogsDir(gameFolderPath) {
   const resolvedGameFolder = gameFolderPath?.trim() || resolveGameFolderFromSettings();
-  if (!resolvedGameFolder || !isValidGameFolder(resolvedGameFolder)) {
+  if (!resolvedGameFolder?.trim()) {
     return null;
   }
 
-  return getGameLogsDir(resolvedGameFolder);
+  const normalized = resolvedGameFolder.trim();
+  if (!fs.existsSync(normalized)) {
+    return null;
+  }
+
+  // Use the configured game folder for logs even during install/uninstall
+  // transitions when executable markers may be temporarily inconsistent.
+  return getGameLogsDir(normalized);
 }
 
 /**

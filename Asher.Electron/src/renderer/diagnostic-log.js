@@ -1,5 +1,9 @@
 /**
  * Renderer-side diagnostic logging forwarded to the main process log file.
+ */
+import { t } from './localization.js';
+
+/**
  * @param {'info' | 'warn' | 'error'} level
  * @param {string} source
  * @param {string} message
@@ -25,18 +29,27 @@ export function logDiagnostic(level, source, message, data) {
 /**
  * @param {import('./application-client.js').ApplicationClient} client
  */
-export async function showDiagnosticLogPath(client) {
+export async function refreshDiagnosticLogFooter(client) {
   const pathEl = document.getElementById('diagnostic-log-path');
   if (!pathEl) {
-    return;
+    return null;
   }
 
   try {
     const logPath = await client.getLogPath();
     pathEl.textContent = logPath
-      ? `Log file: ${logPath}`
-      : 'Log file: unavailable until a game folder is configured';
+      ? t('common.logFile', { path: logPath })
+      : t('settings.logUnavailable');
+    return logPath;
   } catch (err) {
-    pathEl.textContent = `Diagnostic log: ${err instanceof Error ? err.message : String(err)}`;
+    pathEl.textContent = t('settings.logError', {
+      message: err instanceof Error ? err.message : String(err)
+    });
+    return null;
   }
+}
+
+/** @deprecated Use refreshDiagnosticLogFooter */
+export async function showDiagnosticLogPath(client) {
+  return refreshDiagnosticLogFooter(client);
 }

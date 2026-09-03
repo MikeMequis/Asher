@@ -1,7 +1,7 @@
 import { ApplicationClient } from './application-client.js';
 import { ApplicationShell } from './application-shell.js';
 import { bindActionBanner, showActionBanner } from './action-banner.js';
-import { logDiagnostic, showDiagnosticLogPath } from './diagnostic-log.js';
+import { logDiagnostic, refreshDiagnosticLogFooter } from './diagnostic-log.js';
 import { GameSetupController } from './game-setup.js';
 import { InstallationController } from './installation-controller.js';
 import { LaunchGameController } from './launch-game.js';
@@ -15,6 +15,7 @@ import { ModManagerController } from './mod-manager.js';
 import { SettingsController } from './settings-controller.js';
 import { applyTheme, applyThemeFromSettings } from './theme.js';
 import { UninstallationController } from './uninstallation-controller.js';
+import { applyDataIcons, iconHtml, NAV_ICONS } from './icons.js';
 
 if (!window.asher) {
   logDiagnostic('error', 'renderer', 'window.asher preload bridge is missing');
@@ -50,9 +51,9 @@ const sidebarNav = document.getElementById('sidebar-nav');
 const sidebarToggle = document.getElementById('sidebar-toggle');
 
 const pageSubtitle = document.getElementById('page-subtitle');
-const statusBadge = document.getElementById('status-badge');
+const hostChip = document.getElementById('host-chip');
 const statusMessage = document.getElementById('status-message');
-const actionBanner = document.getElementById('action-banner');
+const actionBanner = document.getElementById('notification-host');
 bindActionBanner(actionBanner);
 
 const shellLoading = document.getElementById('shell-loading');
@@ -67,7 +68,6 @@ const welcomeView = document.getElementById('welcome-view');
 const welcomeBeginButton = document.getElementById('welcome-begin');
 
 const homeView = document.getElementById('home-view');
-const homeLaunchSuccess = document.getElementById('home-launch-success');
 const homeLaunchError = document.getElementById('home-launch-error');
 const homeCardManager = document.getElementById('home-card-manager');
 const homeCardSettings = document.getElementById('home-card-settings');
@@ -86,6 +86,7 @@ const cancelInstallButton = document.getElementById('cancel-install');
 const installCompleted = document.getElementById('install-completed');
 const installSuccessMessage = document.getElementById('install-success-message');
 const installContinueButton = document.getElementById('install-continue');
+const installAutoLaunch = document.getElementById('install-auto-launch');
 const installFailed = document.getElementById('install-failed');
 const installFailureMessage = document.getElementById('install-failure-message');
 const installErrorDetails = document.getElementById('install-error-details');
@@ -143,20 +144,18 @@ const activeCountEl = document.getElementById('active-count');
 const totalCountEl = document.getElementById('total-count');
 
 const settingsView = document.getElementById('settings-view');
-const settingsStatus = document.getElementById('settings-status');
 const settingsError = document.getElementById('settings-error');
 const settingsGamePath = document.getElementById('settings-game-path');
 const settingsBrowse = document.getElementById('settings-browse');
 const settingsPathStatus = document.getElementById('settings-path-status');
-const settingsAutoLaunch = document.getElementById('settings-auto-launch');
 const settingsBackup = document.getElementById('settings-backup');
 const settingsLanguage = document.getElementById('settings-language');
 const settingsTheme = document.getElementById('settings-theme');
-const settingsCheckUpdates = document.getElementById('settings-check-updates');
+const settingsHostStatus = document.getElementById('settings-host-status');
 const settingsUninstallCard = document.getElementById('settings-uninstall-card');
 const settingsUninstallButton = document.getElementById('settings-uninstall');
 const settingsResetButton = document.getElementById('settings-reset');
-const settingsSaveButton = document.getElementById('settings-save');
+const settingsAppVersion = document.getElementById('settings-app-version');
 
 shell.onChange = renderShell;
 setup.onChange = renderSetup;
@@ -186,6 +185,7 @@ function applyLocalizedText() {
     }
   });
 
+  populateLanguageSelect();
   updateWindowTitle();
 }
 
@@ -214,6 +214,7 @@ function setProgressRing(ring, label, percentage) {
 }
 
 function populateLanguageSelect() {
+  const selected = settingsLanguage.value || settings.draft?.language || 'en-US';
   settingsLanguage.innerHTML = '';
   for (const option of getLanguageOptions()) {
     const el = document.createElement('option');
@@ -221,6 +222,7 @@ function populateLanguageSelect() {
     el.textContent = option.label;
     settingsLanguage.appendChild(el);
   }
+  settingsLanguage.value = selected;
 }
 
 function getInstallWizardStep() {
@@ -238,6 +240,19 @@ function getInstallWizardStep() {
   return 'welcome';
 }
 
+function syncSidebarLayout() {
+  if (!sidebar) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    sidebar.style.width = '';
+    if (shell.sidebarCollapsed) {
+      sidebar.style.width = 'max-content';
+    }
+  });
+}
+
 function renderSidebar() {
   const showNav = shell.isApplicationReady;
   sidebarNav.hidden = !showNav;
@@ -245,41 +260,42 @@ function renderSidebar() {
 
   if (!showNav) {
     sidebarNav.innerHTML = '';
+    syncSidebarLayout();
     return;
   }
 
   const items = shell.isManagerMode
     ? [
-        { id: 'home', label: t('nav.home'), icon: '&#8962;', screen: 'home', enabled: shell.canShowHome },
+        { id: 'home', label: t('nav.home'), icon: NAV_ICONS.home, screen: 'home', enabled: shell.canShowHome },
         {
           id: 'manager',
           label: t('nav.patchManager'),
-          icon: '&#9881;',
+          icon: NAV_ICONS.manager,
           screen: 'manager',
           enabled: shell.canShowManager
         },
-        { id: 'settings', label: t('nav.settings'), icon: '&#128736;', screen: 'settings', enabled: true }
+        { id: 'settings', label: t('nav.settings'), icon: NAV_ICONS.settings, screen: 'settings', enabled: true }
       ]
     : [
-        { id: 'welcome', label: t('nav.welcome'), icon: '&#9733;', screen: 'welcome', step: 'welcome' },
+        { id: 'welcome', label: t('nav.welcome'), icon: NAV_ICONS.welcome, screen: 'welcome', step: 'welcome' },
         {
           id: 'gameDetection',
           label: t('nav.gameDetection'),
-          icon: '&#128269;',
+          icon: NAV_ICONS.gameDetection,
           screen: 'setup',
           step: 'gameDetection'
         },
         {
           id: 'installing',
           label: t('nav.installing'),
-          icon: '&#8635;',
+          icon: NAV_ICONS.installing,
           screen: 'install',
           step: 'installing'
         },
         {
           id: 'complete',
           label: t('nav.complete'),
-          icon: '&#10003;',
+          icon: NAV_ICONS.complete,
           screen: 'install',
           step: 'complete'
         }
@@ -311,7 +327,7 @@ function renderSidebar() {
 
     button.classList.toggle('active', isActive);
     button.disabled = !isEnabled;
-    button.innerHTML = `<span class="sidebar-nav-icon" aria-hidden="true">${item.icon}</span><span class="sidebar-nav-label">${item.label}</span>`;
+    button.innerHTML = `${iconHtml(item.icon, 'sidebar-nav-icon')}<span class="sidebar-nav-label">${item.label}</span>`;
 
     button.addEventListener('click', () => {
       shell.navigateTo(/** @type {import('./application-shell.js').AppScreen} */ (item.screen));
@@ -319,6 +335,8 @@ function renderSidebar() {
 
     sidebarNav.appendChild(button);
   }
+
+  syncSidebarLayout();
 }
 
 async function runInstall() {
@@ -399,6 +417,7 @@ async function runUninstall() {
   await shell.handleUninstallComplete(outcome);
 
   logDiagnostic('info', 'uninstall', 'runUninstall finished', { outcome });
+  await refreshDiagnosticLogFooter(client);
 
   if (outcome === 'completed') {
     showActionBanner('success', uninstallation.result?.message || t('action.uninstallSuccess'));
@@ -422,6 +441,8 @@ shell.onEnterScreen = async (screen) => {
     await settings.loadFromHost({ keepStatus: settings.state === 'saved' });
     syncSettingsForm();
     applyThemeFromSettings(settings.draft);
+    await loadSettingsAppVersion();
+    await refreshDiagnosticLogFooter(client);
     return;
   }
 
@@ -499,9 +520,10 @@ function normalizeAppearanceValue(value) {
 
 function renderHostStatus() {
   const { status, message } = shell.hostStatus;
-  statusBadge.textContent = status;
-  statusBadge.className = `badge badge-${status}`;
-  statusMessage.textContent = message ?? t('host.notConnected');
+  const isReady = status === 'ready';
+
+  hostChip.classList.toggle('host-chip-hidden', isReady);
+  statusMessage.textContent = isReady ? '' : message ?? t('host.notConnected');
 }
 
 function renderShellPhase() {
@@ -589,8 +611,6 @@ function renderHome() {
   homeCardLaunch.hidden = !shell.canLaunchGame;
   homeCardLaunch.disabled = !shell.canLaunchGame || launchGame.launching;
 
-  homeLaunchSuccess.hidden = !launchGame.successMessage;
-  homeLaunchSuccess.textContent = launchGame.successMessage ?? '';
   homeLaunchError.hidden = !launchGame.errorMessage;
   homeLaunchError.textContent = launchGame.errorMessage ?? '';
 }
@@ -794,13 +814,25 @@ function renderManager() {
 
     info.append(title, description);
 
+    const isUpdating = manager.togglingFileName === mod.fileName;
+    const statusLabel = isUpdating
+      ? t('manager.updating')
+      : mod.isEnabled
+        ? t('manager.enabled')
+        : t('manager.disabled');
+
     const toggleLabel = document.createElement('label');
-    toggleLabel.className = 'mod-toggle';
+    toggleLabel.className = 'toggle-switch';
+    if (isUpdating) {
+      toggleLabel.classList.add('toggle-switch-loading');
+    }
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = mod.isEnabled;
     checkbox.disabled = manager.togglingFileName !== null;
+    checkbox.setAttribute('role', 'switch');
+    checkbox.setAttribute('aria-label', statusLabel);
     checkbox.addEventListener('change', async () => {
       manager.clearToggleError();
       await manager.toggleMod(mod.fileName, checkbox.checked);
@@ -811,15 +843,15 @@ function renderManager() {
       }
     });
 
-    const toggleText = document.createElement('span');
-    toggleText.textContent =
-      manager.togglingFileName === mod.fileName
-        ? t('manager.updating')
-        : mod.isEnabled
-          ? t('manager.enabled')
-          : t('manager.disabled');
+    const track = document.createElement('span');
+    track.className = 'toggle-switch-track';
+    track.setAttribute('aria-hidden', 'true');
 
-    toggleLabel.append(checkbox, toggleText);
+    const thumb = document.createElement('span');
+    thumb.className = 'toggle-switch-thumb';
+    track.appendChild(thumb);
+
+    toggleLabel.append(checkbox, track);
     item.append(info, toggleLabel);
     modList.appendChild(item);
   }
@@ -828,11 +860,9 @@ function renderManager() {
 function syncSettingsForm() {
   const draft = settings.draft;
   settingsGamePath.value = draft.gameFolderPath ?? '';
-  settingsAutoLaunch.checked = Boolean(draft.autoLaunchEnabled);
   settingsBackup.checked = Boolean(draft.backupEnabled);
   settingsLanguage.value = draft.language ?? 'en-US';
   settingsTheme.value = draft.theme ?? 'Light';
-  settingsCheckUpdates.checked = Boolean(draft.checkForUpdatesEnabled);
   settingsUninstallCard.hidden = !shell.canUninstall;
   applyThemeFromSettings(draft);
 }
@@ -842,19 +872,12 @@ function renderSettings() {
     return;
   }
 
-  settingsSaveButton.disabled = settings.state === 'saving' || settings.state === 'loading';
   settingsResetButton.disabled = settings.state === 'saving' || settings.state === 'loading';
   settingsBrowse.disabled = settings.state === 'saving' || settings.state === 'loading';
+  settingsBackup.disabled = settings.state === 'saving' || settings.state === 'loading';
+  settingsLanguage.disabled = settings.state === 'saving' || settings.state === 'loading';
+  settingsTheme.disabled = settings.state === 'saving' || settings.state === 'loading';
   settingsUninstallCard.hidden = !shell.canUninstall;
-
-  settingsStatus.hidden = settings.state !== 'saving' && !settings.statusMessage;
-  if (settings.state === 'saving') {
-    settingsStatus.className = 'setup-status status-validating';
-    settingsStatus.textContent = t('settings.saving');
-  } else if (settings.statusMessage) {
-    settingsStatus.className = 'setup-status status-valid';
-    settingsStatus.textContent = settings.statusMessage;
-  }
 
   settingsError.hidden = settings.state !== 'error';
   settingsError.textContent = settings.errorMessage ?? '';
@@ -870,24 +893,59 @@ function renderSettings() {
     settingsPathStatus.textContent = t('settings.pathInvalid');
     settingsPathStatus.className = 'field-hint invalid';
   }
+
+  if (settingsHostStatus) {
+    const { status, message } = shell.hostStatus;
+    settingsHostStatus.textContent =
+      status === 'ready' ? message ?? t('host.connected') : message ?? t('host.notConnected');
+  }
 }
 
-async function saveSettingsAndApply() {
-  const saved = await settings.save(t('settings.saved'));
+async function loadSettingsAppVersion() {
+  if (!settingsAppVersion) {
+    return;
+  }
+
+  try {
+    const version = await client.getAppVersion();
+    settingsAppVersion.textContent = version ? t('settings.version', { version }) : '';
+  } catch {
+    settingsAppVersion.textContent = '';
+  }
+}
+
+/**
+ * @param {{ showToast?: boolean, toastKind?: 'success' | 'info', successMessage?: string }} [options]
+ * @returns {Promise<boolean>}
+ */
+async function persistSettings(options = {}) {
+  const { showToast = true, toastKind = 'success', successMessage } = options;
+
+  if (settings.state === 'loading' || settings.state === 'saving') {
+    return false;
+  }
+
+  const saved = await settings.save();
   if (!saved) {
     if (settings.errorMessage) {
       showActionBanner('error', settings.errorMessage);
     }
-    return;
+    renderSettings();
+    return false;
   }
 
   applyLanguageFromSettings(settings.draft);
   applyThemeFromSettings(settings.draft);
   lastAppliedAppearanceKey = null;
   await shell.refreshApplicationState();
-  settings.setStatusMessage(t('settings.saved'));
+  await refreshDiagnosticLogFooter(client);
   renderSettings();
-  showActionBanner('success', t('settings.saved'));
+
+  if (showToast) {
+    showActionBanner(toastKind, successMessage ?? t('settings.saved'));
+  }
+
+  return true;
 }
 
 welcomeBeginButton.addEventListener('click', () => shell.navigateTo('setup'));
@@ -907,8 +965,19 @@ homeCardLaunch.addEventListener('click', async () => {
 beginInstallButton.addEventListener('click', () => runInstall());
 cancelInstallButton.addEventListener('click', () => installation.cancelInstall());
 installContinueButton.addEventListener('click', async () => {
+  const shouldAutoLaunch = Boolean(installAutoLaunch?.checked);
   installation.reset();
   await shell.finishInstallation();
+  await shell.refreshApplicationState();
+
+  if (shouldAutoLaunch) {
+    launchGame.clearMessages();
+    await launchGame.launchGame(shell.canLaunchGame);
+    if (launchGame.errorMessage) {
+      showActionBanner('error', launchGame.errorMessage);
+    }
+    await client.minimizeWindow();
+  }
 });
 retryInstallButton.addEventListener('click', async () => {
   installation.reset();
@@ -970,6 +1039,7 @@ saveButton.addEventListener('click', async () => {
   const saved = await setup.saveConfiguration();
   if (saved) {
     await shell.onConfigurationSaved();
+    await refreshDiagnosticLogFooter(client);
   }
 });
 
@@ -980,34 +1050,36 @@ refreshModsButton.addEventListener('click', async () => {
   }
 });
 
-settingsBrowse.addEventListener('click', () => settings.browsePath());
-settingsAutoLaunch.addEventListener('change', () => {
-  settings.updateDraft({ autoLaunchEnabled: settingsAutoLaunch.checked });
+settingsBrowse.addEventListener('click', async () => {
+  await settings.browsePath();
+  if (settings.pathState === 'valid') {
+    await persistSettings({ showToast: false });
+  }
 });
-settingsBackup.addEventListener('change', () => {
+settingsBackup.addEventListener('change', async () => {
   settings.updateDraft({ backupEnabled: settingsBackup.checked });
+  await persistSettings({ showToast: false });
 });
-settingsLanguage.addEventListener('change', () => {
+settingsLanguage.addEventListener('change', async () => {
   settings.updateDraft({ language: settingsLanguage.value });
+  await persistSettings({ showToast: false });
 });
-settingsTheme.addEventListener('change', () => {
+settingsTheme.addEventListener('change', async () => {
   settings.updateDraft({ theme: settingsTheme.value });
   applyTheme(settingsTheme.value === 'Dark' ? 'Dark' : 'Light');
+  await persistSettings({ showToast: false });
 });
-settingsCheckUpdates.addEventListener('change', () => {
-  settings.updateDraft({ checkForUpdatesEnabled: settingsCheckUpdates.checked });
-});
-settingsResetButton.addEventListener('click', () => {
+settingsResetButton.addEventListener('click', async () => {
   settings.resetDraft();
   syncSettingsForm();
   applyThemeFromSettings(settings.draft);
-  settings.setStatusMessage(t('settings.resetDone'), { state: 'dirty' });
-  showActionBanner('info', t('settings.resetDone'));
-  renderSettings();
+  await persistSettings({ toastKind: 'info', successMessage: t('settings.resetDone') });
 });
-settingsSaveButton.addEventListener('click', () => saveSettingsAndApply());
 
-sidebarToggle.addEventListener('click', () => shell.toggleSidebar());
+sidebarToggle.addEventListener('click', () => {
+  shell.toggleSidebar();
+  syncSidebarLayout();
+});
 
 retryHostButton.addEventListener('click', async () => {
   retryHostButton.disabled = true;
@@ -1019,9 +1091,10 @@ retryHostButton.addEventListener('click', async () => {
 });
 
 populateLanguageSelect();
+applyDataIcons();
 applyLocalizedText();
 
-await showDiagnosticLogPath(client);
 await shell.start();
 applyAppearanceFromShell();
 applyLocalizedText();
+await loadSettingsAppVersion();

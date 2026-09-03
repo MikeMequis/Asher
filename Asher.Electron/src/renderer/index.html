@@ -8,18 +8,17 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div id="notification-host" class="notification-host" aria-live="polite" aria-relevant="additions"></div>
+
     <div class="app-shell">
       <aside id="sidebar" class="sidebar" aria-label="Navigation">
         <div class="sidebar-header">
           <span class="sidebar-title" data-i18n="app.title">Asher</span>
           <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Toggle sidebar" title="Toggle sidebar">
-            <span class="sidebar-toggle-icon" aria-hidden="true">&#9776;</span>
+            <span class="sidebar-toggle-icon material-symbols-outlined" data-icon="menu" aria-hidden="true"></span>
           </button>
         </div>
         <nav id="sidebar-nav" class="sidebar-nav" hidden></nav>
-        <div class="sidebar-footer">
-          <span id="app-version" class="sidebar-version">v0.1.0</span>
-        </div>
       </aside>
 
       <div class="main-area">
@@ -28,13 +27,10 @@
             <h1 id="app-heading" data-i18n="app.title">Asher</h1>
             <p id="page-subtitle" class="subtitle" data-i18n="app.subtitle.connecting">Starting...</p>
           </div>
-          <div class="host-chip" aria-live="polite">
-            <span id="status-badge" class="badge badge-stopped">stopped</span>
+          <div class="host-chip host-chip-hidden" id="host-chip" aria-live="polite">
             <span id="status-message" class="status-message" data-i18n="host.notConnected">Not connected</span>
           </div>
         </header>
-
-        <div id="action-banner" class="action-banner" hidden aria-live="polite"></div>
 
         <section id="shell-loading" class="panel shell-state">
           <h2 id="shell-loading-title" data-i18n="shell.starting">Starting application</h2>
@@ -58,11 +54,11 @@
 
             <div class="info-note-list">
               <div class="info-note">
-                <span class="info-note-icon" aria-hidden="true">&#128190;</span>
+                <span class="info-note-icon" data-icon="backup" aria-hidden="true"></span>
                 <span data-i18n="welcome.info.backup">An automatic backup is created before game files are changed.</span>
               </div>
               <div class="info-note">
-                <span class="info-note-icon" aria-hidden="true">&#9881;</span>
+                <span class="info-note-icon" data-icon="build" aria-hidden="true"></span>
                 <span data-i18n="welcome.info.modify">Game files will be modified so mods can load safely.</span>
               </div>
             </div>
@@ -79,22 +75,21 @@
               <p class="help-text" data-i18n="home.description">Manage mods and launch your patched game from here.</p>
             </div>
 
-            <div id="home-launch-success" class="setup-status status-valid" hidden></div>
             <div id="home-launch-error" class="error" hidden></div>
 
             <div class="action-grid">
               <button id="home-card-manager" class="action-card" type="button">
-                <span class="action-card-icon" aria-hidden="true">&#128230;</span>
+                <span class="action-card-icon" data-icon="inventory_2" aria-hidden="true"></span>
                 <span class="action-card-title" data-i18n="home.card.manager">Patch Manager</span>
                 <span class="action-card-desc" data-i18n="home.card.managerDesc">Enable or disable individual mods</span>
               </button>
               <button id="home-card-settings" class="action-card" type="button">
-                <span class="action-card-icon" aria-hidden="true">&#9881;</span>
+                <span class="action-card-icon" data-icon="settings" aria-hidden="true"></span>
                 <span class="action-card-title" data-i18n="home.card.settings">Settings</span>
                 <span class="action-card-desc" data-i18n="home.card.settingsDesc">Preferences, game path, and uninstall</span>
               </button>
               <button id="home-card-launch" class="action-card action-card-primary" type="button" hidden>
-                <span class="action-card-icon" aria-hidden="true">&#9654;</span>
+                <span class="action-card-icon" data-icon="play_arrow" aria-hidden="true"></span>
                 <span class="action-card-title" data-i18n="home.card.launch">Launch Game</span>
                 <span class="action-card-desc" data-i18n="home.card.launchDesc">Start the game with mods enabled</span>
               </button>
@@ -127,7 +122,7 @@
                 </div>
               </div>
               <div class="info-note warning-note">
-                <span class="info-note-icon" aria-hidden="true">&#9888;</span>
+                <span class="info-note-icon" data-icon="warning" aria-hidden="true"></span>
                 <span data-i18n="install.warning">Do not close the application during installation.</span>
               </div>
               <button id="cancel-install" class="secondary" hidden data-i18n="install.cancel">Cancel</button>
@@ -135,17 +130,20 @@
 
             <div id="install-completed" class="install-state" hidden>
               <div class="result-banner result-success">
-                <span class="result-icon" aria-hidden="true">&#10003;</span>
+                <span class="result-icon material-symbols-outlined" data-icon="check_circle" aria-hidden="true"></span>
                 <p id="install-success-message" data-i18n="install.success">Installation completed successfully.</p>
               </div>
               <div class="next-steps">
                 <h3 class="next-steps-title" data-i18n="install.nextSteps">Next steps</h3>
                 <ul class="next-steps-list">
                   <li data-i18n="install.next.manager">Open Patch Manager to enable or disable mods</li>
-                  <li data-i18n="install.next.launch">Launch the game from Home when you are ready</li>
                   <li data-i18n="install.next.settings">Review Settings for language, theme, and backups</li>
                 </ul>
               </div>
+              <label class="toggle-row install-auto-launch-row">
+                <input id="install-auto-launch" type="checkbox" checked />
+                <span data-i18n="install.autoLaunch">Launch game when I press Finish</span>
+              </label>
               <div class="action-row action-row-end">
                 <button id="install-continue" class="primary" data-i18n="install.finish">Finish</button>
               </div>
@@ -153,7 +151,7 @@
 
             <div id="install-failed" class="error install-state" hidden>
               <div class="result-banner result-error">
-                <span class="result-icon" aria-hidden="true">&#10007;</span>
+                <span class="result-icon material-symbols-outlined" data-icon="cancel" aria-hidden="true"></span>
                 <p id="install-failure-message"></p>
               </div>
               <details id="install-error-details" class="error-details" hidden>
@@ -236,7 +234,6 @@
               <p class="help-text" data-i18n="settings.description">Configure game path, preferences, and application behavior.</p>
             </div>
 
-            <div id="settings-status" class="setup-status status-valid" hidden></div>
             <div id="settings-error" class="error" hidden></div>
 
             <div class="settings-card">
@@ -247,10 +244,6 @@
                 <button id="settings-browse" class="secondary" type="button" data-i18n="setup.browse">Browse...</button>
               </div>
               <div id="settings-path-status" class="field-hint" hidden></div>
-              <label class="toggle-row">
-                <input id="settings-auto-launch" type="checkbox" />
-                <span data-i18n="settings.autoLaunch">Auto-launch game after install</span>
-              </label>
               <label class="toggle-row">
                 <input id="settings-backup" type="checkbox" />
                 <span data-i18n="settings.backup">Create backup before install</span>
@@ -266,10 +259,6 @@
                 <option value="Light" data-i18n="settings.themeLight">Light</option>
                 <option value="Dark" data-i18n="settings.themeDark">Dark</option>
               </select>
-              <label class="toggle-row">
-                <input id="settings-check-updates" type="checkbox" />
-                <span data-i18n="settings.checkUpdates">Check for updates</span>
-              </label>
             </div>
 
             <div id="settings-uninstall-card" class="settings-card settings-card-danger" hidden>
@@ -280,8 +269,13 @@
 
             <div class="action-row settings-actions">
               <button id="settings-reset" class="secondary" type="button" data-i18n="settings.reset">Reset to Defaults</button>
-              <button id="settings-save" class="primary" type="button" data-i18n="settings.save">Save Settings</button>
             </div>
+
+            <footer class="diagnostic-footer">
+              <p id="settings-app-version" class="settings-app-version"></p>
+              <p id="settings-host-status" class="settings-host-status"></p>
+              <p id="diagnostic-log-path" class="diagnostic-log-path" data-i18n="settings.logLoading">Log file: loading...</p>
+            </footer>
           </section>
 
           <section id="uninstall-view" class="panel page-view" hidden>
@@ -314,7 +308,7 @@
                 </div>
               </div>
               <div class="info-note warning-note">
-                <span class="info-note-icon" aria-hidden="true">&#9888;</span>
+                <span class="info-note-icon" data-icon="warning" aria-hidden="true"></span>
                 <span data-i18n="uninstall.warning">Do not close the application during uninstall.</span>
               </div>
               <button id="cancel-uninstall" class="secondary" hidden data-i18n="uninstall.cancel">Cancel</button>
@@ -346,10 +340,6 @@
             </div>
           </section>
         </main>
-
-        <footer class="diagnostic-footer">
-          <p id="diagnostic-log-path" class="diagnostic-log-path">Log file: loading...</p>
-        </footer>
       </div>
     </div>
 

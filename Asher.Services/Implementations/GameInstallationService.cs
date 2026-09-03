@@ -15,6 +15,8 @@ namespace Asher.Services.Implementations
         private const string AsherFolderName = AsherPaths.RuntimeFolderName;
         private const string LogsFolderName = "AsherLogs";
 
+        private readonly ISettingsService _settingsService;
+
         private static readonly string[] RequiredRuntimeFiles =
         {
             "Asher.Runtime.dll",
@@ -30,6 +32,11 @@ namespace Asher.Services.Implementations
             "Asher.Patching.MuteVoiceActing.dll",
             "Asher.Patching.OverheatDisabler.dll"
         };
+
+        public GameInstallationService(ISettingsService settingsService)
+        {
+            _settingsService = settingsService;
+        }
 
         public async Task<InstallationResult> InstallAsync(
             GameFolderInfo gameInfo,
@@ -68,21 +75,42 @@ namespace Asher.Services.Implementations
 
                 InstallFlowTrace.Log("InstallAsync proceeding", DescribeInstallMarkers(gamePath));
 
-                progress?.Report(new InstallationProgress
-                {
-                    Percentage = 10,
-                    Message = "Criando backup dos arquivos originais...",
-                    Details = "Preparando backup de segurança"
-                });
+                var backupEnabled = _settingsService.Load().BackupEnabled;
 
-                await Task.Run(() => CreateBackup(gamePath, originalExePath));
-
-                progress?.Report(new InstallationProgress
+                if (backupEnabled)
                 {
-                    Percentage = 20,
-                    Message = "Backup criado com sucesso",
-                    Details = $"Backup salvo em {BackupFolderName}/"
-                });
+                    progress?.Report(new InstallationProgress
+                    {
+                        Percentage = 10,
+                        Message = "Criando backup dos arquivos originais...",
+                        Details = "Preparando backup de segurança"
+                    });
+
+                    await Task.Run(() => CreateBackup(gamePath, originalExePath));
+
+                    progress?.Report(new InstallationProgress
+                    {
+                        Percentage = 20,
+                        Message = "Backup criado com sucesso",
+                        Details = $"Backup salvo em {BackupFolderName}/"
+                    });
+                }
+                else
+                {
+                    progress?.Report(new InstallationProgress
+                    {
+                        Percentage = 10,
+                        Message = "Pulando backup...",
+                        Details = "Backup desabilitado nas configurações"
+                    });
+
+                    progress?.Report(new InstallationProgress
+                    {
+                        Percentage = 20,
+                        Message = "Backup ignorado",
+                        Details = "Continuando instalação sem backup"
+                    });
+                }
 
                 progress?.Report(new InstallationProgress
                 {
@@ -588,7 +616,7 @@ namespace Asher.Services.Implementations
             foreach (var directory in Directory.GetDirectories(asherFolder))
             {
                 var directoryName = Path.GetFileName(directory);
-                if (directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase))
+                if (ShouldPreserveAsherSubfolder(directoryName))
                     continue;
 
                 try
@@ -630,6 +658,10 @@ namespace Asher.Services.Implementations
             }
         }
 
+        private static bool ShouldPreserveAsherSubfolder(string directoryName) =>
+            directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
+            || directoryName.Equals(LogsFolderName, StringComparison.OrdinalIgnoreCase);
+
         private static void CleanRuntimeFiles(string gameFolderPath)
         {
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
@@ -642,7 +674,7 @@ namespace Asher.Services.Implementations
             foreach (var directory in Directory.GetDirectories(asherFolder))
             {
                 var directoryName = Path.GetFileName(directory);
-                if (directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase))
+                if (ShouldPreserveAsherSubfolder(directoryName))
                     continue;
 
                 Directory.Delete(directory, true);

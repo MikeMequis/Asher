@@ -29,5 +29,7 @@ contextBridge.exposeInMainWorld('asher', {
     return () => ipcRenderer.removeListener('asher:progress', listener);
   },
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
-  relocateLogs: (gameFolderPath) => ipcRenderer.invoke('asher:relocate-logs', gameFolderPath)
+  relocateLogs: (gameFolderPath) => ipcRenderer.invoke('asher:relocate-logs', gameFolderPath),
+  getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize')
 });

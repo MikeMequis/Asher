@@ -1,7 +1,6 @@
 import { classifyError } from './errors.js';
-import { normalizeLanguage } from './localization.js';
+import { normalizeLanguage, t } from './localization.js';
 import { normalizeTheme } from './theme.js';
-
 /** @typedef {'idle' | 'loading' | 'dirty' | 'saving' | 'saved' | 'error'} SettingsState */
 /** @typedef {import('./application-client.js').ApplicationClient} ApplicationClient */
 
@@ -14,8 +13,14 @@ const DEFAULT_SETTINGS = {
   language: 'en-US',
   autoLaunchEnabled: true,
   backupEnabled: true,
-  theme: 'Light',
-  checkForUpdatesEnabled: true
+  theme: 'Light'
+};
+
+/** Preference fields restored by "Reset to Defaults". */
+const PREFERENCE_DEFAULTS = {
+  language: DEFAULT_SETTINGS.language,
+  backupEnabled: DEFAULT_SETTINGS.backupEnabled,
+  theme: DEFAULT_SETTINGS.theme
 };
 
 /**
@@ -143,9 +148,10 @@ export class SettingsController {
   }
 
   resetDraft() {
-    this.#draft = { ...DEFAULT_SETTINGS };
-    this.#validatedFolder = null;
-    this.#pathState = 'idle';
+    this.#draft = {
+      ...this.#draft,
+      ...PREFERENCE_DEFAULTS
+    };
     this.#errorMessage = null;
     this.#statusMessage = null;
     this.#setState('dirty');
@@ -207,11 +213,10 @@ export class SettingsController {
 
     const trimmedPath = this.#draft.gameFolderPath?.trim() ?? '';
     if (trimmedPath && this.#pathState === 'invalid') {
-      this.#errorMessage = 'Select a valid game folder before saving.';
+      this.#errorMessage = t('settings.invalidPathSave');
       this.#setState('error');
       return false;
     }
-
     this.#errorMessage = null;
     this.#statusMessage = null;
     this.#setState('saving');
