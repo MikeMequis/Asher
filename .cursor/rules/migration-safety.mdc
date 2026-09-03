@@ -1,0 +1,29 @@
+---
+description: Safety rules for Asher migration and maintenance — prevent regressions and duplicate work
+alwaysApply: true
+---
+
+# Migration Safety
+
+## Before proposing changes
+
+1. **Check current implementation first.** The Electron migration (Steps 1–20) is complete. Inspect source code before suggesting a migration step — it is likely already done.
+2. **Read the actual code, not just docs.** `docs/Electron-Migration-Implementation.md` is a migration record, not a to-do list. Follow `.cursor/rules/asher-documentation.mdc` when updating docs.
+3. **Identify the current owner.** Before modifying architecture, determine which existing component handles the responsibility.
+
+## Do not
+
+- Recreate retired WPF functionality (Prism navigation, WPF views, MaterialDesign controls).
+- Introduce duplicate implementations of logic that already exists in C# services or renderer controllers.
+- Propose large refactors when a localized change is sufficient.
+- Move business logic from C# into JavaScript without a strong reason.
+- Change JSONL protocol shapes, file layouts, or launcher chain unless explicitly required.
+- Interpret completed migration steps as unfinished work.
+
+## Do
+
+- Preserve existing behavior, contracts, and installation semantics.
+- Extend existing abstractions (`IAsherApplication`, controllers, `localization.js`) rather than creating competing ones.
+- Distinguish required changes from optional cleanup.
+- Keep changes proportional to the requirement.
+- Verify changes against existing smoke tests before considering them done.

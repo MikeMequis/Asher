@@ -1,0 +1,31 @@
+---
+description: C# backend conventions — services, contracts, and Host
+globs: "*.cs"
+alwaysApply: false
+---
+
+# C# Backend
+
+## Active projects
+
+| Project | Role |
+|---------|------|
+| `Asher.Core` | Models (`ManagedModInfo`, `AsherSettings`, `AsherPaths`), no UI deps |
+| `Asher.Services` | Business logic implementations + `IAsherApplication` contract |
+| `Asher.Host` | JSONL transport, `JsonlHostSession`, spawned by Electron |
+| `Asher.Host.TestClient` | Protocol validation tool |
+| `Asher.SDK` | Patching API for mod DLLs |
+| `Asher.Launcher` | Game executable replacement; loads runtime |
+| `Asher.Runtime` | In-game Harmony bootstrap |
+| `Asher.Patching.*` | Individual mod assemblies (5 canonical mods) |
+
+## Rules
+
+- New Electron features should be exposed through `IAsherApplication` + JSONL, not ad-hoc IPC.
+- Keep contracts DTO-oriented (`Asher.Services/Application/Contracts/`). Do not expose internal service types.
+- Preserve existing service behavior unless a requirement explicitly demands a change.
+- Do not introduce Electron, WPF, or Prism references in backend projects.
+- Launcher and Runtime run inside the game process — keep them independent of Host.
+- All `Asher.Host` stdout is JSONL protocol traffic. Use stderr for diagnostics.
+- Build command: `dotnet build <project>.csproj -c Debug -p:Platform=x86`
+- Do not modify unrelated projects merely for cleanup preferences.

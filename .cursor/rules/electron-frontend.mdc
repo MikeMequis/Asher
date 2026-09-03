@@ -1,0 +1,44 @@
+---
+description: Electron frontend conventions — main, preload, renderer responsibilities
+globs: Asher.Electron/**
+alwaysApply: false
+---
+
+# Electron Frontend
+
+## Directory responsibilities
+
+| Directory | Role | Key files |
+|-----------|------|-----------|
+| `src/main/` | Node.js main process — window, host lifecycle, IPC handlers | `main.js`, `host-manager.js`, `jsonl-client.js`, `resolve-host-path.js`, `diagnostic-logger.js` |
+| `src/preload/` | Context bridge — exposes `window.asher` API to renderer | `preload.cjs` |
+| `src/renderer/` | Browser context — all UI, state, controllers | `app.js`, `application-shell.js`, `application-client.js`, controllers, `localization.js`, `theme.js`, `icons.js` |
+
+## Renderer modules
+
+| Module | Purpose |
+|--------|---------|
+| `application-shell.js` | App lifecycle, navigation, mode transitions |
+| `application-client.js` | Thin wrapper over `window.asher` preload bridge |
+| `application-state.js` | Shared state fetched from backend |
+| `game-setup.js` | Setup wizard controller |
+| `installation-controller.js` | Install flow state machine |
+| `uninstallation-controller.js` | Uninstall flow state machine |
+| `mod-manager.js` | Mod list + toggle state |
+| `settings-controller.js` | Settings draft, validate, persist |
+| `launch-game.js` | Launch game action |
+| `action-banner.js` | Toast notification stack |
+| `localization.js` | i18n string tables (en/pt/es) |
+| `theme.js` | Light/Dark theme application |
+| `icons.js` | Material Symbols helpers |
+| `errors.js` | Error classification |
+
+## Rules
+
+- Renderer code must not use Node.js or Electron APIs directly; use `window.asher.*` from preload.
+- All backend calls go through `ApplicationClient.invoke()` which routes to `window.asher.invoke()`.
+- Keep UI state in renderer controllers; do not store application state in main process beyond host status.
+- Reuse existing controllers, localization, theme, and icon infrastructure before creating alternatives.
+- Do not duplicate backend business logic in JavaScript — delegate to C# via JSONL.
+- DOM updates for mod toggles use incremental patching (`updateModRow`), not full list rebuilds.
+- `app.js` is the composition root — wires controllers, renders views, attaches event listeners.

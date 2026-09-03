@@ -1,0 +1,42 @@
+---
+description: Asher project current state — what is built, retired, and remaining
+alwaysApply: true
+---
+
+# Asher Project State
+
+Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron** app (`Asher.Electron`). The backend is a C# console process (`Asher.Host`) communicating over **JSONL on stdin/stdout**.
+
+## Completed (do not reimplement)
+
+- Electron shell: sidebar, home hub, settings, patch manager, game setup
+- Install / uninstall / launch flows through JSONL contract
+- Localization (en-US, pt-BR, es) in renderer `localization.js`
+- Theme (Light / Dark) in renderer `theme.js`
+- Material Symbols Outlined icons (self-hosted font, `icons.js`)
+- Settings auto-save, preference-only reset, browse path
+- Install Finish UX with optional launch + minimize
+- `BackupEnabled` gates `CreateBackup` in `GameInstallationService`
+- `setModEnabled` validates mod existence in `PatchManagerService`
+- Incremental mod-list rendering (no full DOM rebuild on toggle)
+- Toast notifications (`action-banner.js`, top-right stack)
+- `markInstalled` / `markUninstalled` contract methods (replaced fragile settings merge)
+- Install payload bundled via MSBuild (`install-payload/` beside `Asher.Host.exe`)
+- Production packaging (`npm run dist`, unsigned portable)
+
+## Retired (do not recreate)
+
+- WPF UI: `Asher.App`, `Asher.UserInterface`, `Asher.Localization` — deleted
+- WPF-only services: `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`
+- `PrepareDistribution.ps1` — WPF-era packaging script
+- Prism / MaterialDesign / WPF dependencies in `Asher.Core`
+
+## Deferred
+
+- Full install wizard stepper chrome
+- Packaged portable as primary validated distribution path
+- Content patcher UI (no backend exists)
+
+## Documentation caveat
+
+`docs/Electron-Migration-Implementation.md` is a compact migration record (not a task list). See `.cursor/rules/asher-documentation.mdc` for doc maintenance.

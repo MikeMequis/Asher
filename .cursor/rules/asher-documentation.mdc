@@ -1,0 +1,69 @@
+---
+description: Documentation practices — when and how to update Asher project docs
+globs: docs/**
+alwaysApply: false
+---
+
+# Asher Documentation
+
+## Purpose
+
+Documentation answers: **what do I need to know to work on this project now?**
+
+It is not a diary of every implementation action. Prefer updating existing sections over appending duplicates.
+
+## Where information lives
+
+| Topic | Primary location |
+|-------|------------------|
+| Current project state (completed / retired / deferred) | `.cursor/rules/asher-current-state.mdc` |
+| Architecture boundaries | `.cursor/rules/asher-architecture.mdc` |
+| JSONL protocol details | `.cursor/rules/jsonl-protocol.mdc` |
+| Validation commands | `.cursor/rules/testing-validation.mdc` |
+| Migration record (decisions, milestones, compatibility) | `docs/Electron-Migration-Implementation.md` |
+| Deep architectural investigation (reference) | `docs/GUI-Architecture-Investigation.md` |
+| WPF-era UI reference (historical) | `docs/WPF-Manager-UI-Reference.md` |
+
+Do not duplicate protocol method lists or smoke-test commands across multiple docs — link or reference the canonical location.
+
+## When to document
+
+Document meaningful changes: architecture, contracts/protocol, install/launch/runtime behavior, packaging, significant migration milestones, decisions future developers might misunderstand, known limitations.
+
+Skip documentation for: obvious bug fixes, formatting, minor CSS with no behavioral impact, refactors that do not change external behavior.
+
+## Change entry format
+
+```md
+### YYYY-MM-DD — Short Title
+
+**Change:** What changed.
+
+**Reason:** Why it was necessary.
+
+**Impact:** Behavior, architecture, contract, or workflow affected.
+
+**Notes:** Compatibility, limitations, or follow-up (optional).
+```
+
+For architectural decisions:
+
+```md
+### Decision — Short Title
+
+**Context:** Problem or constraint.
+
+**Decision:** What was chosen.
+
+**Rationale:** Why.
+
+**Consequences:** Trade-offs or limitations.
+```
+
+## Maintenance rules
+
+- Remove or compress obsolete content when superseded.
+- Mark historical context explicitly; do not present retired architecture as current.
+- Prefer the **source code** over docs when they disagree for current-state descriptions.
+- After significant changes, update `asher-current-state.mdc` if completed/deferred/retired lists change.
+- Keep `Electron-Migration-Implementation.md` compact — add milestones and decisions, not step-by-step implementation logs.

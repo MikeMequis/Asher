@@ -1,0 +1,63 @@
+---
+description: Testing and validation commands for Asher
+globs: "{Asher.Electron/scripts/**,Asher.Electron/package.json,Asher.Host.TestClient/**,Asher.Host/SmokeRunner.cs}"
+alwaysApply: false
+---
+
+# Testing and Validation
+
+## Build
+
+```bash
+# C# backend (from repo root)
+dotnet build Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86
+
+# All host deps including patching projects
+cd Asher.Electron && npm run build:host:debug
+```
+
+## Smoke tests (headless, no GUI)
+
+```bash
+cd Asher.Electron
+npm run smoke            # Full suite
+npm run smoke:setup      # Game folder detect/validate/save
+npm run smoke:manager    # getMods + setModEnabled failure path
+npm run smoke:shell      # Application shell lifecycle
+npm run smoke:install    # Install with invalid path (safe)
+npm run smoke:uninstall  # Uninstall with invalid path (safe)
+npm run smoke:launch     # Launch (expects no game on dev machine)
+npm run smoke:payload    # Verify install-payload contents
+```
+
+## .NET test client (JSONL protocol validation)
+
+```bash
+dotnet run --project Asher.Host.TestClient -p:Platform=x86
+```
+
+## Dev run
+
+```bash
+cd Asher.Electron && npm start
+```
+
+## Packaging
+
+```bash
+cd Asher.Electron && npm run dist    # clean:dist + build:host Release + electron-builder
+```
+
+## Validation strategy
+
+1. **Smallest scope first**: build the changed C# project, run the relevant smoke test.
+2. **Broader when needed**: `npm run smoke` for cross-cutting changes; `npm start` for UI verification.
+3. **Real-game validation**: required for changes to install, uninstall, launch, or runtime patching. Must be done on a machine with Dust: An Elysian Tail installed.
+4. **Packaged validation**: run `npm run dist` and test the portable exe when packaging config changes.
+
+## Known limitations
+
+- Smoke tests use temp paths, not real game folders.
+- `smoke:launch` expects no game installed on dev machine — "expected false positive" on game PC.
+- Packaged portable is secondary to `npm start` for day-to-day dev validation.
+- Patching project builds may warn about missing XNA GAC on machines without the game.
