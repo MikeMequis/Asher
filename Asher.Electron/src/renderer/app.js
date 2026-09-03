@@ -475,7 +475,7 @@ function renderShell() {
   renderSetup();
   renderInstall();
   renderUninstall();
-  renderManager();
+  renderManager(true);
   renderSettings();
 }
 
@@ -754,11 +754,37 @@ function renderSetup() {
   }
 }
 
-function renderManager() {
+/** @type {boolean} */
+let suppressModToggleChange = false;
+
+function renderManager(forceFull = false) {
   if (!shell.isApplicationReady || shell.screen !== 'manager') {
     return;
   }
 
+  const hint = forceFull ? { scope: 'full', fileName: null } : manager.lastNotify;
+
+  renderManagerChrome();
+
+  if (manager.loadState !== 'loaded') {
+    modList.innerHTML = '';
+    return;
+  }
+
+  const needsFullList =
+    hint.scope === 'full' || modList.children.length !== manager.mods.length;
+
+  if (needsFullList) {
+    renderModList();
+    return;
+  }
+
+  if (hint.fileName) {
+    updateModRow(hint.fileName);
+  }
+}
+
+function renderManagerChrome() {
   refreshModsButton.disabled =
     !shell.isHostReady || manager.togglingFileName !== null || manager.loadState === 'loading';
 
@@ -774,78 +800,109 @@ function renderManager() {
 
   activeCountEl.textContent = String(manager.activeCount);
   totalCountEl.textContent = String(manager.totalCount);
+}
 
+/**
+ * @param {{ fileName: string, name: string, description: string, isEnabled: boolean }} mod
+ * @returns {HTMLLIElement}
+ */
+function createModItem(mod) {
+  const item = document.createElement('li');
+  item.className = 'mod-item';
+  item.dataset.fileName = mod.fileName;
+
+  const info = document.createElement('div');
+  info.className = 'mod-info';
+
+  const title = document.createElement('div');
+  title.className = 'mod-name';
+  title.textContent = mod.name;
+
+  const description = document.createElement('div');
+  description.className = 'mod-description';
+  description.textContent = mod.description || mod.fileName;
+
+  info.append(title, description);
+
+  const toggleLabel = document.createElement('label');
+  toggleLabel.className = 'toggle-switch';
+
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.checked = mod.isEnabled;
+  checkbox.setAttribute('role', 'switch');
+  checkbox.setAttribute('aria-label', modStatusLabel(mod));
+
+  const track = document.createElement('span');
+  track.className = 'toggle-switch-track';
+  track.setAttribute('aria-hidden', 'true');
+
+  const thumb = document.createElement('span');
+  thumb.className = 'toggle-switch-thumb';
+  track.appendChild(thumb);
+
+  toggleLabel.append(checkbox, track);
+  item.append(info, toggleLabel);
+
+  return item;
+}
+
+/**
+ * @param {{ fileName: string, name: string, description: string, isEnabled: boolean }} mod
+ */
+function modStatusLabel(mod) {
+  const isUpdating = manager.togglingFileName === mod.fileName;
+  if (isUpdating) {
+    return t('manager.updating');
+  }
+
+  return mod.isEnabled ? t('manager.enabled') : t('manager.disabled');
+}
+
+function renderModList() {
   modList.innerHTML = '';
 
-  if (manager.loadState !== 'loaded') {
+  for (const mod of manager.mods) {
+    const item = createModItem(mod);
+    updateModRow(mod.fileName, item);
+    modList.appendChild(item);
+  }
+}
+
+/**
+ * @param {string} fileName
+ * @param {HTMLLIElement} [item]
+ */
+function updateModRow(fileName, item = null) {
+  const mod = manager.mods.find((entry) => entry.fileName === fileName);
+  if (!mod) {
     return;
   }
 
-  for (const mod of manager.mods) {
-    const item = document.createElement('li');
-    item.className = 'mod-item';
-
-    const info = document.createElement('div');
-    info.className = 'mod-info';
-
-    const title = document.createElement('div');
-    title.className = 'mod-name';
-    title.textContent = mod.name;
-
-    const description = document.createElement('div');
-    description.className = 'mod-description';
-    description.textContent = mod.description || mod.fileName;
-
-    info.append(title, description);
-
-    const isUpdating = manager.togglingFileName === mod.fileName;
-    const statusLabel = isUpdating
-      ? t('manager.updating')
-      : mod.isEnabled
-        ? t('manager.enabled')
-        : t('manager.disabled');
-
-    const toggleLabel = document.createElement('label');
-    toggleLabel.className = 'toggle-switch';
-    if (isUpdating) {
-      toggleLabel.classList.add('toggle-switch-loading');
-    }
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = mod.isEnabled;
-    checkbox.disabled = manager.togglingFileName !== null;
-    checkbox.setAttribute('role', 'switch');
-    checkbox.setAttribute('aria-label', statusLabel);
-    checkbox.addEventListener('change', async () => {
-      manager.clearToggleError();
-      const patchName = mod.name || mod.fileName;
-      const enabled = checkbox.checked;
-      await manager.toggleMod(mod.fileName, enabled);
-      if (manager.toggleError) {
-        showActionBanner('error', manager.toggleError || t('action.modFailed'));
-      } else {
-        showActionBanner(
-          'success',
-          enabled
-            ? t('manager.patchActive', { name: patchName })
-            : t('manager.patchInactive', { name: patchName })
-        );
-      }
-    });
-
-    const track = document.createElement('span');
-    track.className = 'toggle-switch-track';
-    track.setAttribute('aria-hidden', 'true');
-
-    const thumb = document.createElement('span');
-    thumb.className = 'toggle-switch-thumb';
-    track.appendChild(thumb);
-
-    toggleLabel.append(checkbox, track);
-    item.append(info, toggleLabel);
-    modList.appendChild(item);
+  const row =
+    item ?? modList.querySelector(`.mod-item[data-file-name="${CSS.escape(fileName)}"]`);
+  if (!(row instanceof HTMLLIElement)) {
+    renderModList();
+    return;
   }
+
+  const checkbox = row.querySelector('input[type="checkbox"]');
+  const toggleLabel = row.querySelector('.toggle-switch');
+  if (!(checkbox instanceof HTMLInputElement) || !(toggleLabel instanceof HTMLLabelElement)) {
+    return;
+  }
+
+  const isUpdating = manager.togglingFileName === fileName;
+
+  if (!isUpdating && checkbox.checked !== mod.isEnabled) {
+    suppressModToggleChange = true;
+    checkbox.checked = mod.isEnabled;
+    suppressModToggleChange = false;
+  }
+
+  checkbox.disabled = isUpdating;
+  checkbox.setAttribute('aria-label', modStatusLabel(mod));
+  toggleLabel.classList.toggle('toggle-switch-loading', isUpdating);
 }
 
 function syncSettingsForm() {
@@ -1039,6 +1096,47 @@ refreshModsButton.addEventListener('click', async () => {
   if (!shell.canShowManager) {
     await shell.handleConfigurationLost();
   }
+});
+
+modList.addEventListener('change', async (event) => {
+  if (suppressModToggleChange) {
+    return;
+  }
+
+  const checkbox = event.target;
+  if (!(checkbox instanceof HTMLInputElement) || checkbox.type !== 'checkbox') {
+    return;
+  }
+
+  const row = checkbox.closest('.mod-item');
+  if (!(row instanceof HTMLLIElement) || !row.dataset.fileName) {
+    return;
+  }
+
+  const fileName = row.dataset.fileName;
+  const mod = manager.mods.find((entry) => entry.fileName === fileName);
+  if (!mod) {
+    return;
+  }
+
+  manager.clearToggleError();
+
+  const enabled = checkbox.checked;
+  const patchName = mod.name || mod.fileName;
+
+  await manager.toggleMod(fileName, enabled);
+
+  if (manager.toggleError) {
+    showActionBanner('error', manager.toggleError || t('action.modFailed'));
+    return;
+  }
+
+  showActionBanner(
+    'success',
+    enabled
+      ? t('manager.patchActive', { name: patchName })
+      : t('manager.patchInactive', { name: patchName })
+  );
 });
 
 settingsBrowse.addEventListener('click', async () => {

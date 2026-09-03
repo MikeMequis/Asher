@@ -12,6 +12,10 @@ import { classifyError } from './errors.js';
  */
 
 /**
+ * @typedef {{ scope: 'full' | 'chrome', fileName?: string | null }} ManagerNotifyOptions
+ */
+
+/**
  * Mod Manager — loads and toggles mods via IAsherApplication JSONL methods.
  */
 export class ModManagerController {
@@ -25,6 +29,8 @@ export class ModManagerController {
   #togglingFileName = null;
   /** @type {string | null} */
   #toggleError = null;
+  /** @type {ManagerNotifyOptions} */
+  #lastNotify = { scope: 'full' };
 
   /** @param {ApplicationClient} client */
   constructor(client) {
@@ -52,6 +58,10 @@ export class ModManagerController {
     return this.#toggleError;
   }
 
+  get lastNotify() {
+    return this.#lastNotify;
+  }
+
   get activeCount() {
     return this.#mods.filter((mod) => mod.isEnabled).length;
   }
@@ -60,13 +70,23 @@ export class ModManagerController {
     return this.#mods.length;
   }
 
-  #notify() {
+  /**
+   * @param {ManagerNotifyOptions} [options]
+   */
+  #notify(options = { scope: 'chrome' }) {
+    this.#lastNotify = {
+      scope: options.scope,
+      fileName: options.fileName ?? null
+    };
     this.onChange?.();
   }
 
+  /**
+   * @param {ManagerLoadState} state
+   */
   #setLoadState(state) {
     this.#loadState = state;
-    this.#notify();
+    this.#notify({ scope: 'full' });
   }
 
   async loadMods() {
@@ -107,7 +127,7 @@ export class ModManagerController {
     this.#toggleError = null;
     this.#togglingFileName = fileName;
     mod.isEnabled = enabled;
-    this.#notify();
+    this.#notify({ scope: 'chrome', fileName });
 
     try {
       const { result } = await this.client.invoke('setModEnabled', { fileName, enabled });
@@ -118,7 +138,6 @@ export class ModManagerController {
         return false;
       }
 
-      this.#setLoadState(this.#mods.length === 0 ? 'empty' : 'loaded');
       return true;
     } catch (err) {
       mod.isEnabled = previous;
@@ -126,12 +145,16 @@ export class ModManagerController {
       return false;
     } finally {
       this.#togglingFileName = null;
-      this.#notify();
+      this.#notify({ scope: 'chrome', fileName });
     }
   }
 
   clearToggleError() {
+    if (!this.#toggleError) {
+      return;
+    }
+
     this.#toggleError = null;
-    this.#notify();
+    this.#notify({ scope: 'chrome' });
   }
 }

@@ -52,6 +52,12 @@ namespace Asher.Services.Implementations
 
         public Task<bool> SetModEnabledAsync(string modFileName, bool enabled)
         {
+            if (string.IsNullOrWhiteSpace(modFileName) ||
+                !string.Equals(modFileName, Path.GetFileName(modFileName), StringComparison.Ordinal))
+            {
+                return Task.FromResult(false);
+            }
+
             var gameFolder = _gameLaunchService.ResolveGameFolderPath();
             if (string.IsNullOrWhiteSpace(gameFolder))
                 return Task.FromResult(false);
@@ -61,27 +67,29 @@ namespace Asher.Services.Implementations
 
             try
             {
+                var enabledExists = File.Exists(enabledPath);
+                var disabledExists = File.Exists(disabledPath);
+
+                if (!enabledExists && !disabledExists)
+                    return Task.FromResult(false);
+
+                if (enabledExists && disabledExists)
+                    return Task.FromResult(false);
+
                 if (enabled)
                 {
-                    if (File.Exists(disabledPath))
-                    {
-                        if (File.Exists(enabledPath))
-                            File.Delete(enabledPath);
+                    if (enabledExists)
+                        return Task.FromResult(true);
 
-                        File.Move(disabledPath, enabledPath);
-                    }
+                    File.Move(disabledPath, enabledPath);
                 }
                 else
                 {
-                    if (File.Exists(enabledPath))
-                    {
-                        Directory.CreateDirectory(AsherPaths.GetDisabledModsFolderPath(gameFolder));
+                    if (disabledExists)
+                        return Task.FromResult(true);
 
-                        if (File.Exists(disabledPath))
-                            File.Delete(disabledPath);
-
-                        File.Move(enabledPath, disabledPath);
-                    }
+                    Directory.CreateDirectory(AsherPaths.GetDisabledModsFolderPath(gameFolder));
+                    File.Move(enabledPath, disabledPath);
                 }
 
                 return Task.FromResult(true);
