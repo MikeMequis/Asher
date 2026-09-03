@@ -55,6 +55,8 @@ function createWindow() {
     minWidth: 1000,
     minHeight: 700,
     autoHideMenuBar: true,
+    show: false,
+    backgroundColor: '#0d1117',
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -84,6 +86,12 @@ function createWindow() {
 
   const indexPath = path.join(__dirname, '..', 'renderer', 'index.html');
   mainWindow.loadFile(indexPath);
+
+  mainWindow.once('ready-to-show', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.show();
+    }
+  });
 }
 
 hostManager.on('status-changed', () => {

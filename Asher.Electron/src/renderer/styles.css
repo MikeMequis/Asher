@@ -95,9 +95,13 @@ body {
   color: var(--text);
 }
 
+html {
+  background: var(--bg);
+}
+
 .app-shell {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: auto 1fr;
   min-height: 100vh;
 }
 
@@ -110,20 +114,8 @@ body {
   border-right: 1px solid var(--border);
   padding: 1rem 0.75rem;
   gap: 0.75rem;
-  overflow: visible;
-  animation: sidebar-enter 0.28s ease;
-  transition: padding 0.2s ease;
-}
-
-@keyframes sidebar-enter {
-  from {
-    transform: translateX(-12px);
-    opacity: 0.6;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  overflow: hidden;
+  transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1), padding 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-header {
@@ -140,7 +132,10 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: opacity 0.2s ease, width 0.2s ease;
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.2s ease, max-width 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 12rem;
 }
 
 .sidebar-toggle {
@@ -170,8 +165,11 @@ body {
   cursor: pointer;
   font: inherit;
   width: 100%;
-  overflow: visible;
-  transition: background 0.15s ease;
+  overflow: hidden;
+  transition:
+    background 0.15s ease,
+    gap 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-nav-item:hover:not(:disabled) {
@@ -198,38 +196,55 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: opacity 0.2s ease;
-}
-
-.app-shell.sidebar-collapsed .sidebar-nav-label,
-.app-shell.sidebar-collapsed .sidebar-title {
-  opacity: 0;
-  width: 0;
-  max-width: 0;
-  overflow: hidden;
-  padding: 0;
-  margin: 0;
+  flex: 1;
+  min-width: 0;
+  max-width: 12rem;
+  transition:
+    opacity 0.2s ease,
+    max-width 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+    flex 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-shell.sidebar-collapsed .sidebar {
-  justify-content: center;
-  align-items: center;
+  width: var(--sidebar-min-width);
+  min-width: var(--sidebar-min-width);
+  padding-inline: 0.5rem;
+}
+
+.app-shell.sidebar-collapsed .sidebar-title {
+  opacity: 0;
+  max-width: 0;
+  flex: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .app-shell.sidebar-collapsed .sidebar-header {
   justify-content: center;
-  width: 100%;
+  padding-inline: 0;
 }
 
 .app-shell.sidebar-collapsed .sidebar-nav {
-  flex: 0;
-  align-items: center;
   width: 100%;
+  align-items: stretch;
+}
+
+.app-shell.sidebar-collapsed .sidebar-nav-label {
+  opacity: 0;
+  max-width: 0;
+  flex: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .app-shell.sidebar-collapsed .sidebar-nav-item {
-  justify-content: center;
-  padding-inline: 0.65rem;
+  gap: 0;
+  padding-inline: 0;
+  width: 100%;
+}
+
+.app-shell.sidebar-collapsed .sidebar-nav-icon {
+  margin-inline: auto;
 }
 
 .sidebar-footer {
@@ -248,7 +263,9 @@ body {
   flex-direction: column;
   padding: 1.25rem 1.5rem;
   max-width: 900px;
+  min-width: 0;
   overflow: auto;
+  contain: layout style;
 }
 
 .app-header {
@@ -564,8 +581,8 @@ button.danger {
   height: 1.5rem;
   border-radius: 999px;
   background: var(--border);
-  transition: background 0.2s ease;
   position: relative;
+  transition: background-color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .toggle-switch-thumb {
@@ -576,8 +593,11 @@ button.danger {
   height: 1.2rem;
   border-radius: 50%;
   background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1),
+    box-shadow 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, 0, 0);
 }
 
 .toggle-switch input:checked + .toggle-switch-track {
@@ -585,7 +605,16 @@ button.danger {
 }
 
 .toggle-switch input:checked + .toggle-switch-track .toggle-switch-thumb {
-  transform: translateX(1.25rem);
+  transform: translate3d(1.25rem, 0, 0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 3px 8px rgba(37, 99, 235, 0.28);
+}
+
+.toggle-switch:active:not(:has(input:disabled)) .toggle-switch-thumb {
+  transform: translate3d(0, 0, 0) scale(1.08);
+}
+
+.toggle-switch input:checked:active:not(:disabled) + .toggle-switch-track .toggle-switch-thumb {
+  transform: translate3d(1.25rem, 0, 0) scale(1.08);
 }
 
 .toggle-switch input:disabled + .toggle-switch-track {

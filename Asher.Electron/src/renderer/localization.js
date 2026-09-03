@@ -95,6 +95,8 @@ const STRINGS = {
     'manager.total': 'Total',
     'manager.enabled': 'Enabled',
     'manager.disabled': 'Disabled',
+    'manager.patchActive': '{name} is active',
+    'manager.patchInactive': '{name} is inactive',
     'manager.updating': 'Updating...',
 
     'settings.title': 'Settings',
@@ -254,6 +256,8 @@ const STRINGS = {
     'manager.total': 'Total',
     'manager.enabled': 'Ativado',
     'manager.disabled': 'Desativado',
+    'manager.patchActive': '{name} está ativo',
+    'manager.patchInactive': '{name} está inativo',
     'manager.updating': 'Atualizando...',
 
     'settings.title': 'Configurações',
@@ -413,6 +417,8 @@ const STRINGS = {
     'manager.total': 'Total',
     'manager.enabled': 'Activado',
     'manager.disabled': 'Desactivado',
+    'manager.patchActive': '{name} está activo',
+    'manager.patchInactive': '{name} está inactivo',
     'manager.updating': 'Actualizando...',
 
     'settings.title': 'Ajustes',

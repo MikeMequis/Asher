@@ -240,19 +240,6 @@ function getInstallWizardStep() {
   return 'welcome';
 }
 
-function syncSidebarLayout() {
-  if (!sidebar) {
-    return;
-  }
-
-  requestAnimationFrame(() => {
-    sidebar.style.width = '';
-    if (shell.sidebarCollapsed) {
-      sidebar.style.width = 'max-content';
-    }
-  });
-}
-
 function renderSidebar() {
   const showNav = shell.isApplicationReady;
   sidebarNav.hidden = !showNav;
@@ -260,7 +247,6 @@ function renderSidebar() {
 
   if (!showNav) {
     sidebarNav.innerHTML = '';
-    syncSidebarLayout();
     return;
   }
 
@@ -335,8 +321,6 @@ function renderSidebar() {
 
     sidebarNav.appendChild(button);
   }
-
-  syncSidebarLayout();
 }
 
 async function runInstall() {
@@ -835,11 +819,18 @@ function renderManager() {
     checkbox.setAttribute('aria-label', statusLabel);
     checkbox.addEventListener('change', async () => {
       manager.clearToggleError();
-      await manager.toggleMod(mod.fileName, checkbox.checked);
+      const patchName = mod.name || mod.fileName;
+      const enabled = checkbox.checked;
+      await manager.toggleMod(mod.fileName, enabled);
       if (manager.toggleError) {
         showActionBanner('error', manager.toggleError || t('action.modFailed'));
       } else {
-        showActionBanner('success', t('action.modUpdated'));
+        showActionBanner(
+          'success',
+          enabled
+            ? t('manager.patchActive', { name: patchName })
+            : t('manager.patchInactive', { name: patchName })
+        );
       }
     });
 
@@ -1078,7 +1069,6 @@ settingsResetButton.addEventListener('click', async () => {
 
 sidebarToggle.addEventListener('click', () => {
   shell.toggleSidebar();
-  syncSidebarLayout();
 });
 
 retryHostButton.addEventListener('click', async () => {
