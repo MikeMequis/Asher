@@ -38,4 +38,4 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 
 ## Documentation & releases
 
-- Full documentation: [mikesstash.vercel.app/asher/](https://mikesstash.vercel.app/asher/)
+- Full documentation: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)
