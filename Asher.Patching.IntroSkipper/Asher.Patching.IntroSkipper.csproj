@@ -49,6 +49,7 @@
     <Compile Include="IntroSkipperLifecycle.cs" />
     <Compile Include="IntroSkipperConfig.cs" />
     <Compile Include="IntroSkipperPatch.cs" />
+    <Compile Include="ModInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

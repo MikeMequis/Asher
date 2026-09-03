@@ -1,4 +1,5 @@
-﻿using Asher.Core;
+﻿using System.Reflection;
+using Asher.Core;
 using Asher.Core.Models;
 using Asher.Services.Interfaces;
 
@@ -6,14 +7,7 @@ namespace Asher.Services.Implementations
 {
     public class PatchManagerService : IPatchManagerService
     {
-        private static readonly Dictionary<string, (string Name, string Description)> KnownMods = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Asher.Patching.DebugEnabler.dll"] = ("Debug Enabler", "Enables the debug menu in pause mode"),
-            ["Asher.Patching.IntroSkipper.dll"] = ("Intro Skipper", "Skips intro sequences and splash screens"),
-            ["Asher.Patching.GraphicsDeprofiler.dll"] = ("Graphics Deprofiler", "Bypasses HiDef GPU profile restrictions"),
-            ["Asher.Patching.MuteVoiceActing.dll"] = ("Voice Acting Muter", "Mutes voice acting while keeping other SFX"),
-            ["Asher.Patching.OverheatDisabler.dll"] = ("Dust Storm Overheat Disabler", "Prevents Dust Storm from overheating"),
-        };
+        private const string AsherModAttributeFullName = "Asher.SDK.Patching.AsherModAttribute";
 
         private readonly IGameLaunchService _gameLaunchService;
 
@@ -38,13 +32,13 @@ namespace Asher.Services.Implementations
             foreach (var file in Directory.GetFiles(modsFolder, "*.dll"))
             {
                 var fileName = Path.GetFileName(file);
-                mods.Add(CreateModInfo(fileName, true));
+                mods.Add(CreateModInfo(file, fileName, isEnabled: true, gameFolder));
             }
 
             foreach (var file in Directory.GetFiles(disabledFolder, "*.dll"))
             {
                 var fileName = Path.GetFileName(file);
-                mods.Add(CreateModInfo(fileName, false));
+                mods.Add(CreateModInfo(file, fileName, isEnabled: false, gameFolder));
             }
 
             return Task.FromResult<IReadOnlyList<ManagedModInfo>>(mods.OrderBy(m => m.Name).ToList());
@@ -100,26 +94,125 @@ namespace Asher.Services.Implementations
             }
         }
 
-        private static ManagedModInfo CreateModInfo(string fileName, bool isEnabled)
+        private static ManagedModInfo CreateModInfo(
+            string assemblyPath,
+            string fileName,
+            bool isEnabled,
+            string gameFolder)
         {
-            if (KnownMods.TryGetValue(fileName, out var metadata))
-            {
-                return new ManagedModInfo
-                {
-                    FileName = fileName,
-                    Name = metadata.Name,
-                    Description = metadata.Description,
-                    IsEnabled = isEnabled
-                };
-            }
+            var (name, description) = TryReadModMetadata(assemblyPath, gameFolder);
 
             return new ManagedModInfo
             {
                 FileName = fileName,
-                Name = Path.GetFileNameWithoutExtension(fileName),
-                Description = "Custom mod assembly",
+                Name = string.IsNullOrWhiteSpace(name)
+                    ? Path.GetFileNameWithoutExtension(fileName)
+                    : name,
+                Description = string.IsNullOrWhiteSpace(description)
+                    ? "Custom mod assembly"
+                    : description,
                 IsEnabled = isEnabled
             };
+        }
+
+        /// <summary>
+        /// Reads [assembly: AsherMod(...)] via MetadataLoadContext (no code execution).
+        /// Falls back to AssemblyTitle / AssemblyDescription when the attribute is absent.
+        /// </summary>
+        private static (string? Name, string? Description) TryReadModMetadata(
+            string assemblyPath,
+            string gameFolder)
+        {
+            try
+            {
+                var resolverPaths = BuildResolverPaths(assemblyPath, gameFolder);
+                var resolver = new PathAssemblyResolver(resolverPaths);
+
+                using var context = new MetadataLoadContext(resolver);
+                var assembly = context.LoadFromAssemblyPath(assemblyPath);
+
+                string? name = null;
+                string? description = null;
+
+                foreach (var attribute in assembly.GetCustomAttributesData())
+                {
+                    var typeName = attribute.AttributeType.FullName;
+
+                    if (string.Equals(typeName, AsherModAttributeFullName, StringComparison.Ordinal))
+                    {
+                        if (attribute.ConstructorArguments.Count >= 1)
+                            name = attribute.ConstructorArguments[0].Value as string;
+
+                        if (attribute.ConstructorArguments.Count >= 2)
+                            description = attribute.ConstructorArguments[1].Value as string;
+
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(description))
+                {
+                    foreach (var attribute in assembly.GetCustomAttributesData())
+                    {
+                        var typeName = attribute.AttributeType.FullName;
+                        if (typeName == typeof(AssemblyTitleAttribute).FullName &&
+                            attribute.ConstructorArguments.Count >= 1 &&
+                            string.IsNullOrWhiteSpace(name))
+                        {
+                            name = attribute.ConstructorArguments[0].Value as string;
+                        }
+                        else if (typeName == typeof(AssemblyDescriptionAttribute).FullName &&
+                                 attribute.ConstructorArguments.Count >= 1 &&
+                                 string.IsNullOrWhiteSpace(description))
+                        {
+                            description = attribute.ConstructorArguments[0].Value as string;
+                        }
+                    }
+                }
+
+                return (name, description);
+            }
+            catch
+            {
+                return (null, null);
+            }
+        }
+
+        private static IEnumerable<string> BuildResolverPaths(string assemblyPath, string gameFolder)
+        {
+            var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void AddIfExists(string? path)
+            {
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    paths.Add(path);
+            }
+
+            AddIfExists(assemblyPath);
+
+            var runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location);
+            if (!string.IsNullOrWhiteSpace(runtimeDir) && Directory.Exists(runtimeDir))
+            {
+                foreach (var dll in Directory.EnumerateFiles(runtimeDir, "*.dll"))
+                    paths.Add(dll);
+            }
+
+            // Asher.SDK.dll — needed to resolve AsherModAttribute type metadata
+            AddIfExists(Path.Combine(AsherPaths.GetRuntimeFolderPath(gameFolder), "Asher.SDK.dll"));
+            AddIfExists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Asher.SDK.dll"));
+            AddIfExists(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                AsherPaths.HostInstallPayloadFolderName,
+                "Asher.SDK.dll"));
+
+            var assemblyDir = Path.GetDirectoryName(assemblyPath);
+            if (!string.IsNullOrWhiteSpace(assemblyDir))
+            {
+                AddIfExists(Path.Combine(assemblyDir, "Asher.SDK.dll"));
+                AddIfExists(Path.Combine(assemblyDir, "0Harmony.dll"));
+            }
+
+            return paths;
         }
     }
 }

@@ -49,6 +49,7 @@
     <Compile Include="OverheatDisablerLifecycle.cs" />
     <Compile Include="OverheatDisablerPatch.cs" />
     <Compile Include="OverheatDisablerConfig.cs" />
+    <Compile Include="ModInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

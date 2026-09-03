@@ -1,6 +1,6 @@
 # Electron Migration
 
-Compact record of the WPF → Electron manager transition. Deep background: `GUI-Architecture-Investigation.md`. Day-to-day constraints: `.cursor/rules/` (especially `asher-current-state.mdc`, `asher-architecture.mdc`, `jsonl-protocol.mdc`).
+Compact record of the WPF → Electron manager transition. UI comparison: `Manager-UI-Architecture.md`. Day-to-day constraints: `.cursor/rules/` (especially `asher-current-state.mdc`, `asher-architecture.mdc`, `jsonl-protocol.mdc`).
 
 **Status (2026-09):** Migration complete. Electron + `Asher.Host` is the only manager UI. Steps 1–20 finished; WPF stack removed.
 
@@ -136,6 +136,14 @@ Game process (separate from manager):
 - Content patcher UI (no backend)
 - `CompleteInstall` aggregate (shortcut, manager relaunch, payload deploy) — was WPF-only; intentionally not on contract
 
+### Next planned steps
+
+1. **Install wizard polish** — fuller welcome / stepper chrome (Finish + optional launch already exist).
+2. **Packaged distribution** — validate `npm run dist` portable as the primary ship path (not only `npm start`).
+3. **Content patcher** — only if/when a backend exists; no UI-only stub.
+
+Items above are optional polish or gated features, not unfinished migration work.
+
 ### Retired / excluded
 
 | Removed | Notes |
@@ -234,9 +242,9 @@ Electron install failures during gate validation were traced to **stale `install
 
 **Insight:** `getMods` is filesystem-only; patch application is proven via `Asher/AsherLogs/runtime_*.log`, not mod list presence alone.
 
-### WPF reference
+### WPF vs Electron UI
 
-`docs/WPF-Manager-UI-Reference.md` documents retired WPF screens for behavioral comparison only.
+`docs/Manager-UI-Architecture.md` compares retired WPF shell/screens with the current Electron manager.
 
 ---
 

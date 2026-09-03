@@ -1,8 +1,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Asher.SDK.Patching;
+using Asher.Patching.MuteVoiceActing;
 
-[assembly: AssemblyTitle("Asher.Patching.MuteVoiceActing")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle(ModInfo.DisplayName)]
+[assembly: AssemblyDescription(ModInfo.Description)]
+[assembly: AsherMod(ModInfo.DisplayName, ModInfo.Description)]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Asher.Patching.MuteVoiceActing")]

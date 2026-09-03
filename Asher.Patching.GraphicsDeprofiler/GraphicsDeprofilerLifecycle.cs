@@ -11,8 +11,6 @@ namespace Asher.Patching.GraphicsDeprofiler
     /// </summary>
     public sealed class GraphicsDeprofilerLifecycle : BaseAsherPatchLifecycle<GraphicsDeprofilerPatch>
     {
-        public override string Name => "Graphics Deprofiler";
-
         protected override string LogTag => "[Deprofiler]";
 
         public override void OnGameInitialized()

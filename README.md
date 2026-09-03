@@ -35,7 +35,11 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 - **Debug Menu Enabler** — Tab in pause menu opens debug menu
 - **Intro Skipper** — Skips ESRB rating, splash screens, and startup videos
 - **Graphics Deprofiler** — Bypasses HiDef GPU profile restrictions
+- **Mute Voice Acting** — Mutes the voice acting from character dialogues
+- **Dust Storm Overheat Disabler** — Prevents Dust Storm from overheating
 
-## Documentation & releases
+## Documentation
 
-- Full documentation: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)
+- [Manager UI architecture](docs/Manager-UI-Architecture.md) — WPF vs Electron
+- [Electron migration](docs/Electron-Migration-Implementation.md) — decisions and status
+- User docs: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)

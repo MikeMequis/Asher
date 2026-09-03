@@ -49,6 +49,7 @@
     <Compile Include="MuteVoiceActingLifecycle.cs" />
     <Compile Include="MuteVoiceActingPatch.cs" />
     <Compile Include="MuteVoiceActingConfig.cs" />
+    <Compile Include="ModInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

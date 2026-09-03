@@ -1,8 +1,7 @@
 ﻿using Asher.SDK.Logging;
-using Asher.SDK.Patching;
+using Asher.SDK.Patching.Core;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -12,16 +11,14 @@ namespace Asher.Patching.IntroSkipper
     /// Skips startup splashes and intro video, then jumps straight to the main menu
     /// "Press A" screen. Menu music is deferred until initLoaded so Music::Play works.
     /// </summary>
-    public sealed class IntroSkipperPatch : IAsherPatchModule
+    public sealed class IntroSkipperPatch : BaseAsherPatchModule
     {
         private static volatile bool _mainMenuApplied;
         private static volatile bool _skipApplied;
 
         public static bool Enabled { get; set; }
 
-        public string Name => "Intro Skipper";
-
-        public void Apply(Harmony harmony)
+        public override void Apply(Harmony harmony)
         {
             if (!Enabled)
                 return;
@@ -231,7 +228,5 @@ namespace Asher.Patching.IntroSkipper
                 .FirstOrDefault(a => a.GetName().Name == "DustAET")
                 ?.GetType("Dust.Game1");
         }
-
-        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }

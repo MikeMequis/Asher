@@ -1,4 +1,5 @@
 ﻿using Asher.SDK.Logging;
+using Asher.SDK.Patching;
 using System;
 using System.Reflection;
 
@@ -11,9 +12,9 @@ namespace Asher.SDK.Patching.Core
     public abstract class BaseAsherPatchConfig<TPatch> : IAsherPreInitModule where TPatch : class
     {
         /// <summary>
-        /// Nome do patch (usado em logs).
+        /// Nome do patch. Default: [assembly: AsherMod] on the patch type's assembly.
         /// </summary>
-        protected abstract string PatchName { get; }
+        protected virtual string PatchName => AsherModMetadata.GetDisplayName(typeof(TPatch));
 
         /// <summary>
         /// Tag de log (usado como prefixo nos logs).

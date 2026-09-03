@@ -70,6 +70,7 @@
     <Compile Include="GraphicsDeprofilerConfig.cs" />
     <Compile Include="GraphicsDeprofilerLifecycle.cs" />
     <Compile Include="GraphicsDeprofilerPatch.cs" />
+    <Compile Include="ModInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

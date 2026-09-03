@@ -1,8 +1,7 @@
 using Asher.SDK.Logging;
-using Asher.SDK.Patching;
+using Asher.SDK.Patching.Core;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -12,15 +11,13 @@ namespace Asher.Patching.MuteVoiceActing
     /// Mutes voice acting by forcing the XACT Voice category volume to zero
     /// whenever SFX volume is updated.
     /// </summary>
-    public sealed class MuteVoiceActingPatch : IAsherPatchModule
+    public sealed class MuteVoiceActingPatch : BaseAsherPatchModule
     {
         private static object? _audioEngine;
 
         public static bool Enabled { get; set; }
 
-        public string Name => "Voice Acting Muter";
-
-        public void Apply(Harmony harmony)
+        public override void Apply(Harmony harmony)
         {
             if (!Enabled)
                 return;
@@ -84,7 +81,5 @@ namespace Asher.Patching.MuteVoiceActing
                 .FirstOrDefault(a => a.GetName().Name == "DustAET")
                 ?.GetType("Dust.Audio.Sound");
         }
-
-        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }

@@ -12,8 +12,6 @@ namespace Asher.Patching.GraphicsDeprofiler
     /// </summary>
     public sealed class GraphicsDeprofilerConfig : BaseAsherPatchConfig<GraphicsDeprofilerPatch>
     {
-        protected override string PatchName => "Graphics Deprofiler";
-
         protected override string LogTag => "[Deprofiler]";
 
         /// <summary>

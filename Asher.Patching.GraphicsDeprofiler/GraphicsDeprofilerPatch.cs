@@ -1,5 +1,5 @@
 ﻿using Asher.SDK.Logging;
-using Asher.SDK.Patching;
+using Asher.SDK.Patching.Core;
 using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -11,7 +11,7 @@ namespace Asher.Patching.GraphicsDeprofiler
     /// <summary>
     /// Este patch DEVE ser aplicado no PreInit, não no PatchModuleLoader normal.
     /// </summary>
-    public sealed class GraphicsDeprofilerPatch : IAsherPreInitModule
+    public sealed class GraphicsDeprofilerPatch : BaseAsherPreInitModule
     {
         /// <summary>
         /// Define se o patch será aplicado.
@@ -19,9 +19,7 @@ namespace Asher.Patching.GraphicsDeprofiler
         /// </summary>
         public static bool Enabled { get; set; }
 
-        public string Name => "Graphics Deprofiler Patch";
-
-        public void Execute()
+        public override void Execute()
         {
             if (!Enabled)
             {

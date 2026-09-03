@@ -21,8 +21,7 @@ It is not a diary of every implementation action. Prefer updating existing secti
 | JSONL protocol details | `.cursor/rules/jsonl-protocol.mdc` |
 | Validation commands | `.cursor/rules/testing-validation.mdc` |
 | Migration record (decisions, milestones, compatibility) | `docs/Electron-Migration-Implementation.md` |
-| Deep architectural investigation (reference) | `docs/GUI-Architecture-Investigation.md` |
-| WPF-era UI reference (historical) | `docs/WPF-Manager-UI-Reference.md` |
+| WPF vs Electron manager UI | `docs/Manager-UI-Architecture.md` |
 
 Do not duplicate protocol method lists or smoke-test commands across multiple docs — link or reference the canonical location.
 

@@ -1,8 +1,7 @@
 using Asher.SDK.Logging;
-using Asher.SDK.Patching;
+using Asher.SDK.Patching.Core;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -11,13 +10,11 @@ namespace Asher.Patching.OverheatDisabler
     /// <summary>
     /// Prevents Dust Storm from overheating by capping overHeating before SpinBlade runs.
     /// </summary>
-    public sealed class OverheatDisablerPatch : IAsherPatchModule
+    public sealed class OverheatDisablerPatch : BaseAsherPatchModule
     {
         public static bool Enabled { get; set; }
 
-        public string Name => "Dust Storm Overheat Disabler";
-
-        public void Apply(Harmony harmony)
+        public override void Apply(Harmony harmony)
         {
             if (!Enabled)
                 return;
@@ -99,7 +96,5 @@ namespace Asher.Patching.OverheatDisabler
                 .FirstOrDefault(a => a.GetName().Name == "DustAET")
                 ?.GetType("Dust.CharClasses.Character");
         }
-
-        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }
