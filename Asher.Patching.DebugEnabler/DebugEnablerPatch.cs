@@ -1,8 +1,7 @@
 ﻿using Asher.SDK.Logging;
-using Asher.SDK.Patching;
+using Asher.SDK.Patching.Core;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -11,13 +10,11 @@ namespace Asher.Patching.DebugEnabler
     /// <summary>
     /// Habilita o menu de debug do jogo (Tab no menu de pausa).
     /// </summary>
-    public sealed class DebugEnablerPatch : IAsherPatchModule
+    public sealed class DebugEnablerPatch : BaseAsherPatchModule
     {
         public static bool Enabled { get; set; }
 
-        public string Name => "Debug Menu Enabler";
-
-        public void Apply(Harmony harmony)
+        public override void Apply(Harmony harmony)
         {
             if (!Enabled)
             {
@@ -56,7 +53,5 @@ namespace Asher.Patching.DebugEnabler
                 .GetField("canDebug", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 ?.SetValue(null, true);
         }
-
-        public IEnumerable<Type> GetPatchTypes() => Array.Empty<Type>();
     }
 }

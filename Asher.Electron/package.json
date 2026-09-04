@@ -1,0 +1,70 @@
+{
+  "name": "asher-electron",
+  "version": "2.0.0",
+  "description": "Electron frontend for Asher (JSONL transport to Asher.Host)",
+  "private": true,
+  "main": "src/main/main.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MikeMequis/Asher.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build:host": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.DebugEnabler/Asher.Patching.DebugEnabler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.IntroSkipper/Asher.Patching.IntroSkipper.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.GraphicsDeprofiler/Asher.Patching.GraphicsDeprofiler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.MuteVoiceActing/Asher.Patching.MuteVoiceActing.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.OverheatDisabler/Asher.Patching.OverheatDisabler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Release -p:Platform=x86",
+    "build:host:debug": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.DebugEnabler/Asher.Patching.DebugEnabler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.IntroSkipper/Asher.Patching.IntroSkipper.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.GraphicsDeprofiler/Asher.Patching.GraphicsDeprofiler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.MuteVoiceActing/Asher.Patching.MuteVoiceActing.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.OverheatDisabler/Asher.Patching.OverheatDisabler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86",
+    "clean:dist": "node scripts/clean-dist.mjs",
+    "sync:distribution": "node scripts/sync-distribution.mjs",
+    "dist": "npm run clean:dist && npm run build:host && electron-builder --win dir zip --ia32 && npm run sync:distribution",
+    "publish": "node scripts/load-gh-token.mjs npm run dist:publish",
+    "dist:publish": "npm run clean:dist && npm run build:host && electron-builder --win dir zip --ia32 --publish always && npm run sync:distribution",
+    "smoke": "node scripts/smoke-test.mjs",
+    "smoke:setup": "node scripts/setup-smoke-test.mjs",
+    "smoke:manager": "node scripts/manager-smoke-test.mjs",
+    "smoke:shell": "node scripts/shell-smoke-test.mjs",
+    "smoke:install": "node scripts/install-smoke-test.mjs",
+    "smoke:uninstall": "node scripts/uninstall-smoke-test.mjs",
+    "smoke:launch": "node scripts/launch-smoke-test.mjs",
+    "smoke:payload": "node scripts/payload-smoke-test.mjs"
+  },
+  "build": {
+    "appId": "com.asher.manager",
+    "productName": "Asher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../Asher.Host/bin/x86/Release/net8.0-windows",
+        "to": "asher-host",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "dir",
+        "zip"
+      ],
+      "signAndEditExecutable": false
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "MikeMequis",
+        "repo": "Asher"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-updater": "^6.8.9"
+  }
+}

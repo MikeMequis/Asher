@@ -1,0 +1,31 @@
+---
+description: Asher architectural boundaries — Electron frontend, C# backend, launcher/runtime
+alwaysApply: true
+---
+
+# Asher Architecture
+
+## Layers
+
+| Layer | Project(s) | Responsibility |
+|-------|-----------|----------------|
+| **Presentation** | `Asher.Electron` | UI shell, navigation, user input, rendering |
+| **Host / transport** | `Asher.Host` | JSONL protocol, spawns as child process of Electron |
+| **Application contract** | `IAsherApplication` in `Asher.Services` | Facade over all services; DTOs only |
+| **Services** | `Asher.Services/Implementations/` | Business logic: install, uninstall, patches, settings, launch |
+| **Core** | `Asher.Core` | Models, paths (`AsherPaths`), constants |
+| **SDK** | `Asher.SDK` | Patching API consumed by mod DLLs |
+| **Launcher** | `Asher.Launcher` | Replaces `DustAET.exe`; loads runtime |
+| **Runtime** | `Asher.Runtime` | Bootstraps Harmony patches + lifecycle modules in-game |
+| **Patching** | `Asher.Patching.*` | Individual mod assemblies |
+
+## Rules
+
+- Business logic belongs in C# services, not in renderer JavaScript.
+- New features should extend `IAsherApplication` + JSONL, not bypass the backend.
+- Do not add Prism, WPF, or MaterialDesign dependencies anywhere.
+- `Asher.Core` must stay free of UI-specific types.
+- Keep launcher/runtime separate from Host — they run inside the game process.
+- Do not change the installation file layout (`DustAET.exe` swap, `Asher/` folder structure) without a concrete requirement.
+- Prefer behavioral preservation over architectural rewrites.
+- Prefer extending existing services/abstractions over creating competing ones.

@@ -44,15 +44,6 @@ namespace Asher.Core
             var localPath = AsherPaths.GetLocalSettingsPath();
             if (!string.Equals(localPath, AppDataSettingsPath, StringComparison.OrdinalIgnoreCase))
                 SaveToPath(localPath);
-
-            if (!string.IsNullOrWhiteSpace(GameFolderPath))
-            {
-                var managerSettingsPath = Path.Combine(
-                    AsherPaths.GetManagerFolderPath(GameFolderPath),
-                    AsherPaths.SettingsFileName);
-
-                SaveToPath(managerSettingsPath);
-            }
         }
 
         public void MarkAsInstalled(string gameFolderPath, string gameVersion)
@@ -85,15 +76,24 @@ namespace Asher.Core
         private static IEnumerable<string> GetSettingsLoadOrder()
         {
             yield return AsherPaths.GetLocalSettingsPath();
-
-            if (!string.IsNullOrWhiteSpace(AsherPaths.TryGetGameFolderFromManagerLocation()))
-            {
-                yield return Path.Combine(
-                    AsherPaths.GetManagerFolderPath(AsherPaths.TryGetGameFolderFromManagerLocation()!),
-                    AsherPaths.SettingsFileName);
-            }
-
             yield return AppDataSettingsPath;
+
+            var legacyPath = TryGetLegacyManagerSettingsPath();
+            if (legacyPath != null)
+                yield return legacyPath;
+        }
+
+        private static string? TryGetLegacyManagerSettingsPath()
+        {
+            var gameFolder = AsherPaths.TryGetGameFolderFromManagerLocation();
+            if (string.IsNullOrWhiteSpace(gameFolder))
+                return null;
+
+            var path = Path.Combine(
+                AsherPaths.GetManagerFolderPath(gameFolder),
+                AsherPaths.SettingsFileName);
+
+            return File.Exists(path) ? path : null;
         }
 
         private static AsherSettings? TryLoadFrom(string path)

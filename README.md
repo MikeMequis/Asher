@@ -8,7 +8,7 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 
 - **Custom launcher** — wraps the game executable and controls startup order (`DustAET.exe` → original `DustAET.real.exe`)
 - **Runtime mod loader** — Harmony-based patching with PreInit, Patch, and Lifecycle stages
-- **Manager app** (`Asher.App`) — WPF installer and mod manager with Patch Manager, settings, and game launch
+- **Electron manager** (`Asher.Electron` + `Asher.Host`) — installer and mod manager UI with Patch Manager, settings, and game launch
 - **Mod SDK** — interfaces for building external mods loaded from `Asher/Mods/`
 
 ## Goals
@@ -21,17 +21,47 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 
 ## Quick start
 
-1. Build the solution as **x86 Release**
-2. Run `.\PrepareDistribution.ps1` from the repo root
-3. Run `Distribution\Asher.App.exe` and follow the install wizard
-4. Launch the game via **Steam** or the manager's **Launch Game** button
+1. From `Asher.Electron/`, build the host and start the app:
+   ```bash
+   npm install
+   npm run build:host:debug
+   npm start
+   ```
+2. Use **Setup** to detect and save your game folder, then **Install**
+3. Launch the game via **Steam** or the manager's **Launch Game** button
+
+### Addendum — XNA Framework (build dependency)
+
+`Asher.Runtime` and several patching projects reference **Microsoft XNA Framework 4.0** assemblies from the GAC (same runtime Dust uses). Without them, `npm run build:host` / patching builds fail or warn about missing `Microsoft.Xna.Framework*`.
+
+1. Install **[Microsoft XNA Framework Redistributable 4.0](https://www.microsoft.com/en-us/download/details.aspx?id=20914)** (or the [4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598)).
+2. Prefer the **x86** redistributable — Asher targets `Platform=x86`.
+3. Rebuild: `cd Asher.Electron && npm run build:host:debug`.
+
+Steam installs of Dust often already place these assemblies on the machine; use the redistributable when building on a PC that does not have the game (or XNA) installed.
+
+## Packaged distribution
+
+```bash
+cd Asher.Electron
+npm run dist       # builds zip + syncs repo-root Distribution/
+npm run publish    # publishes GitHub Release (requires private/GH_TOKEN)
+```
+
+Users extract the zip (or use `Distribution/`), run `Asher.exe`, then install into the game folder. The manager stays in Distribution. The game folder gets runtime files plus `Uninstall-Asher.cmd` (next to `DustAET.exe`) for emergency restore if Distribution is missing.
+
+Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 
 ## Included mods
 
 - **Debug Menu Enabler** — Tab in pause menu opens debug menu
 - **Intro Skipper** — Skips ESRB rating, splash screens, and startup videos
 - **Graphics Deprofiler** — Bypasses HiDef GPU profile restrictions
+- **Mute Voice Acting** — Mutes the voice acting from character dialogues
+- **Dust Storm Overheat Disabler** — Prevents Dust Storm from overheating
 
-## Documentation & releases
+## Documentation
 
-- Full documentation: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)
+- [Manager UI architecture](docs/Manager-UI-Architecture.md) — WPF vs Electron
+- [Electron migration](docs/Electron-Migration-Implementation.md) — decisions and status
+- User docs: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)

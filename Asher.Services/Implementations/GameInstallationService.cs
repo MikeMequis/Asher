@@ -1,22 +1,22 @@
 ﻿using Asher.Core;
 using Asher.Core.Models;
+using Asher.Services;
 using Asher.Services.Interfaces;
 using System.Reflection;
+using System.Text;
 
 namespace Asher.Services.Implementations
 {
     public class GameInstallationService : IGameInstallationService
     {
-        private readonly IManagerDeployService _managerDeployService;
-
         private const string OriginalExeName = AsherPaths.GameExecutableName;
         private const string BackupExeName = AsherPaths.RealGameExecutableName;
         private const string LauncherExeName = AsherPaths.LauncherExecutableName;
         private const string BackupFolderName = AsherPaths.BackupFolderName;
         private const string AsherFolderName = AsherPaths.RuntimeFolderName;
-        private const string ManagerFolderName = AsherPaths.ManagerFolderName;
-        private const string ModsFolderName = "Mods";
         private const string LogsFolderName = "AsherLogs";
+
+        private readonly ISettingsService _settingsService;
 
         private static readonly string[] RequiredRuntimeFiles =
         {
@@ -29,12 +29,14 @@ namespace Asher.Services.Implementations
         {
             "Asher.Patching.DebugEnabler.dll",
             "Asher.Patching.IntroSkipper.dll",
-            "Asher.Patching.GraphicsDeprofiler.dll"
+            "Asher.Patching.GraphicsDeprofiler.dll",
+            "Asher.Patching.MuteVoiceActing.dll",
+            "Asher.Patching.OverheatDisabler.dll"
         };
 
-        public GameInstallationService(IManagerDeployService managerDeployService)
+        public GameInstallationService(ISettingsService settingsService)
         {
-            _managerDeployService = managerDeployService;
+            _settingsService = settingsService;
         }
 
         public async Task<InstallationResult> InstallAsync(
@@ -55,19 +57,25 @@ namespace Asher.Services.Implementations
                 var gamePath = gameInfo.Path;
                 var originalExePath = Path.Combine(gamePath, OriginalExeName);
 
-                await Task.Run(() => AsherPaths.MigrateLegacyLayout(gamePath));
+                InstallFlowTrace.Log("InstallAsync start", $"path={gamePath}");
 
-                // Verifica se já está instalado
                 if (IsInstalled(gamePath))
                 {
+                    var details = DescribeInstallMarkers(gamePath);
+                    InstallFlowTrace.Log("InstallAsync blocked", details);
                     return new InstallationResult
                     {
                         Success = false,
-                        Message = "O Asher já está instalado neste jogo"
+                        Message = "O Asher já está instalado neste jogo. Desinstale-o antes de instalar novamente.",
+                        Details = DescribeInstallMarkers(gamePath)
                     };
                 }
 
-                // Passo 1: Criar backup (20%)
+                await Task.Run(() => RemoveStaleInstallMarkers(gamePath));
+                await Task.Run(() => AsherPaths.MigrateLegacyLayout(gamePath));
+
+                InstallFlowTrace.Log("InstallAsync proceeding", DescribeInstallMarkers(gamePath));
+
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 10,
@@ -84,7 +92,6 @@ namespace Asher.Services.Implementations
                     Details = $"Backup salvo em {BackupFolderName}/"
                 });
 
-                // Passo 2: Criar estrutura de pastas (30%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 25,
@@ -92,15 +99,7 @@ namespace Asher.Services.Implementations
                     Details = "Configurando diretórios do Asher"
                 });
 
-                await Task.Run(() =>
-                {
-                    CreateFolderStructure(gamePath);
-
-                    if (HasRequiredRuntimeFiles(GetAsherInstallationPath()))
-                        CacheInstallPayloadFromSource(gamePath, GetAsherInstallationPath());
-                    else
-                        TryPopulateInstallPayloadIfMissing(gamePath);
-                });
+                await Task.Run(() => CreateFolderStructure(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
@@ -109,7 +108,8 @@ namespace Asher.Services.Implementations
                     Details = "Pastas Asher/, Mods/ e AsherLogs/ criadas"
                 });
 
-                // Passo 3: Copiar arquivos do runtime (50%)
+                await Task.Run(() => InstallEmergencyUninstallHelper(gamePath));
+
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 35,
@@ -126,7 +126,6 @@ namespace Asher.Services.Implementations
                     Details = "Arquivos core do Asher copiados"
                 });
 
-                // Passo 4: Copiar mods padrão (65%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 55,
@@ -134,16 +133,17 @@ namespace Asher.Services.Implementations
                     Details = "Copiando DebugEnabler, IntroSkipper, GraphicsDeprofiler"
                 });
 
-                await Task.Run(() => CopyDefaultMods(gamePath));
+                var modsCopied = await Task.Run(() => CopyDefaultMods(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 65,
-                    Message = "Mods padrão instalados",
-                    Details = "3 mods básicos instalados"
+                    Message = modsCopied > 0 ? "Mods padrão instalados" : "Nenhum mod padrão no payload",
+                    Details = modsCopied > 0
+                        ? $"{modsCopied} mod(s) copiado(s) para Asher/Mods/"
+                        : "Payload sem DefaultMods — patches não carregarão até mods serem adicionados"
                 });
 
-                // Passo 5: Renomear executável original (75%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 70,
@@ -160,7 +160,6 @@ namespace Asher.Services.Implementations
                     Details = "DustAET.real.exe criado"
                 });
 
-                // Passo 6: Copiar launcher (90%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 80,
@@ -177,7 +176,6 @@ namespace Asher.Services.Implementations
                     Details = "Novo DustAET.exe configurado"
                 });
 
-                // Passo 7: Verificação final (100%)
                 progress?.Report(new InstallationProgress
                 {
                     Percentage = 95,
@@ -187,19 +185,7 @@ namespace Asher.Services.Implementations
 
                 await Task.Run(() => VerifyInstallation(gamePath));
 
-                progress?.Report(new InstallationProgress
-                {
-                    Percentage = 92,
-                    Message = _managerDeployService.ShouldDeferDeploy(gamePath)
-                        ? "Preparando atualização do gerenciador..."
-                        : "Instalando Asher App...",
-                    Details = _managerDeployService.ShouldDeferDeploy(gamePath)
-                        ? "Os arquivos serão aplicados após reiniciar o aplicativo"
-                        : $"Copiando gerenciador para {ManagerFolderName}/"
-                });
-
-                await Task.Run(() => DeployManagerApp(gamePath));
-                await Task.Run(() => CacheInstallPayload(gamePath));
+                InstallFlowTrace.Log("InstallAsync complete", $"path={gamePath}");
 
                 progress?.Report(new InstallationProgress
                 {
@@ -211,7 +197,9 @@ namespace Asher.Services.Implementations
                 return new InstallationResult
                 {
                     Success = true,
-                    Message = "Instalação concluída com sucesso!",
+                    Message = modsCopied > 0
+                        ? "Instalação concluída com sucesso!"
+                        : "Instalação concluída, mas nenhum mod padrão foi copiado. Reinstale após incluir DefaultMods no payload.",
                     GameFolderPath = gamePath
                 };
             }
@@ -232,6 +220,8 @@ namespace Asher.Services.Implementations
         {
             try
             {
+                InstallFlowTrace.Log("UninstallAsync start", $"path={gameFolderPath} installed={IsInstalled(gameFolderPath)}");
+
                 if (!IsInstalled(gameFolderPath))
                 {
                     return new InstallationResult
@@ -279,6 +269,30 @@ namespace Asher.Services.Implementations
 
                 progress?.Report(new InstallationProgress
                 {
+                    Percentage = 90,
+                    Message = "Verificando remoção...",
+                    Details = "Confirmando que os marcadores de instalação foram removidos"
+                });
+
+                await Task.Run(() => EnsureInstallMarkersRemoved(gameFolderPath));
+
+                var stillInstalled = IsInstalled(gameFolderPath);
+                InstallFlowTrace.Log(
+                    "UninstallAsync verify",
+                    $"path={gameFolderPath} stillInstalled={stillInstalled} {DescribeInstallMarkers(gameFolderPath)}");
+
+                if (stillInstalled)
+                {
+                    return new InstallationResult
+                    {
+                        Success = false,
+                        Message = "A desinstalação não removeu todos os marcadores. O Asher ainda parece instalado.",
+                        Details = DescribeInstallMarkers(gameFolderPath)
+                    };
+                }
+
+                progress?.Report(new InstallationProgress
+                {
                     Percentage = 100,
                     Message = "Restauração concluída",
                     Details = "O jogo foi restaurado ao estado original"
@@ -293,6 +307,7 @@ namespace Asher.Services.Implementations
             }
             catch (Exception ex)
             {
+                InstallFlowTrace.Log("UninstallAsync error", ex.Message);
                 return new InstallationResult
                 {
                     Success = false,
@@ -319,11 +334,55 @@ namespace Asher.Services.Implementations
 
         public bool IsInstalled(string gameFolderPath)
         {
-            var backupExePath = Path.Combine(gameFolderPath, BackupExeName);
-            var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
+            if (string.IsNullOrWhiteSpace(gameFolderPath))
+                return false;
 
-            // Considera instalado se existe o DustAET.real.exe E a pasta Asher
-            return File.Exists(backupExePath) && Directory.Exists(asherFolder);
+            var realExePath = Path.Combine(gameFolderPath, BackupExeName);
+            var hasRealExe = File.Exists(realExePath);
+            var hasRuntime = HasActiveRuntime(gameFolderPath);
+            var installed = hasRealExe && hasRuntime;
+
+            InstallFlowTrace.Log(
+                "IsInstalled",
+                $"path={gameFolderPath} realExe={hasRealExe} runtime={hasRuntime} => {installed}");
+
+            return installed;
+        }
+
+        public string DescribeInstallState(string gameFolderPath) =>
+            DescribeInstallMarkers(gameFolderPath);
+
+        private static bool HasActiveRuntime(string gameFolderPath)
+        {
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return false;
+
+            return RequiredRuntimeFiles.Any(fileName =>
+                File.Exists(Path.Combine(asherFolder, fileName)));
+        }
+
+        private static string DescribeInstallMarkers(string gameFolderPath)
+        {
+            var markers = new List<string>();
+
+            var realExePath = Path.Combine(gameFolderPath, BackupExeName);
+            if (File.Exists(realExePath))
+                markers.Add(BackupExeName);
+
+            var asherFolder = Path.Combine(gameFolderPath, AsherFolderName);
+            if (Directory.Exists(asherFolder))
+            {
+                if (HasActiveRuntime(gameFolderPath))
+                    markers.Add($"pasta {AsherFolderName}/ (runtime ativo)");
+                else
+                    markers.Add($"pasta {AsherFolderName}/ (resíduo — não bloqueia reinstalação)");
+            }
+
+            if (markers.Count == 0)
+                return "Nenhum marcador de instalação ativo encontrado.";
+
+            return $"Marcadores encontrados: {string.Join(", ", markers)}";
         }
 
         #region Private Methods
@@ -336,11 +395,8 @@ namespace Asher.Services.Implementations
                 Directory.CreateDirectory(backupFolder);
 
             var backupExePath = Path.Combine(backupFolder, OriginalExeName);
-
-            // Copia o executável original para o backup
             File.Copy(originalExePath, backupExePath, overwrite: true);
 
-            // Cria arquivo de metadata do backup
             var metadataPath = Path.Combine(backupFolder, "backup_info.txt");
             File.WriteAllText(metadataPath,
                 $"Backup criado em: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n" +
@@ -352,14 +408,131 @@ namespace Asher.Services.Implementations
         {
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             Directory.CreateDirectory(asherFolder);
-
             Directory.CreateDirectory(AsherPaths.GetModsFolderPath(gamePath));
             Directory.CreateDirectory(Path.Combine(asherFolder, LogsFolderName));
-            Directory.CreateDirectory(AsherPaths.GetPatchesFolderPath(gamePath));
-            Directory.CreateDirectory(AsherPaths.GetBackupFolderPath(gamePath));
-            Directory.CreateDirectory(AsherPaths.GetDisabledModsFolderPath(gamePath));
-            Directory.CreateDirectory(Path.Combine(AsherPaths.GetModsFolderPath(gamePath), "config"));
-            Directory.CreateDirectory(Path.Combine(AsherPaths.GetModsFolderPath(gamePath), "cache"));
+        }
+
+        /// <summary>
+        /// Writes a double-clickable emergency uninstall helper next to DustAET.exe
+        /// (game folder root — outside Asher/) so it can delete Asher\ while running,
+        /// then self-delete after the user closes the window.
+        /// </summary>
+        private static void InstallEmergencyUninstallHelper(string gamePath)
+        {
+            Directory.CreateDirectory(gamePath);
+
+            var ps1Path = AsherPaths.GetEmergencyUninstallPowerShellPath(gamePath);
+            var cmdPath = AsherPaths.GetEmergencyUninstallCmdPath(gamePath);
+
+            File.WriteAllText(ps1Path, BuildEmergencyUninstallPowerShell(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            File.WriteAllText(cmdPath, BuildEmergencyUninstallCmd(), Encoding.ASCII);
+
+            // Remove helpers left inside Asher\ from older installs.
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
+            TryDeleteFile(Path.Combine(asherFolder, AsherPaths.EmergencyUninstallPowerShellName));
+            TryDeleteFile(Path.Combine(asherFolder, AsherPaths.EmergencyUninstallScriptName));
+        }
+
+        private static void TryDeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch
+            {
+                // Best effort.
+            }
+        }
+
+        private static string BuildEmergencyUninstallCmd() =>
+            "@echo off\r\n" +
+            "setlocal\r\n" +
+            "cd /d \"%~dp0\"\r\n" +
+            "echo Asher emergency uninstall\r\n" +
+            "echo This restores DustAET.exe, removes the Asher folder, then deletes this helper.\r\n" +
+            "echo.\r\n" +
+            "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"%~dp0" +
+            AsherPaths.EmergencyUninstallPowerShellName +
+            "\"\r\n" +
+            "exit /b %ERRORLEVEL%\r\n";
+
+        private static string BuildEmergencyUninstallPowerShell()
+        {
+            // Scripts live in <game>\ (next to DustAET.exe), not inside Asher\.
+            return """
+$ErrorActionPreference = 'Stop'
+$gameDir = $PSScriptRoot
+$asherDir = Join-Path $gameDir 'Asher'
+$gameExe = Join-Path $gameDir 'DustAET.exe'
+$realExe = Join-Path $gameDir 'DustAET.real.exe'
+$backupExe = Join-Path $asherDir 'Asher.Backup\DustAET.exe'
+$helperPs1 = Join-Path $gameDir 'Uninstall-Asher.ps1'
+$helperCmd = Join-Path $gameDir 'Uninstall-Asher.cmd'
+
+Write-Host 'Asher emergency uninstall'
+Write-Host "Game folder: $gameDir"
+$confirm = Read-Host 'Remove Asher and restore the original DustAET.exe? (Y/N)'
+if ($confirm -notmatch '^[Yy]') { Write-Host 'Cancelled.'; exit 1 }
+
+if (-not (Test-Path -LiteralPath $asherDir) -and -not (Test-Path -LiteralPath $realExe) -and -not (Test-Path -LiteralPath $backupExe)) {
+  Write-Host 'ERROR: Asher does not appear to be installed here.'
+  Read-Host 'Press Enter to close'
+  exit 1
+}
+
+if (-not (Test-Path -LiteralPath $backupExe) -and -not (Test-Path -LiteralPath $realExe)) {
+  Write-Host 'ERROR: No restorable backup found (Asher\Asher.Backup\DustAET.exe or DustAET.real.exe).'
+  Read-Host 'Press Enter to close'
+  exit 1
+}
+
+if (Test-Path -LiteralPath $gameExe) { Remove-Item -LiteralPath $gameExe -Force }
+$configPath = $gameExe + '.config'
+if (Test-Path -LiteralPath $configPath) { Remove-Item -LiteralPath $configPath -Force }
+
+if (Test-Path -LiteralPath $backupExe) {
+  Copy-Item -LiteralPath $backupExe -Destination $gameExe -Force
+} else {
+  Move-Item -LiteralPath $realExe -Destination $gameExe -Force
+}
+
+if (Test-Path -LiteralPath $realExe) { Remove-Item -LiteralPath $realExe -Force }
+
+# Helpers are outside Asher\, so the folder can be removed immediately.
+if (Test-Path -LiteralPath $asherDir) {
+  Remove-Item -LiteralPath $asherDir -Recurse -Force
+}
+
+# After this window closes, delete Uninstall-Asher.cmd / .ps1 (locked while we run).
+$waitPid = $PID
+$cmdEsc = $helperCmd.Replace("'", "''")
+$ps1Esc = $helperPs1.Replace("'", "''")
+$cleanup = Join-Path $env:TEMP ("asher-helper-self-delete-{0}.ps1" -f [guid]::NewGuid().ToString('N'))
+$cleanupEsc = $cleanup.Replace("'", "''")
+@(
+  '$ErrorActionPreference = ''SilentlyContinue'''
+  "while (Get-Process -Id $waitPid -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 400 }"
+  'Start-Sleep -Milliseconds 600'
+  "for (`$i = 0; `$i -lt 15; `$i++) {"
+  "  if (-not (Test-Path -LiteralPath '$cmdEsc') -and -not (Test-Path -LiteralPath '$ps1Esc')) { break }"
+  "  Remove-Item -LiteralPath '$cmdEsc' -Force -ErrorAction SilentlyContinue"
+  "  Remove-Item -LiteralPath '$ps1Esc' -Force -ErrorAction SilentlyContinue"
+  '  Start-Sleep -Milliseconds 400'
+  '}'
+  "Remove-Item -LiteralPath '$cleanupEsc' -Force -ErrorAction SilentlyContinue"
+) | Set-Content -LiteralPath $cleanup -Encoding ASCII
+
+Start-Process -FilePath powershell.exe -ArgumentList @(
+  '-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File', $cleanup
+) -WindowStyle Hidden | Out-Null
+
+Write-Host 'Asher folder removed and original DustAET.exe restored.'
+Write-Host 'This uninstall helper will delete itself after you close this window.'
+Read-Host 'Press Enter to close'
+exit 0
+""";
         }
 
         private void CopyRuntimeFiles(string gamePath)
@@ -391,7 +564,7 @@ namespace Asher.Services.Implementations
                     {
                         throw new InvalidOperationException(
                             "0Harmony.dll incompatível: foi copiada de um target .NET moderno (net8/net10). " +
-                            "Use a versão net472 de packages\\Lib.Harmony.2.4.2\\lib\\net472 e execute PrepareDistribution.ps1 novamente.");
+                            "Use a versão net472 de packages\\Lib.Harmony.2.4.2\\lib\\net472.");
                     }
                 }
             }
@@ -405,23 +578,39 @@ namespace Asher.Services.Implementations
             }
         }
 
-        private void CopyDefaultMods(string gamePath)
+        private int CopyDefaultMods(string gamePath)
         {
             var modsFolder = AsherPaths.GetModsFolderPath(gamePath);
-            var sourceFolder = Path.Combine(
-                ResolveInstallSourceFolder(gamePath),
-                AsherPaths.DefaultModsFolderName);
+            Directory.CreateDirectory(modsFolder);
 
-            if (!Directory.Exists(sourceFolder))
-                return;
-
-            foreach (var fileName in DefaultModFiles)
+            var copied = 0;
+            foreach (var sourceFolder in GetDefaultModsSourceCandidates(gamePath))
             {
-                var sourcePath = Path.Combine(sourceFolder, fileName);
-                var destPath = Path.Combine(modsFolder, fileName);
+                if (!Directory.Exists(sourceFolder))
+                    continue;
 
-                if (File.Exists(sourcePath))
-                    File.Copy(sourcePath, destPath, overwrite: true);
+                foreach (var fileName in DefaultModFiles)
+                {
+                    var sourcePath = Path.Combine(sourceFolder, fileName);
+                    if (!File.Exists(sourcePath))
+                        continue;
+
+                    File.Copy(sourcePath, Path.Combine(modsFolder, fileName), overwrite: true);
+                    copied++;
+                }
+
+                if (copied > 0)
+                    return copied;
+            }
+
+            return copied;
+        }
+
+        private IEnumerable<string> GetDefaultModsSourceCandidates(string gamePath)
+        {
+            foreach (var candidate in GetInstallSourceCandidates(gamePath))
+            {
+                yield return Path.Combine(candidate, AsherPaths.DefaultModsFolderName);
             }
         }
 
@@ -454,47 +643,24 @@ namespace Asher.Services.Implementations
 
         private void VerifyInstallation(string gamePath)
         {
-            // Verifica se DustAET.exe existe (novo launcher)
             var launcherPath = Path.Combine(gamePath, OriginalExeName);
             if (!File.Exists(launcherPath))
                 throw new InvalidOperationException("Launcher não foi instalado corretamente");
 
-            // Verifica se DustAET.real.exe existe
             var backupExePath = Path.Combine(gamePath, BackupExeName);
             if (!File.Exists(backupExePath))
                 throw new InvalidOperationException("Executável original não foi renomeado");
 
-            // Verifica se pasta Asher existe
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             if (!Directory.Exists(asherFolder))
                 throw new InvalidOperationException("Pasta Asher não foi criada");
 
-            // Verifica se arquivos do runtime existem
             foreach (var fileName in RequiredRuntimeFiles)
             {
                 var filePath = Path.Combine(asherFolder, fileName);
                 if (!File.Exists(filePath))
                     throw new InvalidOperationException($"Arquivo do runtime não encontrado: {fileName}");
             }
-        }
-
-        private void DeployManagerApp(string gamePath)
-        {
-            if (_managerDeployService.IsRunningFromManagerOf(gamePath))
-            {
-                _managerDeployService.ClearPendingPayload(gamePath);
-                return;
-            }
-
-            var sourceFolder = GetAsherInstallationPath();
-
-            if (_managerDeployService.ShouldDeferDeploy(gamePath))
-            {
-                _managerDeployService.StagePayload(sourceFolder, gamePath);
-                return;
-            }
-
-            _managerDeployService.DeployImmediate(sourceFolder, gamePath);
         }
 
         private static void RemoveLauncherFiles(string gameFolderPath)
@@ -537,6 +703,74 @@ namespace Asher.Services.Implementations
                 File.Delete(renamedOriginalPath);
         }
 
+        /// <summary>
+        /// Removes leftover install markers so a subsequent install is not blocked.
+        /// Keeps Asher.Backup for safety.
+        /// </summary>
+        private static void EnsureInstallMarkersRemoved(string gameFolderPath)
+        {
+            TryForceDelete(Path.Combine(gameFolderPath, BackupExeName));
+
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return;
+
+            foreach (var file in Directory.GetFiles(asherFolder))
+                TryForceDelete(file);
+
+            foreach (var directory in Directory.GetDirectories(asherFolder))
+            {
+                var directoryName = Path.GetFileName(directory);
+                if (ShouldPreserveAsherSubfolder(directoryName))
+                    continue;
+
+                try
+                {
+                    Directory.Delete(directory, true);
+                }
+                catch
+                {
+                    // Best effort — uninstall already reported runtime cleanup.
+                }
+            }
+        }
+
+        private static void RemoveStaleInstallMarkers(string gameFolderPath)
+        {
+            var realExePath = Path.Combine(gameFolderPath, BackupExeName);
+            if (!File.Exists(realExePath) || HasActiveRuntime(gameFolderPath))
+                return;
+
+            TryForceDelete(realExePath);
+        }
+
+        private static void TryForceDelete(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            try
+            {
+                var attributes = File.GetAttributes(path);
+                if ((attributes & FileAttributes.ReadOnly) != 0)
+                    File.SetAttributes(path, attributes & ~FileAttributes.ReadOnly);
+
+                File.Delete(path);
+            }
+            catch
+            {
+                // Caller verifies markers via IsInstalled after cleanup.
+            }
+        }
+
+        /// <summary>
+        /// Subfolders kept across UI uninstall (backup for safety, logs for diagnostics).
+        /// The manager UI is Distribution-only — do not keep Asher.App.
+        /// </summary>
+        private static bool ShouldPreserveAsherSubfolder(string directoryName) =>
+            directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
+            || directoryName.Equals(LogsFolderName, StringComparison.OrdinalIgnoreCase);
+
         private static void CleanRuntimeFiles(string gameFolderPath)
         {
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gameFolderPath);
@@ -544,34 +778,53 @@ namespace Asher.Services.Implementations
                 return;
 
             foreach (var file in Directory.GetFiles(asherFolder))
-                File.Delete(file);
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // Best effort — locked files must not abort uninstall.
+                }
+            }
 
             foreach (var directory in Directory.GetDirectories(asherFolder))
             {
                 var directoryName = Path.GetFileName(directory);
-                if (directoryName.Equals(ManagerFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
-                    || directoryName.Equals(AsherPaths.InstallPayloadFolderName, StringComparison.OrdinalIgnoreCase))
-                {
+                if (ShouldPreserveAsherSubfolder(directoryName))
                     continue;
+
+                try
+                {
+                    Directory.Delete(directory, true);
                 }
-
-                Directory.Delete(directory, true);
+                catch
+                {
+                    // Best effort — e.g. file locks under Mods/.
+                }
             }
 
-            var legacyManagerPath = Path.Combine(gameFolderPath, ManagerFolderName);
-            var installedManagerPath = AsherPaths.GetManagerFolderPath(gameFolderPath);
-            if (Directory.Exists(legacyManagerPath)
-                && !string.Equals(
-                    Path.GetFullPath(legacyManagerPath),
-                    Path.GetFullPath(installedManagerPath),
-                    StringComparison.OrdinalIgnoreCase))
+            // Legacy WPF layout (game/Asher.App).
+            var legacyManagerPath = Path.Combine(gameFolderPath, AsherPaths.ManagerFolderName);
+            if (Directory.Exists(legacyManagerPath))
             {
-                Directory.Delete(legacyManagerPath, true);
+                try
+                {
+                    Directory.Delete(legacyManagerPath, true);
+                }
+                catch
+                {
+                    // Ignore — may be locked or absent after migration.
+                }
             }
+
+            // Emergency helpers live in the game folder root (outside Asher/).
+            TryDeleteFile(AsherPaths.GetEmergencyUninstallCmdPath(gameFolderPath));
+            TryDeleteFile(AsherPaths.GetEmergencyUninstallPowerShellPath(gameFolderPath));
         }
 
-        private string GetAsherInstallationPath() =>
+        private static string GetAsherInstallationPath() =>
             AppDomain.CurrentDomain.BaseDirectory;
 
         private string ResolveInstallSourceFolder(string gamePath)
@@ -584,99 +837,18 @@ namespace Asher.Services.Implementations
 
             throw new FileNotFoundException(
                 "Arquivos de instalação do Asher não encontrados. " +
-                "Execute a instalação a partir da pasta Distribution ou reinstale após uma instalação completa anterior.");
+                "Reinstale a partir do Asher Host (Electron) ou verifique install-payload/ ao lado de Asher.Host.exe.");
         }
 
         private IEnumerable<string> GetInstallSourceCandidates(string gamePath)
         {
             yield return GetAsherInstallationPath();
-            yield return AsherPaths.GetInstallPayloadPath(gamePath);
-            yield return Path.Combine(AsherPaths.GetManagerFolderPath(gamePath), AsherPaths.InstallPayloadFolderName);
+            yield return Path.Combine(GetAsherInstallationPath(), AsherPaths.HostInstallPayloadFolderName);
             yield return AsherPaths.GetRuntimeFolderPath(gamePath);
         }
 
         private static bool HasRequiredRuntimeFiles(string folder) =>
             RequiredRuntimeFiles.All(fileName => File.Exists(Path.Combine(folder, fileName)));
-
-        private void TryPopulateInstallPayloadIfMissing(string gamePath)
-        {
-            var payloadPath = AsherPaths.GetInstallPayloadPath(gamePath);
-            if (HasRequiredRuntimeFiles(payloadPath))
-                return;
-
-            foreach (var candidate in GetInstallSourceCandidates(gamePath))
-            {
-                if (string.Equals(
-                    Path.GetFullPath(candidate),
-                    Path.GetFullPath(payloadPath),
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (HasRequiredRuntimeFiles(candidate))
-                {
-                    CacheInstallPayloadFromSource(gamePath, candidate);
-                    return;
-                }
-            }
-        }
-
-        private void CacheInstallPayload(string gamePath) =>
-            CacheInstallPayloadFromSource(gamePath, AsherPaths.GetRuntimeFolderPath(gamePath));
-
-        private void CacheInstallPayloadFromSource(string gamePath, string sourceFolder)
-        {
-            var payloadPath = AsherPaths.GetInstallPayloadPath(gamePath);
-            Directory.CreateDirectory(payloadPath);
-
-            foreach (var fileName in RequiredRuntimeFiles)
-            {
-                var sourcePath = Path.Combine(sourceFolder, fileName);
-                if (File.Exists(sourcePath))
-                    File.Copy(sourcePath, Path.Combine(payloadPath, fileName), overwrite: true);
-            }
-
-            var launcherSource = Path.Combine(sourceFolder, LauncherExeName);
-            if (File.Exists(launcherSource))
-            {
-                File.Copy(launcherSource, Path.Combine(payloadPath, LauncherExeName), overwrite: true);
-
-                var launcherConfigSource = launcherSource + ".config";
-                if (File.Exists(launcherConfigSource))
-                {
-                    File.Copy(
-                        launcherConfigSource,
-                        Path.Combine(payloadPath, LauncherExeName) + ".config",
-                        overwrite: true);
-                }
-            }
-
-            var defaultModsSource = Path.Combine(sourceFolder, AsherPaths.DefaultModsFolderName);
-            var defaultModsDest = Path.Combine(payloadPath, AsherPaths.DefaultModsFolderName);
-            if (Directory.Exists(defaultModsSource))
-            {
-                if (Directory.Exists(defaultModsDest))
-                    Directory.Delete(defaultModsDest, true);
-
-                CopyDirectoryRecursive(defaultModsSource, defaultModsDest);
-            }
-        }
-
-        private static void CopyDirectoryRecursive(string sourceFolder, string destinationFolder)
-        {
-            Directory.CreateDirectory(destinationFolder);
-
-            foreach (var file in Directory.GetFiles(sourceFolder))
-                File.Copy(file, Path.Combine(destinationFolder, Path.GetFileName(file)), overwrite: true);
-
-            foreach (var directory in Directory.GetDirectories(sourceFolder))
-            {
-                CopyDirectoryRecursive(
-                    directory,
-                    Path.Combine(destinationFolder, Path.GetFileName(directory)));
-            }
-        }
 
         #endregion
     }

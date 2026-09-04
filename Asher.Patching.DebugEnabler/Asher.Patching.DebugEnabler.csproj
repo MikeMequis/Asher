@@ -52,6 +52,7 @@
     <Compile Include="DebugEnablerLifecycle.cs" />
     <Compile Include="DebugEnablerPatch.cs" />
     <Compile Include="DebugEnablerConfig.cs" />
+    <Compile Include="ModInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

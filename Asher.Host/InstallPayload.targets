@@ -1,0 +1,122 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="CopyInstallPayload" AfterTargets="Build">
+    <PropertyGroup>
+      <_RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\'))</_RepoRoot>
+      <_HostOutputDir>$([System.IO.Path]::GetFullPath('$(TargetDir)'))</_HostOutputDir>
+      <_InstallPayloadDir>$([System.IO.Path]::Combine('$(_HostOutputDir)', 'install-payload'))</_InstallPayloadDir>
+      <_InstallPayloadModsDir>$([System.IO.Path]::Combine('$(_InstallPayloadDir)', 'DefaultMods'))</_InstallPayloadModsDir>
+      <_LauncherOut>$(_RepoRoot)Asher.Launcher\bin\x86\$(Configuration)\net472\</_LauncherOut>
+      <_RuntimeOut>$(_RepoRoot)Asher.Runtime\bin\x86\$(Configuration)\</_RuntimeOut>
+      <_SdkOut>$(_RepoRoot)Asher.SDK\bin\x86\$(Configuration)\</_SdkOut>
+      <_HarmonyDll>$(_RepoRoot)packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll</_HarmonyDll>
+      <_DistributionOut>$(_RepoRoot)Distribution\</_DistributionOut>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(_InstallPayloadDir)" />
+    <MakeDir Directories="$(_InstallPayloadModsDir)" />
+
+    <Copy SourceFiles="$(_LauncherOut)Asher.Launcher.exe"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_LauncherOut)Asher.Launcher.exe')" />
+    <Copy SourceFiles="$(_LauncherOut)Asher.Launcher.exe.config"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_LauncherOut)Asher.Launcher.exe.config')" />
+    <Copy SourceFiles="$(_RuntimeOut)Asher.Runtime.dll"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_RuntimeOut)Asher.Runtime.dll')" />
+    <Copy SourceFiles="$(_SdkOut)Asher.SDK.dll"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_SdkOut)Asher.SDK.dll')" />
+    <Copy SourceFiles="$(_HarmonyDll)"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_HarmonyDll)')" />
+
+    <Copy SourceFiles="$(_DistributionOut)Asher.Launcher.exe"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="!Exists('$(_InstallPayloadDir)\Asher.Launcher.exe') AND Exists('$(_DistributionOut)Asher.Launcher.exe')" />
+    <Copy SourceFiles="$(_DistributionOut)Asher.Runtime.dll"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="!Exists('$(_InstallPayloadDir)\Asher.Runtime.dll') AND Exists('$(_DistributionOut)Asher.Runtime.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)Asher.SDK.dll"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="!Exists('$(_InstallPayloadDir)\Asher.SDK.dll') AND Exists('$(_DistributionOut)Asher.SDK.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)0Harmony.dll"
+          DestinationFolder="$(_InstallPayloadDir)"
+          SkipUnchangedFiles="true"
+          Condition="!Exists('$(_InstallPayloadDir)\0Harmony.dll') AND Exists('$(_DistributionOut)0Harmony.dll')" />
+
+    <!-- Canonical default mods only — matches GameInstallationService.DefaultModFiles -->
+    <ItemGroup>
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.DebugEnabler\bin\x86\$(Configuration)\Asher.Patching.DebugEnabler.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.IntroSkipper\bin\x86\$(Configuration)\Asher.Patching.IntroSkipper.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.GraphicsDeprofiler\bin\x86\$(Configuration)\Asher.Patching.GraphicsDeprofiler.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.MuteVoiceActing\bin\x86\$(Configuration)\Asher.Patching.MuteVoiceActing.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.OverheatDisabler\bin\x86\$(Configuration)\Asher.Patching.OverheatDisabler.dll" />
+      <_ExistingDefaultModDll Include="@(_DefaultModDll)" Condition="Exists('%(Identity)')" />
+    </ItemGroup>
+
+    <!-- Clear DefaultMods so legacy Distribution copies cannot linger -->
+    <ItemGroup>
+      <_StagedModDll Include="$(_InstallPayloadModsDir)\*.dll" Condition="Exists('$(_InstallPayloadModsDir)')" />
+    </ItemGroup>
+    <Delete Files="@(_StagedModDll)" ContinueOnError="true" />
+
+    <!-- Project bin outputs always win -->
+    <Copy SourceFiles="@(_ExistingDefaultModDll)"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true" />
+
+    <!-- Distribution fallback: per-mod only when project output is still missing -->
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.DebugEnabler.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.DebugEnabler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.DebugEnabler.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.IntroSkipper.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.IntroSkipper.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.IntroSkipper.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.GraphicsDeprofiler.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.GraphicsDeprofiler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.GraphicsDeprofiler.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.MuteVoiceActing.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.MuteVoiceActing.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.MuteVoiceActing.dll')" />
+    <Copy SourceFiles="$(_DistributionOut)DefaultMods\Asher.Patching.OverheatDisabler.dll"
+          DestinationFolder="$(_InstallPayloadModsDir)"
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true"
+          Condition="!Exists('$(_InstallPayloadModsDir)\Asher.Patching.OverheatDisabler.dll') AND Exists('$(_DistributionOut)DefaultMods\Asher.Patching.OverheatDisabler.dll')" />
+
+    <ItemGroup>
+      <_StagedModDll Include="$(_InstallPayloadModsDir)\*.dll" />
+    </ItemGroup>
+
+    <Message Importance="high" Text="Install payload staged at $(_InstallPayloadDir)" />
+
+    <Warning Text="Install payload missing: $(_InstallPayloadDir)\Asher.Launcher.exe. Build Asher.Launcher (x86 $(Configuration))."
+             Condition="!Exists('$(_InstallPayloadDir)\Asher.Launcher.exe')" />
+    <Warning Text="Install payload missing: $(_InstallPayloadDir)\Asher.Runtime.dll. Build Asher.Runtime (x86 $(Configuration))."
+             Condition="!Exists('$(_InstallPayloadDir)\Asher.Runtime.dll')" />
+    <Warning Text="Install payload missing: $(_InstallPayloadDir)\Asher.SDK.dll. Build Asher.SDK (x86 $(Configuration))."
+             Condition="!Exists('$(_InstallPayloadDir)\Asher.SDK.dll')" />
+    <Warning Text="Install payload missing: $(_InstallPayloadDir)\0Harmony.dll. Restore NuGet packages (Lib.Harmony.2.4.2 net472)."
+             Condition="!Exists('$(_InstallPayloadDir)\0Harmony.dll')" />
+    <Warning Text="Install payload has no default mod DLLs in DefaultMods/. Build Asher.Patching.* (x86 $(Configuration)), then rebuild Asher.Host."
+             Condition="'@(_StagedModDll)' == ''" />
+  </Target>
+</Project>

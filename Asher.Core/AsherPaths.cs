@@ -10,9 +10,12 @@ namespace Asher.Core
         public const string PatchesFolderName = "patches";
         public const string DefaultModsFolderName = "DefaultMods";
         public const string InstallPayloadFolderName = "InstallPayload";
+        public const string HostInstallPayloadFolderName = "install-payload";
         public const string ModsFolderName = "Mods";
         public const string DisabledModsFolderName = "disabled";
         public const string SettingsFileName = "settings.json";
+        public const string EmergencyUninstallScriptName = "Uninstall-Asher.cmd";
+        public const string EmergencyUninstallPowerShellName = "Uninstall-Asher.ps1";
 
         public const string GameExecutableName = "DustAET.exe";
         public const string RealGameExecutableName = "DustAET.real.exe";
@@ -26,6 +29,12 @@ namespace Asher.Core
 
         public static string GetRuntimeFolderPath(string gameFolderPath) =>
             Path.Combine(gameFolderPath, RuntimeFolderName);
+
+        public static string GetEmergencyUninstallCmdPath(string gameFolderPath) =>
+            Path.Combine(gameFolderPath, EmergencyUninstallScriptName);
+
+        public static string GetEmergencyUninstallPowerShellPath(string gameFolderPath) =>
+            Path.Combine(gameFolderPath, EmergencyUninstallPowerShellName);
 
         public static string GetManagerFolderPath(string gameFolderPath) =>
             Path.Combine(GetRuntimeFolderPath(gameFolderPath), ManagerFolderName);
@@ -79,8 +88,22 @@ namespace Asher.Core
             if (!IsValidGameFolder(gameFolderPath))
                 return false;
 
-            return File.Exists(Path.Combine(gameFolderPath, RealGameExecutableName))
-                && Directory.Exists(GetRuntimeFolderPath(gameFolderPath));
+            var realExePath = Path.Combine(gameFolderPath, RealGameExecutableName);
+            if (!File.Exists(realExePath))
+                return false;
+
+            return HasActiveRuntimeFiles(gameFolderPath);
+        }
+
+        private static bool HasActiveRuntimeFiles(string gameFolderPath)
+        {
+            var asherFolder = GetRuntimeFolderPath(gameFolderPath);
+            if (!Directory.Exists(asherFolder))
+                return false;
+
+            return File.Exists(Path.Combine(asherFolder, "Asher.Runtime.dll"))
+                   || File.Exists(Path.Combine(asherFolder, "Asher.SDK.dll"))
+                   || File.Exists(Path.Combine(asherFolder, "0Harmony.dll"));
         }
 
         public static void MigrateLegacyLayout(string gameFolderPath)

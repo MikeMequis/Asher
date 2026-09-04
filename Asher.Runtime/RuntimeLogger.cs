@@ -20,7 +20,7 @@ namespace Asher.Runtime
                 Directory.CreateDirectory(logDir);
                 _logFile = Path.Combine(logDir, $"runtime_{DateTime.Now:yyyyMMdd_HHmmss}.log");
                 _initialized = true;
-                Info("Logger initialized successfully");
+                Info("Logger ready");
             }
             catch (Exception ex)
             {
@@ -50,7 +50,7 @@ namespace Asher.Runtime
             Console.Error.WriteLine($"[FATAL] {fullMessage}");
         }
 
-        public static void Flush() => Info("Log flush requested"); // Ensure all logs are written (placeholder for future buffering)
+        public static void Flush() { }
 
         private static void Write(string level, string message)
         {
@@ -75,7 +75,6 @@ namespace Asher.Runtime
         {
             if (_initialized)
             {
-                Info("Logger shutting down");
                 _initialized = false;
             }
         }
