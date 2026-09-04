@@ -9,6 +9,12 @@ import {
 } from './diagnostic-logger.js';
 import { resolveGameFolderFromSettings } from './log-path-resolver.js';
 import { HostManager } from './host-manager.js';
+import {
+  checkForUpdates,
+  downloadAndApplyUpdate,
+  initAutoUpdater,
+  openReleasePage
+} from './auto-updater.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -101,6 +107,12 @@ hostManager.on('status-changed', () => {
 ipcMain.handle('asher:get-log-path', () => getDiagnosticLogPath());
 
 ipcMain.handle('app:get-version', () => app.getVersion());
+
+ipcMain.handle('updater:check', (_event, options) => checkForUpdates(options ?? {}));
+
+ipcMain.handle('updater:download-and-apply', (_event, params) => downloadAndApplyUpdate(params ?? {}));
+
+ipcMain.handle('updater:open-release', (_event, url) => openReleasePage(url));
 
 ipcMain.handle('window:minimize', () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -202,6 +214,7 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   initDiagnosticLogger();
   createWindow();
+  initAutoUpdater(broadcast);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

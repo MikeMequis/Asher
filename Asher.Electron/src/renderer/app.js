@@ -156,6 +156,13 @@ const settingsUninstallCard = document.getElementById('settings-uninstall-card')
 const settingsUninstallButton = document.getElementById('settings-uninstall');
 const settingsResetButton = document.getElementById('settings-reset');
 const settingsAppVersion = document.getElementById('settings-app-version');
+const settingsCheckUpdatesButton = document.getElementById('settings-check-updates');
+const settingsApplyUpdateButton = document.getElementById('settings-apply-update');
+const settingsOpenReleaseButton = document.getElementById('settings-open-release');
+const settingsUpdateStatus = document.getElementById('settings-update-status');
+
+/** @type {{ status?: string, version?: string, downloadUrl?: string, releaseUrl?: string, canApplyInPlace?: boolean, message?: string } | null} */
+let latestUpdateInfo = null;
 
 shell.onChange = renderShell;
 setup.onChange = renderSetup;
@@ -1163,6 +1170,123 @@ settingsResetButton.addEventListener('click', async () => {
   syncSettingsForm();
   applyThemeFromSettings(settings.draft);
   await persistSettings({ toastKind: 'info', successMessage: t('settings.resetDone') });
+});
+
+/**
+ * @param {{ status?: string, version?: string, downloadUrl?: string, releaseUrl?: string, canApplyInPlace?: boolean, message?: string, silent?: boolean }} info
+ */
+function applyUpdaterStatus(info) {
+  latestUpdateInfo = info ?? null;
+  if (!settingsUpdateStatus) {
+    return;
+  }
+
+  const status = info?.status;
+  if (!status || status === 'checking') {
+    settingsUpdateStatus.hidden = status !== 'checking';
+    settingsUpdateStatus.textContent = status === 'checking' ? t('settings.updateChecking') : '';
+  } else if (status === 'up-to-date') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = t('settings.updateUpToDate');
+  } else if (status === 'available') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = t('settings.updateAvailable', {
+      version: info.version ?? ''
+    });
+  } else if (status === 'available-manual') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = t('settings.updateManual', {
+      version: info.version ?? ''
+    });
+  } else if (status === 'downloading' || status === 'extracting') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = t('settings.updateDownloading');
+  } else if (status === 'installing' || status === 'ready-to-install') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = t('settings.updateInstalling');
+  } else if (status === 'unavailable') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = info.message || t('settings.updateUnavailable');
+  } else if (status === 'error') {
+    settingsUpdateStatus.hidden = false;
+    settingsUpdateStatus.textContent = t('settings.updateError', {
+      message: info.message || 'unknown'
+    });
+  } else {
+    settingsUpdateStatus.hidden = true;
+    settingsUpdateStatus.textContent = '';
+  }
+
+  if (settingsApplyUpdateButton) {
+    settingsApplyUpdateButton.hidden = !(
+      status === 'available' &&
+      info?.canApplyInPlace &&
+      info?.downloadUrl
+    );
+  }
+  if (settingsOpenReleaseButton) {
+    settingsOpenReleaseButton.hidden = !(
+      (status === 'available' || status === 'available-manual') &&
+      info?.releaseUrl
+    );
+  }
+
+  if (!info?.silent && status === 'up-to-date') {
+    showActionBanner('info', t('settings.updateUpToDate'));
+  } else if (!info?.silent && status === 'available') {
+    showActionBanner(
+      'info',
+      t('settings.updateAvailable', { version: info.version ?? '' })
+    );
+  } else if (!info?.silent && status === 'error' && info.message) {
+    showActionBanner('error', t('settings.updateError', { message: info.message }));
+  }
+}
+
+if (settingsCheckUpdatesButton) {
+  settingsCheckUpdatesButton.addEventListener('click', async () => {
+    settingsCheckUpdatesButton.disabled = true;
+    try {
+      const gameFolderPath = settings.draft?.gameFolderPath || shell.applicationState?.settings?.gameFolderPath;
+      const result = await client.checkForUpdates({
+        silent: false,
+        gameFolderPath
+      });
+      applyUpdaterStatus(result);
+    } finally {
+      settingsCheckUpdatesButton.disabled = false;
+    }
+  });
+}
+
+if (settingsApplyUpdateButton) {
+  settingsApplyUpdateButton.addEventListener('click', async () => {
+    if (!latestUpdateInfo?.downloadUrl) {
+      return;
+    }
+    const gameFolderPath =
+      settings.draft?.gameFolderPath || shell.applicationState?.settings?.gameFolderPath;
+    settingsApplyUpdateButton.disabled = true;
+    try {
+      const result = await client.downloadAndApplyUpdate({
+        downloadUrl: latestUpdateInfo.downloadUrl,
+        gameFolderPath
+      });
+      applyUpdaterStatus(result);
+    } finally {
+      settingsApplyUpdateButton.disabled = false;
+    }
+  });
+}
+
+if (settingsOpenReleaseButton) {
+  settingsOpenReleaseButton.addEventListener('click', async () => {
+    await client.openReleasePage(latestUpdateInfo?.releaseUrl);
+  });
+}
+
+client.onUpdaterStatus((payload) => {
+  applyUpdaterStatus(payload);
 });
 
 sidebarToggle.addEventListener('click', () => {

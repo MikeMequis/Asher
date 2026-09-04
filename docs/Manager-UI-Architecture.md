@@ -59,9 +59,9 @@ Deleted: `Asher.App`, `Asher.UserInterface`, `Asher.Localization`.
 
 **WPF-only services (removed):** `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`.
 
-**Install extras WPF had that Electron does not:** desktop shortcut checkbox, manager self-deploy to `Asher/Asher.App/`, relaunch script after payload copy.
+**Electron install extras:** Emergency `Asher/Uninstall-Asher.cmd` in the game folder (no in-game manager deploy, no desktop shortcut).
 
-**Install flow (WPF):** Welcome → detect folder → `CreatePatchesFolder` → `InstallAsync` (backup, copy runtime, swap exe, deploy manager) → Finish → `MarkAsInstalled` → event → Home.
+**Install flow (Electron):** Setup → Install (runtime via Host + emergency uninstall helper) → Finish stays in Distribution → optional game launch.
 
 ---
 

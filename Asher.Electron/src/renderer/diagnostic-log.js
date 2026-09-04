@@ -10,7 +10,7 @@ import { t } from './localization.js';
  * @param {unknown} [data]
  */
 export function logDiagnostic(level, source, message, data) {
-  const api = window.asher;
+  const api = typeof window !== 'undefined' ? window.asher : undefined;
   if (api?.log) {
     void api.log(level, source, message, data);
     return;

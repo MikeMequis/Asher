@@ -14,6 +14,8 @@ namespace Asher.Core
         public const string ModsFolderName = "Mods";
         public const string DisabledModsFolderName = "disabled";
         public const string SettingsFileName = "settings.json";
+        public const string EmergencyUninstallScriptName = "Uninstall-Asher.cmd";
+        public const string EmergencyUninstallPowerShellName = "Uninstall-Asher.ps1";
 
         public const string GameExecutableName = "DustAET.exe";
         public const string RealGameExecutableName = "DustAET.real.exe";

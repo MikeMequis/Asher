@@ -103,6 +103,34 @@ export class ApplicationClient {
     return this.api.minimizeWindow();
   }
 
+  checkForUpdates(options) {
+    if (!this.api.checkForUpdates) {
+      return Promise.resolve({ status: 'unavailable' });
+    }
+    return this.api.checkForUpdates(options);
+  }
+
+  downloadAndApplyUpdate(params) {
+    if (!this.api.downloadAndApplyUpdate) {
+      return Promise.resolve({ status: 'error', message: 'Updater unavailable.' });
+    }
+    return this.api.downloadAndApplyUpdate(params);
+  }
+
+  openReleasePage(url) {
+    if (!this.api.openReleasePage) {
+      return Promise.resolve({ ok: false });
+    }
+    return this.api.openReleasePage(url);
+  }
+
+  onUpdaterStatus(callback) {
+    if (!this.api.onUpdaterStatus) {
+      return () => {};
+    }
+    return this.api.onUpdaterStatus(callback);
+  }
+
   /**
    * @param {string} method
    * @param {object} [params]

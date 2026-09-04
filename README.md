@@ -30,6 +30,18 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
 2. Use **Setup** to detect and save your game folder, then **Install**
 3. Launch the game via **Steam** or the manager's **Launch Game** button
 
+## Packaged distribution
+
+```bash
+cd Asher.Electron
+npm run dist       # builds zip + syncs repo-root Distribution/
+npm run publish    # publishes GitHub Release (requires private/GH_TOKEN)
+```
+
+Users extract the zip (or use `Distribution/`), run `Asher.exe`, then install into the game folder. The manager stays in Distribution. The game folder gets runtime files plus `Asher/Uninstall-Asher.cmd` for emergency restore if Distribution is missing.
+
+Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
+
 ## Included mods
 
 - **Debug Menu Enabler** — Tab in pause menu opens debug menu

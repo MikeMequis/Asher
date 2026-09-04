@@ -31,5 +31,13 @@ contextBridge.exposeInMainWorld('asher', {
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
   relocateLogs: (gameFolderPath) => ipcRenderer.invoke('asher:relocate-logs', gameFolderPath),
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  checkForUpdates: (options) => ipcRenderer.invoke('updater:check', options),
+  downloadAndApplyUpdate: (params) => ipcRenderer.invoke('updater:download-and-apply', params),
+  openReleasePage: (url) => ipcRenderer.invoke('updater:open-release', url),
+  onUpdaterStatus: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('updater:status', listener);
+    return () => ipcRenderer.removeListener('updater:status', listener);
+  },
   minimizeWindow: () => ipcRenderer.invoke('window:minimize')
 });

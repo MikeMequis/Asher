@@ -22,20 +22,24 @@ Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron*
 - Toast notifications (`action-banner.js`, top-right stack)
 - `markInstalled` / `markUninstalled` contract methods (replaced fragile settings merge)
 - Install payload bundled via MSBuild (`install-payload/` beside `Asher.Host.exe`)
-- Production packaging (`npm run dist`, unsigned portable)
+- Zip + unpacked Distribution packaging (`npm run dist` → `Distribution/`; GitHub publish via `npm run publish` + `private/GH_TOKEN`)
+- Manager UI runs from Distribution only (no deploy into `game/Asher/Asher.App/`)
+- Emergency uninstall helper installed as `Asher/Uninstall-Asher.cmd` (+ `.ps1`) for recovery without the UI
+- GitHub Releases update check / zip apply for the Distribution app (Settings → Check for updates)
 
 ## Retired (do not recreate)
 
 - WPF UI: `Asher.App`, `Asher.UserInterface`, `Asher.Localization` — deleted
-- WPF-only services: `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`
+- WPF-only services: `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` (manager deploy/relaunch restored in Electron main, not those C# services)
 - `PrepareDistribution.ps1` — WPF-era packaging script
 - Prism / MaterialDesign / WPF dependencies in `Asher.Core`
+- Portable-as-primary packaging (replaced by zip / Distribution folder)
 
 ## Deferred
 
 - Full install wizard stepper chrome
-- Packaged portable as primary validated distribution path
 - Content patcher UI (no backend exists)
+- Desktop shortcut creation after install
 
 ## Documentation caveat
 

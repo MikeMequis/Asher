@@ -10,7 +10,7 @@ alwaysApply: false
 
 | Directory | Role | Key files |
 |-----------|------|-----------|
-| `src/main/` | Node.js main process — window, host lifecycle, IPC handlers | `main.js`, `host-manager.js`, `jsonl-client.js`, `resolve-host-path.js`, `diagnostic-logger.js` |
+| `src/main/` | Node.js main process — window, host lifecycle, IPC, updates | `main.js`, `host-manager.js`, `jsonl-client.js`, `resolve-host-path.js`, `auto-updater.js`, `diagnostic-logger.js` |
 | `src/preload/` | Context bridge — exposes `window.asher` API to renderer | `preload.cjs` |
 | `src/renderer/` | Browser context — all UI, state, controllers | `app.js`, `application-shell.js`, `application-client.js`, controllers, `localization.js`, `theme.js`, `icons.js` |
 

@@ -116,6 +116,7 @@ Game process (separate from manager):
 | 2026-09-01 | **Step 18 gate passed** (game PC): fresh install, uninstall, reinstall, patched launch; payload bundling; `npm run dist` |
 | 2026-09-01 | Step 19: WPF stack removed; Electron-only manager |
 | 2026-09-02 | Step 20: Settings, home hub, i18n (en/pt/es), theme, install Finish UX, mod validation, packaging hygiene |
+| 2026-09-03 | Zip/Distribution packaging; manager self-deploy + relaunch; GitHub Releases updates |
 
 ---
 
@@ -127,20 +128,20 @@ Game process (separate from manager):
 - JSONL contract stable; smoke tests in `Asher.Electron/scripts/`
 - Install payload: `Asher.Launcher`, `Asher.Runtime`, `Asher.SDK`, `0Harmony.dll`, 5 default mod DLLs
 - Localization, theme, toasts, Material Symbols shell
-- Unsigned portable packaging (`npm run dist`)
+- Zip + `Distribution/` packaging (`npm run dist`); GitHub publish (`npm run publish` + `private/GH_TOKEN`)
+- Manager UI stays in Distribution; game install gets runtime + emergency `Asher/Uninstall-Asher.cmd`
+- GitHub Releases update check / zip apply for the Distribution app
 
 ### Deferred
 
 - Full install wizard stepper / welcome onboarding chrome
-- Packaged portable as primary validated distribution path (dev uses `npm start`)
 - Content patcher UI (no backend)
-- `CompleteInstall` aggregate (shortcut, manager relaunch, payload deploy) — was WPF-only; intentionally not on contract
+- Desktop shortcut after install
 
 ### Next planned steps
 
 1. **Install wizard polish** — fuller welcome / stepper chrome (Finish + optional launch already exist).
-2. **Packaged distribution** — validate `npm run dist` portable as the primary ship path (not only `npm start`).
-3. **Content patcher** — only if/when a backend exists; no UI-only stub.
+2. **Content patcher** — only if/when a backend exists; no UI-only stub.
 
 Items above are optional polish or gated features, not unfinished migration work.
 
@@ -149,10 +150,23 @@ Items above are optional polish or gated features, not unfinished migration work
 | Removed | Notes |
 |---------|--------|
 | `Asher.App`, `Asher.UserInterface`, `Asher.Localization` | Replaced by Electron renderer |
-| `PrepareDistribution.ps1` | Not part of user workflow |
-| `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` | WPF-only services |
+| `PrepareDistribution.ps1` | Replaced by `npm run dist` / `sync-distribution.mjs` |
+| `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` | WPF C# services |
+| In-game Electron manager deploy / Finish relaunch | Reverted — UI is Distribution-only |
 | Prism / MaterialDesign in Core | Decoupled in Step 19 |
-| Settings “Check for Updates” | Removed from UI; not implemented |
+| Portable primary packaging | Replaced by zip / Distribution folder |
+
+---
+
+### Decision — Zip Distribution + emergency in-game uninstall helper
+
+**Context:** Deploying the full Electron manager into `game/Asher/Asher.App/` caused self-delete/lock issues on uninstall and an unwanted relaunch workflow.
+
+**Decision:** Keep the manager UI in `Distribution/` only. Game install stages runtime + mods + launcher swap, plus a minimal `Asher/Uninstall-Asher.cmd` (PowerShell) for emergency restore without the UI. Updates apply to the Distribution folder via GitHub zip. Publish uses local `private/GH_TOKEN` only.
+
+**Rationale:** Avoids locked-exe self-deletion; users who lose Distribution can still restore the game; packaging remains zip/dir without an installer wizard.
+
+**Consequences:** No Finish-time relaunch into the game folder. Emergency helper requires a restorable backup (`Asher.Backup` or `DustAET.real.exe`).
 
 ---
 
@@ -188,7 +202,8 @@ Preserve unless explicitly required to change:
 - **Dev machine:** Often no game installed — detection/mod smoke tests use empty or invalid paths.
 - **No UI/E2E tests:** Smoke tests exercise JSONL/host only, not Electron renderer DOM.
 - **No xUnit-style test project:** Validation is smoke/integration + manual game PC checks.
-- **Packaging:** `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign`; Developer Mode or elevated terminal workaround. Portable path secondary to `npm start`.
+- **Packaging:** `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign`; Developer Mode or elevated terminal workaround. Ship path is zip + `Distribution/` (not portable).
+- **Updates:** Packaged Distribution builds can download/apply GitHub release zips; unpackaged `npm start` cannot.
 - **Patching builds:** May warn about XNA GAC / game HintPath on machines without the game installed.
 - **Cancellation:** Protocol-level cancel exists; services may not fully observe `CancellationToken` inside `Task.Run` install work.
 - **Sequential JSONL:** Long install blocks other host requests.

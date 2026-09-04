@@ -45,19 +45,28 @@ cd Asher.Electron && npm start
 ## Packaging
 
 ```bash
-cd Asher.Electron && npm run dist    # clean:dist + build:host Release + electron-builder
+cd Asher.Electron
+npm run dist       # clean + build:host Release + electron-builder dir/zip (ia32) + sync Distribution/
+npm run publish    # same as dist, publishes GitHub Release (requires private/GH_TOKEN)
 ```
+
+Outputs:
+
+- `Asher.Electron/dist/win-ia32-unpacked/` — builder intermediate
+- `Asher.Electron/dist/*.zip` — GitHub release asset
+- Repo-root `Distribution/` — synced unpacked app for local use
 
 ## Validation strategy
 
 1. **Smallest scope first**: build the changed C# project, run the relevant smoke test.
 2. **Broader when needed**: `npm run smoke` for cross-cutting changes; `npm start` for UI verification.
-3. **Real-game validation**: required for changes to install, uninstall, launch, or runtime patching. Must be done on a machine with Dust: An Elysian Tail installed.
-4. **Packaged validation**: run `npm run dist` and test the portable exe when packaging config changes.
+3. **Real-game validation**: required for changes to install, uninstall, launch, runtime patching, or manager deploy/relaunch. Must be done on a machine with Dust: An Elysian Tail installed.
+4. **Packaged validation**: run `npm run dist`, launch `Distribution/Asher.exe`, install into a game folder, confirm Finish stays in Distribution and `Asher/Uninstall-Asher.cmd` exists.
 
 ## Known limitations
 
 - Smoke tests use temp paths, not real game folders.
 - `smoke:launch` expects no game installed on dev machine — "expected false positive" on game PC.
-- Packaged portable is secondary to `npm start` for day-to-day dev validation.
+- Manager deploy/relaunch removed — UI is Distribution-only; game folder gets an emergency uninstall script instead.
+- `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign` (Developer Mode or elevated terminal).
 - Patching project builds may warn about missing XNA GAC on machines without the game.
