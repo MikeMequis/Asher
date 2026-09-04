@@ -1,4 +1,4 @@
-# 🧱 Asher Modding Platform
+﻿# 🧱 Asher Modding Platform
 
 **Asher** is a launcher-based modding platform for [*Dust: An Elysian Tail*](https://store.steampowered.com/app/236090/Dust_An_Elysian_Tail/), designed to support **runtime code patching** and **content replacement** in a safe, modular, and reversible way.
 
@@ -29,6 +29,16 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
    ```
 2. Use **Setup** to detect and save your game folder, then **Install**
 3. Launch the game via **Steam** or the manager's **Launch Game** button
+
+### Addendum — XNA Framework (build dependency)
+
+`Asher.Runtime` and several patching projects reference **Microsoft XNA Framework 4.0** assemblies from the GAC (same runtime Dust uses). Without them, `npm run build:host` / patching builds fail or warn about missing `Microsoft.Xna.Framework*`.
+
+1. Install **[Microsoft XNA Framework Redistributable 4.0](https://www.microsoft.com/en-us/download/details.aspx?id=20914)** (or the [4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598)).
+2. Prefer the **x86** redistributable — Asher targets `Platform=x86`.
+3. Rebuild: `cd Asher.Electron && npm run build:host:debug`.
+
+Steam installs of Dust often already place these assemblies on the machine; use the redistributable when building on a PC that does not have the game (or XNA) installed.
 
 ## Packaged distribution
 
