@@ -4,13 +4,10 @@ import path from 'node:path';
 import { createWriteStream } from 'node:fs';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { createRequire } from 'node:module';
 import { app, shell } from 'electron';
 import { writeDiagnosticLog } from './diagnostic-logger.js';
 import { getAppInstallRoot, getManagerExecutablePath, isRunningFromGameManager, isRunningFromInstalledManager } from './manager-paths.js';
 import { scheduleReplaceAndRelaunch } from './post-quit-helper.js';
-
-const require = createRequire(import.meta.url);
 
 const GITHUB_OWNER = 'MikeMequis';
 const GITHUB_REPO = 'Asher';
@@ -162,24 +159,6 @@ export async function checkForUpdates(options = {}) {
   emit('checking', { silent });
 
   try {
-    try {
-      const { autoUpdater } = require('electron-updater');
-      autoUpdater.autoDownload = false;
-      autoUpdater.autoInstallOnAppQuit = false;
-
-      const result = await autoUpdater.checkForUpdates();
-      const updateInfo = result?.updateInfo;
-      if (updateInfo?.version && compareSemver(updateInfo.version, app.getVersion()) > 0) {
-        writeDiagnosticLog('info', 'updater', 'electron-updater reported update', {
-          version: updateInfo.version
-        });
-      }
-    } catch (updaterErr) {
-      writeDiagnosticLog('warn', 'updater', 'electron-updater check skipped', {
-        error: updaterErr instanceof Error ? updaterErr.message : String(updaterErr)
-      });
-    }
-
     const release = await fetchLatestRelease();
     const remoteVersion = String(release.tag_name || release.name || '').replace(/^v/i, '');
     if (!remoteVersion) {

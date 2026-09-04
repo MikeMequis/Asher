@@ -658,9 +658,14 @@ namespace Asher.Services.Implementations
             }
         }
 
+        /// <summary>
+        /// Subfolders kept across uninstall so the in-game manager can stay running
+        /// and the user can reinstall without deleting a locked Asher.exe.
+        /// </summary>
         private static bool ShouldPreserveAsherSubfolder(string directoryName) =>
             directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
-            || directoryName.Equals(LogsFolderName, StringComparison.OrdinalIgnoreCase);
+            || directoryName.Equals(LogsFolderName, StringComparison.OrdinalIgnoreCase)
+            || directoryName.Equals(AsherPaths.ManagerFolderName, StringComparison.OrdinalIgnoreCase);
 
         private static void CleanRuntimeFiles(string gameFolderPath)
         {
@@ -669,7 +674,16 @@ namespace Asher.Services.Implementations
                 return;
 
             foreach (var file in Directory.GetFiles(asherFolder))
-                File.Delete(file);
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // Best effort — locked files must not abort uninstall.
+                }
+            }
 
             foreach (var directory in Directory.GetDirectories(asherFolder))
             {
@@ -677,12 +691,30 @@ namespace Asher.Services.Implementations
                 if (ShouldPreserveAsherSubfolder(directoryName))
                     continue;
 
-                Directory.Delete(directory, true);
+                try
+                {
+                    Directory.Delete(directory, true);
+                }
+                catch
+                {
+                    // Best effort — e.g. file locks under Mods/.
+                }
             }
 
+            // Legacy WPF layout (game/Asher.App). Never delete the nested
+            // game/Asher/Asher.App manager while it may be the running process.
             var legacyManagerPath = Path.Combine(gameFolderPath, AsherPaths.ManagerFolderName);
             if (Directory.Exists(legacyManagerPath))
-                Directory.Delete(legacyManagerPath, true);
+            {
+                try
+                {
+                    Directory.Delete(legacyManagerPath, true);
+                }
+                catch
+                {
+                    // Ignore — may be locked or absent after migration.
+                }
+            }
         }
 
         private static string GetAsherInstallationPath() =>

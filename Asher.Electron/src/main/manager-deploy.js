@@ -1,5 +1,5 @@
-import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { app } from 'electron';
 import { writeDiagnosticLog } from './diagnostic-logger.js';
 import {
@@ -9,7 +9,45 @@ import {
   isRunningFromGameManager,
   pathExists
 } from './manager-paths.js';
-import { scheduleDeleteManagerFolder, scheduleRelaunch } from './post-quit-helper.js';
+import { relaunchManagerNow } from './post-quit-helper.js';
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Electron patches fs so app.asar looks like a directory. Copying with that
+ * patch throws ENOTDIR. Use original-fs (real disk files) for deploy.
+ */
+function getOriginalFs() {
+  try {
+    return require('original-fs');
+  } catch {
+    return require('node:fs');
+  }
+}
+
+/**
+ * @param {string} sourceDir
+ * @param {string} destDir
+ */
+function copyAppTree(sourceDir, destDir) {
+  const fs = getOriginalFs();
+  const previousNoAsar = process.noAsar;
+  process.noAsar = true;
+
+  try {
+    fs.mkdirSync(path.dirname(destDir), { recursive: true });
+    if (fs.existsSync(destDir)) {
+      fs.rmSync(destDir, { recursive: true, force: true });
+    }
+    fs.cpSync(sourceDir, destDir, {
+      recursive: true,
+      force: true,
+      errorOnExist: false
+    });
+  } finally {
+    process.noAsar = previousNoAsar;
+  }
+}
 
 /**
  * Copy the packaged app tree into game/Asher/Asher.App and quit into that copy.
@@ -39,21 +77,15 @@ export async function transitionToInstalledManager(gameFolderPath) {
   const sourceDir = getAppInstallRoot();
   writeDiagnosticLog('info', 'deploy', 'copying manager into game folder', { sourceDir, destDir });
 
-  fs.mkdirSync(path.dirname(destDir), { recursive: true });
-  fs.cpSync(sourceDir, destDir, {
-    recursive: true,
-    force: true,
-    errorOnExist: false
-  });
+  copyAppTree(sourceDir, destDir);
 
   if (!pathExists(managerExe)) {
     throw new Error(`Manager deploy failed: missing ${managerExe}`);
   }
 
-  scheduleRelaunch(managerExe);
-  writeDiagnosticLog('info', 'deploy', 'scheduled relaunch; quitting', { managerExe });
+  relaunchManagerNow(managerExe);
+  writeDiagnosticLog('info', 'deploy', 'spawned installed manager; quitting', { managerExe });
 
-  // Defer quit so the IPC response can flush.
   setImmediate(() => {
     app.quit();
   });
@@ -62,7 +94,10 @@ export async function transitionToInstalledManager(gameFolderPath) {
 }
 
 /**
- * If running from Asher.App, schedule folder deletion after quit.
+ * After uninstall from the in-game manager: do not delete Asher.App (would be
+ * self-delete while Asher.exe is locked). Host already preserves this folder.
+ * Stay running so the user can reinstall from the same UI.
+ *
  * @param {string} gameFolderPath
  * @returns {{ scheduled: boolean, reason?: string }}
  */
@@ -75,13 +110,10 @@ export function scheduleSelfUninstallCleanup(gameFolderPath) {
     return { scheduled: false, reason: 'not_installed_location' };
   }
 
-  const managerDir = getManagerFolderPath(gameFolderPath);
-  scheduleDeleteManagerFolder(managerDir);
-  writeDiagnosticLog('info', 'deploy', 'scheduled self-uninstall cleanup', { managerDir });
-
-  setImmediate(() => {
-    app.quit();
+  writeDiagnosticLog('info', 'deploy', 'uninstall complete; preserving Asher.App for reinstall', {
+    managerPath: getManagerFolderPath(gameFolderPath)
   });
 
-  return { scheduled: true };
+  // Never quit or delete the running manager here.
+  return { scheduled: false, reason: 'manager_preserved' };
 }

@@ -1076,11 +1076,10 @@ uninstallContinueButton.addEventListener('click', async () => {
   const gameFolderPath = shell.applicationState?.settings?.gameFolderPath;
   uninstallation.reset();
 
+  // When running from game/Asher/Asher.App, Host preserves that folder so we
+  // never delete the locked Asher.exe. Stay in-process and return to setup.
   if (gameFolderPath) {
-    const cleanup = await client.scheduleSelfUninstallCleanup(gameFolderPath);
-    if (cleanup?.scheduled) {
-      return;
-    }
+    await client.scheduleSelfUninstallCleanup(gameFolderPath);
   }
 
   await shell.refreshApplicationState();

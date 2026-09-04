@@ -25,6 +25,7 @@ Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron*
 - Zip + unpacked Distribution packaging (`npm run dist` → `Distribution/`; GitHub publish via `npm run publish` + `private/GH_TOKEN`)
 - Packaged manager self-deploy to `game/Asher/Asher.App/` on Finish, then relaunch from that copy
 - GitHub Releases update check / zip apply for the installed manager (Settings → Check for updates)
+- Uninstall preserves `Asher/Asher.App` (and logs/backup) so the in-game manager is never self-deleted while running; user can reinstall from the same app
 
 ## Retired (do not recreate)
 
