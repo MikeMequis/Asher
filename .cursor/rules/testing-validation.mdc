@@ -69,4 +69,4 @@ Outputs:
 - `smoke:launch` expects no game installed on dev machine — "expected false positive" on game PC.
 - Manager deploy/relaunch removed — UI is Distribution-only; game folder gets an emergency uninstall script instead.
 - `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign` (Developer Mode or elevated terminal).
-- Patching project builds may warn about missing XNA GAC on machines without the game.
+- Patching/runtime builds need XNA 4.0 GAC assemblies — install the redistributable per README *Addendum — XNA Framework* if the game is not on the machine.

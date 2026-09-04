@@ -211,7 +211,7 @@ Preserve unless explicitly required to change:
 - **No xUnit-style test project:** Validation is smoke/integration + manual game PC checks.
 - **Packaging:** `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign`; Developer Mode or elevated terminal workaround. Ship path is zip + `Distribution/` (not portable).
 - **Updates:** Packaged Distribution builds can download/apply GitHub release zips; unpackaged `npm start` cannot.
-- **Patching builds:** May warn about XNA GAC / game HintPath on machines without the game installed.
+- **Patching builds:** Need XNA 4.0 in the GAC — see README *Addendum — XNA Framework*. Machines without the game/redistributable may fail or warn on `Microsoft.Xna.Framework*` / HintPath references.
 - **Cancellation:** Protocol-level cancel exists; services may not fully observe `CancellationToken` inside `Task.Run` install work.
 - **Sequential JSONL:** Long install blocks other host requests.
 
