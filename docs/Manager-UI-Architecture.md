@@ -59,9 +59,13 @@ Deleted: `Asher.App`, `Asher.UserInterface`, `Asher.Localization`.
 
 **WPF-only services (removed):** `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`.
 
-**Install extras WPF had that Electron does not:** desktop shortcut checkbox, manager self-deploy to `Asher/Asher.App/`, relaunch script after payload copy.
+**Electron restore of deploy/relaunch:** Packaged Finish copies the Electron app into `game/Asher/Asher.App/` and relaunches from that path (no desktop shortcut). Updates apply to the installed manager via GitHub Releases zip.
+
+**Install extras WPF had that Electron still omits:** desktop shortcut checkbox.
 
 **Install flow (WPF):** Welcome → detect folder → `CreatePatchesFolder` → `InstallAsync` (backup, copy runtime, swap exe, deploy manager) → Finish → `MarkAsInstalled` → event → Home.
+
+**Install flow (Electron packaged):** Setup → Install (runtime via Host) → Finish → deploy manager to `Asher/Asher.App/` → quit Distribution instance → start installed manager.
 
 ---
 

@@ -259,6 +259,12 @@
                 <option value="Light" data-i18n="settings.themeLight">Light</option>
                 <option value="Dark" data-i18n="settings.themeDark">Dark</option>
               </select>
+              <div class="action-row settings-update-row">
+                <button id="settings-check-updates" class="secondary" type="button" data-i18n="settings.checkUpdates">Check for updates</button>
+                <button id="settings-apply-update" class="secondary" type="button" hidden data-i18n="settings.updateApply">Download and install</button>
+                <button id="settings-open-release" class="secondary" type="button" hidden data-i18n="settings.updateOpenRelease">Open download page</button>
+              </div>
+              <p id="settings-update-status" class="field-hint" hidden></p>
             </div>
 
             <div id="settings-uninstall-card" class="settings-card settings-card-danger" hidden>
