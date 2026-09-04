@@ -76,42 +76,21 @@ namespace Asher.Services.Implementations
 
                 InstallFlowTrace.Log("InstallAsync proceeding", DescribeInstallMarkers(gamePath));
 
-                var backupEnabled = _settingsService.Load().BackupEnabled;
-
-                if (backupEnabled)
+                progress?.Report(new InstallationProgress
                 {
-                    progress?.Report(new InstallationProgress
-                    {
-                        Percentage = 10,
-                        Message = "Criando backup dos arquivos originais...",
-                        Details = "Preparando backup de segurança"
-                    });
+                    Percentage = 10,
+                    Message = "Criando backup dos arquivos originais...",
+                    Details = "Preparando backup de segurança"
+                });
 
-                    await Task.Run(() => CreateBackup(gamePath, originalExePath));
+                await Task.Run(() => CreateBackup(gamePath, originalExePath));
 
-                    progress?.Report(new InstallationProgress
-                    {
-                        Percentage = 20,
-                        Message = "Backup criado com sucesso",
-                        Details = $"Backup salvo em {BackupFolderName}/"
-                    });
-                }
-                else
+                progress?.Report(new InstallationProgress
                 {
-                    progress?.Report(new InstallationProgress
-                    {
-                        Percentage = 10,
-                        Message = "Pulando backup...",
-                        Details = "Backup desabilitado nas configurações"
-                    });
-
-                    progress?.Report(new InstallationProgress
-                    {
-                        Percentage = 20,
-                        Message = "Backup ignorado",
-                        Details = "Continuando instalação sem backup"
-                    });
-                }
+                    Percentage = 20,
+                    Message = "Backup criado com sucesso",
+                    Details = $"Backup salvo em {BackupFolderName}/"
+                });
 
                 progress?.Report(new InstallationProgress
                 {
@@ -434,19 +413,37 @@ namespace Asher.Services.Implementations
         }
 
         /// <summary>
-        /// Writes a double-clickable emergency uninstall helper into Asher/.
-        /// Used when the Distribution manager UI is unavailable.
+        /// Writes a double-clickable emergency uninstall helper next to DustAET.exe
+        /// (game folder root — outside Asher/) so it can delete Asher\ while running,
+        /// then self-delete after the user closes the window.
         /// </summary>
         private static void InstallEmergencyUninstallHelper(string gamePath)
         {
-            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
-            Directory.CreateDirectory(asherFolder);
+            Directory.CreateDirectory(gamePath);
 
-            var ps1Path = Path.Combine(asherFolder, AsherPaths.EmergencyUninstallPowerShellName);
-            var cmdPath = Path.Combine(asherFolder, AsherPaths.EmergencyUninstallScriptName);
+            var ps1Path = AsherPaths.GetEmergencyUninstallPowerShellPath(gamePath);
+            var cmdPath = AsherPaths.GetEmergencyUninstallCmdPath(gamePath);
 
-            File.WriteAllText(ps1Path, BuildEmergencyUninstallPowerShell(), Encoding.UTF8);
+            File.WriteAllText(ps1Path, BuildEmergencyUninstallPowerShell(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             File.WriteAllText(cmdPath, BuildEmergencyUninstallCmd(), Encoding.ASCII);
+
+            // Remove helpers left inside Asher\ from older installs.
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
+            TryDeleteFile(Path.Combine(asherFolder, AsherPaths.EmergencyUninstallPowerShellName));
+            TryDeleteFile(Path.Combine(asherFolder, AsherPaths.EmergencyUninstallScriptName));
+        }
+
+        private static void TryDeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch
+            {
+                // Best effort.
+            }
         }
 
         private static string BuildEmergencyUninstallCmd() =>
@@ -454,7 +451,7 @@ namespace Asher.Services.Implementations
             "setlocal\r\n" +
             "cd /d \"%~dp0\"\r\n" +
             "echo Asher emergency uninstall\r\n" +
-            "echo This restores DustAET.exe and removes the Asher folder.\r\n" +
+            "echo This restores DustAET.exe, removes the Asher folder, then deletes this helper.\r\n" +
             "echo.\r\n" +
             "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"%~dp0" +
             AsherPaths.EmergencyUninstallPowerShellName +
@@ -463,23 +460,30 @@ namespace Asher.Services.Implementations
 
         private static string BuildEmergencyUninstallPowerShell()
         {
-            // Script lives in <game>\Asher\. Parent is the game folder.
-            // Cleanup script is written at runtime with concrete paths (no nested C# interpolation).
+            // Scripts live in <game>\ (next to DustAET.exe), not inside Asher\.
             return """
 $ErrorActionPreference = 'Stop'
-$asherDir = $PSScriptRoot
-$gameDir = Split-Path -Parent $asherDir
+$gameDir = $PSScriptRoot
+$asherDir = Join-Path $gameDir 'Asher'
 $gameExe = Join-Path $gameDir 'DustAET.exe'
 $realExe = Join-Path $gameDir 'DustAET.real.exe'
 $backupExe = Join-Path $asherDir 'Asher.Backup\DustAET.exe'
+$helperPs1 = Join-Path $gameDir 'Uninstall-Asher.ps1'
+$helperCmd = Join-Path $gameDir 'Uninstall-Asher.cmd'
 
 Write-Host 'Asher emergency uninstall'
 Write-Host "Game folder: $gameDir"
 $confirm = Read-Host 'Remove Asher and restore the original DustAET.exe? (Y/N)'
 if ($confirm -notmatch '^[Yy]') { Write-Host 'Cancelled.'; exit 1 }
 
+if (-not (Test-Path -LiteralPath $asherDir) -and -not (Test-Path -LiteralPath $realExe) -and -not (Test-Path -LiteralPath $backupExe)) {
+  Write-Host 'ERROR: Asher does not appear to be installed here.'
+  Read-Host 'Press Enter to close'
+  exit 1
+}
+
 if (-not (Test-Path -LiteralPath $backupExe) -and -not (Test-Path -LiteralPath $realExe)) {
-  Write-Host 'ERROR: No restorable backup found (Asher.Backup\DustAET.exe or DustAET.real.exe).'
+  Write-Host 'ERROR: No restorable backup found (Asher\Asher.Backup\DustAET.exe or DustAET.real.exe).'
   Read-Host 'Press Enter to close'
   exit 1
 }
@@ -496,21 +500,36 @@ if (Test-Path -LiteralPath $backupExe) {
 
 if (Test-Path -LiteralPath $realExe) { Remove-Item -LiteralPath $realExe -Force }
 
-# Delete Asher\ after this process exits (script files are locked while running).
-$asherEsc = $asherDir.Replace("'", "''")
-$cleanup = Join-Path $env:TEMP ("asher-emergency-cleanup-{0}.ps1" -f [guid]::NewGuid().ToString('N'))
+# Helpers are outside Asher\, so the folder can be removed immediately.
+if (Test-Path -LiteralPath $asherDir) {
+  Remove-Item -LiteralPath $asherDir -Recurse -Force
+}
+
+# After this window closes, delete Uninstall-Asher.cmd / .ps1 (locked while we run).
+$waitPid = $PID
+$cmdEsc = $helperCmd.Replace("'", "''")
+$ps1Esc = $helperPs1.Replace("'", "''")
+$cleanup = Join-Path $env:TEMP ("asher-helper-self-delete-{0}.ps1" -f [guid]::NewGuid().ToString('N'))
 $cleanupEsc = $cleanup.Replace("'", "''")
 @(
-  'Start-Sleep -Seconds 1'
-  "Remove-Item -LiteralPath '$asherEsc' -Recurse -Force -ErrorAction SilentlyContinue"
+  '$ErrorActionPreference = ''SilentlyContinue'''
+  "while (Get-Process -Id $waitPid -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 400 }"
+  'Start-Sleep -Milliseconds 600'
+  "for (`$i = 0; `$i -lt 15; `$i++) {"
+  "  if (-not (Test-Path -LiteralPath '$cmdEsc') -and -not (Test-Path -LiteralPath '$ps1Esc')) { break }"
+  "  Remove-Item -LiteralPath '$cmdEsc' -Force -ErrorAction SilentlyContinue"
+  "  Remove-Item -LiteralPath '$ps1Esc' -Force -ErrorAction SilentlyContinue"
+  '  Start-Sleep -Milliseconds 400'
+  '}'
   "Remove-Item -LiteralPath '$cleanupEsc' -Force -ErrorAction SilentlyContinue"
-) | Set-Content -LiteralPath $cleanup -Encoding UTF8
+) | Set-Content -LiteralPath $cleanup -Encoding ASCII
 
 Start-Process -FilePath powershell.exe -ArgumentList @(
   '-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File', $cleanup
-) -WindowStyle Hidden
+) -WindowStyle Hidden | Out-Null
 
-Write-Host 'Asher removed and original DustAET.exe restored.'
+Write-Host 'Asher folder removed and original DustAET.exe restored.'
+Write-Host 'This uninstall helper will delete itself after you close this window.'
 Read-Host 'Press Enter to close'
 exit 0
 """;
@@ -786,8 +805,7 @@ exit 0
                 }
             }
 
-            // Legacy WPF layout (game/Asher.App). Never delete the nested
-            // game/Asher/Asher.App manager while it may be the running process.
+            // Legacy WPF layout (game/Asher.App).
             var legacyManagerPath = Path.Combine(gameFolderPath, AsherPaths.ManagerFolderName);
             if (Directory.Exists(legacyManagerPath))
             {
@@ -800,6 +818,10 @@ exit 0
                     // Ignore — may be locked or absent after migration.
                 }
             }
+
+            // Emergency helpers live in the game folder root (outside Asher/).
+            TryDeleteFile(AsherPaths.GetEmergencyUninstallCmdPath(gameFolderPath));
+            TryDeleteFile(AsherPaths.GetEmergencyUninstallPowerShellPath(gameFolderPath));
         }
 
         private static string GetAsherInstallationPath() =>

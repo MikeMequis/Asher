@@ -244,10 +244,6 @@
                 <button id="settings-browse" class="secondary" type="button" data-i18n="setup.browse">Browse...</button>
               </div>
               <div id="settings-path-status" class="field-hint" hidden></div>
-              <label class="toggle-row">
-                <input id="settings-backup" type="checkbox" />
-                <span data-i18n="settings.backup">Create backup before install</span>
-              </label>
             </div>
 
             <div class="settings-card">
@@ -268,9 +264,19 @@
             </div>
 
             <div id="settings-uninstall-card" class="settings-card settings-card-danger" hidden>
-              <h3 class="settings-card-title" data-i18n="settings.uninstall">Uninstall</h3>
-              <p class="help-text" data-i18n="settings.uninstallDesc">Remove Asher from the game folder and restore original files where possible.</p>
-              <button id="settings-uninstall" class="danger" type="button" data-i18n="settings.uninstallAction">Uninstall Asher</button>
+              <h3 class="settings-card-title" data-i18n="settings.removal">Removal</h3>
+
+              <div class="settings-removal-option">
+                <h4 class="settings-removal-title" data-i18n="settings.safeUninstall">Safe uninstallation</h4>
+                <p class="help-text" data-i18n="settings.safeUninstallDesc">Removes Asher through this app using the files already in your local Asher folder, restores the original game executable, and keeps logs/backup data where applicable so you can install again easily.</p>
+                <button id="settings-safe-uninstall" class="danger" type="button" data-i18n="settings.safeUninstallAction">Safe uninstall</button>
+              </div>
+
+              <div class="settings-removal-option">
+                <h4 class="settings-removal-title" data-i18n="settings.totalExclusion">Total exclusion</h4>
+                <p class="help-text" data-i18n="settings.totalExclusionDesc">Runs Uninstall-Asher.cmd from the game folder to fully revert DustAET.exe and delete the entire Asher environment (including the helper scripts). Use this for a complete wipe without relying on the manager UI afterward.</p>
+                <button id="settings-total-exclusion" class="danger" type="button" data-i18n="settings.totalExclusionAction">Total exclusion</button>
+              </div>
             </div>
 
             <div class="action-row settings-actions">

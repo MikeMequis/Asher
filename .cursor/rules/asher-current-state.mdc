@@ -16,7 +16,7 @@ Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron*
 - Material Symbols Outlined icons (self-hosted font, `icons.js`)
 - Settings auto-save, preference-only reset, browse path
 - Install Finish UX with optional launch + minimize
-- `BackupEnabled` gates `CreateBackup` in `GameInstallationService`
+- Install always creates a game backup (`BackupEnabled` forced true; no Settings toggle)
 - `setModEnabled` validates mod existence in `PatchManagerService`
 - Incremental mod-list rendering (no full DOM rebuild on toggle)
 - Toast notifications (`action-banner.js`, top-right stack)
@@ -24,7 +24,8 @@ Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron*
 - Install payload bundled via MSBuild (`install-payload/` beside `Asher.Host.exe`)
 - Zip + unpacked Distribution packaging (`npm run dist` → `Distribution/`; GitHub publish via `npm run publish` + `private/GH_TOKEN`)
 - Manager UI runs from Distribution only (no deploy into `game/Asher/Asher.App/`)
-- Emergency uninstall helper installed as `Asher/Uninstall-Asher.cmd` (+ `.ps1`) for recovery without the UI
+- Emergency uninstall helper installed as `Uninstall-Asher.cmd` (+ `.ps1`) beside `DustAET.exe` for recovery without the UI
+- Settings Removal: Safe uninstallation (in-app) and Total exclusion (launches game-folder `Uninstall-Asher.cmd`)
 - GitHub Releases update check / zip apply for the Distribution app (Settings → Check for updates)
 
 ## Retired (do not recreate)

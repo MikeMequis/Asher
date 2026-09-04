@@ -103,6 +103,26 @@ export class ApplicationClient {
     return this.api.minimizeWindow();
   }
 
+  quitApp() {
+    if (!this.api.quitApp) {
+      return Promise.resolve();
+    }
+
+    return this.api.quitApp();
+  }
+
+  /**
+   * @param {string} gameFolderPath
+   * @returns {Promise<{ ok: boolean, reason?: string, message?: string }>}
+   */
+  runEmergencyUninstall(gameFolderPath) {
+    if (!this.api.runEmergencyUninstall) {
+      return Promise.resolve({ ok: false, reason: 'error', message: 'Emergency uninstall is unavailable.' });
+    }
+
+    return this.api.runEmergencyUninstall(gameFolderPath);
+  }
+
   checkForUpdates(options) {
     if (!this.api.checkForUpdates) {
       return Promise.resolve({ status: 'unavailable' });

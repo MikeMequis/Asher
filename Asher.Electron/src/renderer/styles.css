@@ -871,6 +871,28 @@ button.danger {
   border-color: var(--error-border);
 }
 
+.settings-removal-option {
+  margin-bottom: 1.1rem;
+}
+
+.settings-removal-option:last-child {
+  margin-bottom: 0;
+}
+
+.settings-removal-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.settings-removal-option .help-text {
+  margin: 0 0 0.65rem;
+}
+
+.settings-removal-option .danger {
+  width: auto;
+}
+
 .settings-card-title {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;

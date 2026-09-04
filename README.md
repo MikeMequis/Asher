@@ -1,4 +1,4 @@
-﻿# 🧱 Asher Modding Platform
+# 🧱 Asher Modding Platform
 
 **Asher** is a launcher-based modding platform for [*Dust: An Elysian Tail*](https://store.steampowered.com/app/236090/Dust_An_Elysian_Tail/), designed to support **runtime code patching** and **content replacement** in a safe, modular, and reversible way.
 
@@ -38,7 +38,7 @@ npm run dist       # builds zip + syncs repo-root Distribution/
 npm run publish    # publishes GitHub Release (requires private/GH_TOKEN)
 ```
 
-Users extract the zip (or use `Distribution/`), run `Asher.exe`, then install into the game folder. The manager stays in Distribution. The game folder gets runtime files plus `Asher/Uninstall-Asher.cmd` for emergency restore if Distribution is missing.
+Users extract the zip (or use `Distribution/`), run `Asher.exe`, then install into the game folder. The manager stays in Distribution. The game folder gets runtime files plus `Uninstall-Asher.cmd` (next to `DustAET.exe`) for emergency restore if Distribution is missing.
 
 Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 
