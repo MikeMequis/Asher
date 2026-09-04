@@ -148,12 +148,12 @@ const settingsError = document.getElementById('settings-error');
 const settingsGamePath = document.getElementById('settings-game-path');
 const settingsBrowse = document.getElementById('settings-browse');
 const settingsPathStatus = document.getElementById('settings-path-status');
-const settingsBackup = document.getElementById('settings-backup');
 const settingsLanguage = document.getElementById('settings-language');
 const settingsTheme = document.getElementById('settings-theme');
 const settingsHostStatus = document.getElementById('settings-host-status');
 const settingsUninstallCard = document.getElementById('settings-uninstall-card');
-const settingsUninstallButton = document.getElementById('settings-uninstall');
+const settingsSafeUninstallButton = document.getElementById('settings-safe-uninstall');
+const settingsTotalExclusionButton = document.getElementById('settings-total-exclusion');
 const settingsResetButton = document.getElementById('settings-reset');
 const settingsAppVersion = document.getElementById('settings-app-version');
 const settingsCheckUpdatesButton = document.getElementById('settings-check-updates');
@@ -915,7 +915,6 @@ function updateModRow(fileName, item = null) {
 function syncSettingsForm() {
   const draft = settings.draft;
   settingsGamePath.value = draft.gameFolderPath ?? '';
-  settingsBackup.checked = Boolean(draft.backupEnabled);
   settingsLanguage.value = draft.language ?? 'en-US';
   settingsTheme.value = draft.theme ?? 'Light';
   settingsUninstallCard.hidden = !shell.canUninstall;
@@ -929,9 +928,14 @@ function renderSettings() {
 
   settingsResetButton.disabled = settings.state === 'saving' || settings.state === 'loading';
   settingsBrowse.disabled = settings.state === 'saving' || settings.state === 'loading';
-  settingsBackup.disabled = settings.state === 'saving' || settings.state === 'loading';
   settingsLanguage.disabled = settings.state === 'saving' || settings.state === 'loading';
   settingsTheme.disabled = settings.state === 'saving' || settings.state === 'loading';
+  if (settingsSafeUninstallButton) {
+    settingsSafeUninstallButton.disabled = settings.state === 'saving' || settings.state === 'loading';
+  }
+  if (settingsTotalExclusionButton) {
+    settingsTotalExclusionButton.disabled = settings.state === 'saving' || settings.state === 'loading';
+  }
   settingsUninstallCard.hidden = !shell.canUninstall;
 
   settingsError.hidden = settings.state !== 'error';
@@ -1051,7 +1055,32 @@ installBackSetupCancelledButton.addEventListener('click', () => {
   shell.navigateTo('setup');
 });
 
-settingsUninstallButton.addEventListener('click', () => shell.navigateTo('uninstall'));
+settingsSafeUninstallButton?.addEventListener('click', () => shell.navigateTo('uninstall'));
+settingsTotalExclusionButton?.addEventListener('click', async () => {
+  if (!window.confirm(t('settings.totalExclusionConfirm'))) {
+    return;
+  }
+
+  const gameFolderPath =
+    settings.draft.gameFolderPath?.trim() ||
+    shell.applicationState?.settings?.gameFolderPath?.trim() ||
+    '';
+  const result = await client.runEmergencyUninstall(gameFolderPath);
+  if (!result?.ok) {
+    const message =
+      result?.reason === 'missing'
+        ? t('settings.totalExclusionMissing')
+        : result?.message || t('settings.totalExclusionMissing');
+    showActionBanner('error', message);
+    return;
+  }
+
+  showActionBanner('info', t('settings.totalExclusionStarted'));
+  // Quit so Host releases locks on the Asher folder before the emergency script deletes it.
+  setTimeout(() => {
+    client.quitApp().catch(() => {});
+  }, 800);
+});
 confirmUninstallButton.addEventListener('click', () => runUninstall());
 cancelUninstallConfirmButton.addEventListener('click', () => {
   uninstallation.cancelConfirmation();
@@ -1151,10 +1180,6 @@ settingsBrowse.addEventListener('click', async () => {
   if (settings.pathState === 'valid') {
     await persistSettings({ showToast: false });
   }
-});
-settingsBackup.addEventListener('change', async () => {
-  settings.updateDraft({ backupEnabled: settingsBackup.checked });
-  await persistSettings({ showToast: false });
 });
 settingsLanguage.addEventListener('change', async () => {
   settings.updateDraft({ language: settingsLanguage.value });

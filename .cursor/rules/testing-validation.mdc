@@ -61,7 +61,7 @@ Outputs:
 1. **Smallest scope first**: build the changed C# project, run the relevant smoke test.
 2. **Broader when needed**: `npm run smoke` for cross-cutting changes; `npm start` for UI verification.
 3. **Real-game validation**: required for changes to install, uninstall, launch, runtime patching, or manager deploy/relaunch. Must be done on a machine with Dust: An Elysian Tail installed.
-4. **Packaged validation**: run `npm run dist`, launch `Distribution/Asher.exe`, install into a game folder, confirm Finish stays in Distribution and `Asher/Uninstall-Asher.cmd` exists.
+4. **Packaged validation**: run `npm run dist`, launch `Distribution/Asher.exe`, install into a game folder, confirm Finish stays in Distribution and `Uninstall-Asher.cmd` exists beside `DustAET.exe`.
 
 ## Known limitations
 

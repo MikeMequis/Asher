@@ -30,6 +30,12 @@ namespace Asher.Core
         public static string GetRuntimeFolderPath(string gameFolderPath) =>
             Path.Combine(gameFolderPath, RuntimeFolderName);
 
+        public static string GetEmergencyUninstallCmdPath(string gameFolderPath) =>
+            Path.Combine(gameFolderPath, EmergencyUninstallScriptName);
+
+        public static string GetEmergencyUninstallPowerShellPath(string gameFolderPath) =>
+            Path.Combine(gameFolderPath, EmergencyUninstallPowerShellName);
+
         public static string GetManagerFolderPath(string gameFolderPath) =>
             Path.Combine(GetRuntimeFolderPath(gameFolderPath), ManagerFolderName);
 

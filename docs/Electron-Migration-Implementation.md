@@ -93,7 +93,7 @@ Game process (separate from manager):
 
 **Decision:** `markInstalled` / `markUninstalled` JSONL methods (Step 18).
 
-**Also:** `BackupEnabled` in settings gates `CreateBackup` during install.
+**Also:** Install always runs `CreateBackup` (`BackupEnabled` is kept true; not a user toggle).
 
 ### Decision — WPF retirement
 
@@ -129,7 +129,8 @@ Game process (separate from manager):
 - Install payload: `Asher.Launcher`, `Asher.Runtime`, `Asher.SDK`, `0Harmony.dll`, 5 default mod DLLs
 - Localization, theme, toasts, Material Symbols shell
 - Zip + `Distribution/` packaging (`npm run dist`); GitHub publish (`npm run publish` + `private/GH_TOKEN`)
-- Manager UI stays in Distribution; game install gets runtime + emergency `Asher/Uninstall-Asher.cmd`
+- Manager UI stays in Distribution; game install gets runtime + emergency `Uninstall-Asher.cmd` beside `DustAET.exe`
+- Settings Removal: Safe uninstallation (in-app) vs Total exclusion (emergency script); install backup always on
 - GitHub Releases update check / zip apply for the Distribution app
 
 ### Deferred
@@ -162,11 +163,17 @@ Items above are optional polish or gated features, not unfinished migration work
 
 **Context:** Deploying the full Electron manager into `game/Asher/Asher.App/` caused self-delete/lock issues on uninstall and an unwanted relaunch workflow.
 
-**Decision:** Keep the manager UI in `Distribution/` only. Game install stages runtime + mods + launcher swap, plus a minimal `Asher/Uninstall-Asher.cmd` (PowerShell) for emergency restore without the UI. Updates apply to the Distribution folder via GitHub zip. Publish uses local `private/GH_TOKEN` only.
+**Decision:** Keep the manager UI in `Distribution/` only. Game install stages runtime + mods + launcher swap, plus a minimal `Uninstall-Asher.cmd` beside `DustAET.exe` for emergency restore without the UI. Updates apply to the Distribution folder via GitHub zip. Publish uses local `private/GH_TOKEN` only.
 
 **Rationale:** Avoids locked-exe self-deletion; users who lose Distribution can still restore the game; packaging remains zip/dir without an installer wizard.
 
 **Consequences:** No Finish-time relaunch into the game folder. Emergency helper requires a restorable backup (`Asher.Backup` or `DustAET.real.exe`).
+
+### Decision — Settings removal modes + always-on install backup
+
+**Context:** Backup was a Settings toggle users could disable; Removal only exposed a single uninstall entry.
+
+**Decision:** Install always creates a backup (`BackupEnabled` forced true). Settings Removal documents and offers **Safe uninstallation** (in-app Host uninstall) and **Total exclusion** (launch `Uninstall-Asher.cmd`, then quit the app so locks clear).
 
 ---
 

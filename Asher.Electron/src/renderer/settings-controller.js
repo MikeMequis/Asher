@@ -19,7 +19,6 @@ const DEFAULT_SETTINGS = {
 /** Preference fields restored by "Reset to Defaults". */
 const PREFERENCE_DEFAULTS = {
   language: DEFAULT_SETTINGS.language,
-  backupEnabled: DEFAULT_SETTINGS.backupEnabled,
   theme: DEFAULT_SETTINGS.theme
 };
 
@@ -226,7 +225,8 @@ export class SettingsController {
         ...this.#draft,
         gameFolderPath: trimmedPath,
         language: normalizeLanguage(this.#draft.language),
-        theme: normalizeTheme(this.#draft.theme)
+        theme: normalizeTheme(this.#draft.theme),
+        backupEnabled: true
       };
 
       await this.client.invoke('saveSettings', payload);

@@ -1,4 +1,5 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -15,6 +16,8 @@ import {
   initAutoUpdater,
   openReleasePage
 } from './auto-updater.js';
+
+const EMERGENCY_UNINSTALL_CMD = 'Uninstall-Asher.cmd';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -117,6 +120,44 @@ ipcMain.handle('updater:open-release', (_event, url) => openReleasePage(url));
 ipcMain.handle('window:minimize', () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.minimize();
+  }
+});
+
+ipcMain.handle('app:quit', () => {
+  app.quit();
+});
+
+/**
+ * Launch the game-folder emergency uninstall helper (Uninstall-Asher.cmd).
+ * @param {unknown} _event
+ * @param {unknown} gameFolderPath
+ */
+ipcMain.handle('app:run-emergency-uninstall', async (_event, gameFolderPath) => {
+  const folder = typeof gameFolderPath === 'string' ? gameFolderPath.trim() : '';
+  if (!folder) {
+    return { ok: false, reason: 'missing', message: 'Game folder path is required.' };
+  }
+
+  const cmdPath = path.join(folder, EMERGENCY_UNINSTALL_CMD);
+  if (!fs.existsSync(cmdPath)) {
+    writeDiagnosticLog('warn', 'uninstall', 'emergency helper missing', { cmdPath });
+    return { ok: false, reason: 'missing', message: `${EMERGENCY_UNINSTALL_CMD} was not found.` };
+  }
+
+  try {
+    // Open in a new console via ShellExecute so the helper survives when this app quits.
+    const openError = await shell.openPath(cmdPath);
+    if (openError) {
+      writeDiagnosticLog('error', 'uninstall', 'emergency helper open failed', { cmdPath, openError });
+      return { ok: false, reason: 'error', message: openError };
+    }
+
+    writeDiagnosticLog('info', 'uninstall', 'emergency helper launched', { cmdPath });
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    writeDiagnosticLog('error', 'uninstall', 'emergency helper launch failed', { cmdPath, message });
+    return { ok: false, reason: 'error', message };
   }
 });
 

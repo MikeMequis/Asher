@@ -59,7 +59,7 @@ Deleted: `Asher.App`, `Asher.UserInterface`, `Asher.Localization`.
 
 **WPF-only services (removed):** `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`.
 
-**Electron install extras:** Emergency `Asher/Uninstall-Asher.cmd` in the game folder (no in-game manager deploy, no desktop shortcut).
+**Electron install extras:** Emergency `Uninstall-Asher.cmd` beside `DustAET.exe` (no in-game manager deploy, no desktop shortcut).
 
 **Install flow (Electron):** Setup → Install (runtime via Host + emergency uninstall helper) → Finish stays in Distribution → optional game launch.
 

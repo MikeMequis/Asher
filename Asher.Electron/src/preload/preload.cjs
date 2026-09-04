@@ -39,5 +39,8 @@ contextBridge.exposeInMainWorld('asher', {
     ipcRenderer.on('updater:status', listener);
     return () => ipcRenderer.removeListener('updater:status', listener);
   },
-  minimizeWindow: () => ipcRenderer.invoke('window:minimize')
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  quitApp: () => ipcRenderer.invoke('app:quit'),
+  runEmergencyUninstall: (gameFolderPath) =>
+    ipcRenderer.invoke('app:run-emergency-uninstall', gameFolderPath)
 });
