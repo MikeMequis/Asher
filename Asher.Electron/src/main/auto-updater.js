@@ -6,7 +6,7 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { app, shell } from 'electron';
 import { writeDiagnosticLog } from './diagnostic-logger.js';
-import { getAppInstallRoot, getManagerExecutablePath, isRunningFromGameManager, isRunningFromInstalledManager } from './manager-paths.js';
+import { getAppExecutablePath, getAppInstallRoot } from './manager-paths.js';
 import { scheduleReplaceAndRelaunch } from './post-quit-helper.js';
 
 const GITHUB_OWNER = 'MikeMequis';
@@ -188,9 +188,7 @@ export async function checkForUpdates(options = {}) {
       downloadUrl: zipAsset.browser_download_url,
       assetName: zipAsset.name,
       releaseUrl: release.html_url,
-      canApplyInPlace:
-        Boolean(options.gameFolderPath && isRunningFromGameManager(options.gameFolderPath)) ||
-        isRunningFromInstalledManager(),
+      canApplyInPlace: app.isPackaged,
       silent
     });
   } catch (err) {
@@ -200,22 +198,14 @@ export async function checkForUpdates(options = {}) {
 }
 
 /**
- * Download the zip update and schedule replace+relaunch when running from Asher.App.
- * @param {{ downloadUrl: string, gameFolderPath?: string }} params
+ * Download the zip update and schedule replace+relaunch for the Distribution folder.
+ * @param {{ downloadUrl: string }} params
  */
 export async function downloadAndApplyUpdate(params) {
-  const { downloadUrl, gameFolderPath } = params;
+  const { downloadUrl } = params;
 
   if (!app.isPackaged) {
     return emit('error', { message: 'Updates are only available in packaged builds.' });
-  }
-
-  const canApply =
-    (gameFolderPath && isRunningFromGameManager(gameFolderPath)) || isRunningFromInstalledManager();
-  if (!canApply) {
-    return emit('error', {
-      message: 'In-place updates require running the manager from the game Asher.App folder.'
-    });
   }
 
   if (!downloadUrl) {
@@ -235,10 +225,10 @@ export async function downloadAndApplyUpdate(params) {
     const unpacked = resolveUnpackedAppDir(extractDir);
 
     const destDir = getAppInstallRoot();
-    const managerExe = getManagerExecutablePath(destDir);
+    const appExe = getAppExecutablePath(destDir);
 
     emit('ready-to-install');
-    scheduleReplaceAndRelaunch(unpacked, destDir, managerExe);
+    scheduleReplaceAndRelaunch(unpacked, destDir, appExe);
 
     setImmediate(() => {
       app.quit();

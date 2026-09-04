@@ -13,27 +13,6 @@ function escapePsSingleQuoted(value) {
 }
 
 /**
- * Start the installed manager now (copy already finished). No console window.
- * Prefer this over a post-quit .cmd — `start` breaks on paths with spaces and flashes a terminal.
- * @param {string} managerExePath
- */
-export function relaunchManagerNow(managerExePath) {
-  const cwd = path.dirname(managerExePath);
-  const child = spawn(managerExePath, [], {
-    detached: true,
-    stdio: 'ignore',
-    cwd,
-    windowsHide: true,
-    shell: false
-  });
-  child.unref();
-  writeDiagnosticLog('info', 'post-quit', 'spawned manager process', {
-    managerExePath,
-    pid: child.pid
-  });
-}
-
-/**
  * Run a hidden PowerShell script after this process exits.
  * @param {string} scriptBody PowerShell statements (after wait loop)
  * @param {{ label?: string }} [options]
@@ -68,16 +47,16 @@ function spawnHiddenPostQuitPowerShell(scriptBody, options = {}) {
 }
 
 /**
- * After quit: replace dest with source folder contents, then relaunch.
+ * After quit: replace dest with source folder contents, then relaunch (Distribution updates).
  * @param {string} sourceDir unpacked update payload
- * @param {string} destDir manager install folder
- * @param {string} managerExePath
+ * @param {string} destDir app install folder
+ * @param {string} appExePath
  */
-export function scheduleReplaceAndRelaunch(sourceDir, destDir, managerExePath) {
+export function scheduleReplaceAndRelaunch(sourceDir, destDir, appExePath) {
   const src = escapePsSingleQuoted(sourceDir);
   const dest = escapePsSingleQuoted(destDir);
-  const exe = escapePsSingleQuoted(managerExePath);
-  const cwd = escapePsSingleQuoted(path.dirname(managerExePath));
+  const exe = escapePsSingleQuoted(appExePath);
+  const cwd = escapePsSingleQuoted(path.dirname(appExePath));
 
   spawnHiddenPostQuitPowerShell(
     [
@@ -88,9 +67,4 @@ export function scheduleReplaceAndRelaunch(sourceDir, destDir, managerExePath) {
     ].join('\r\n'),
     { label: 'asher-update-apply' }
   );
-}
-
-/** @deprecated use relaunchManagerNow */
-export function scheduleRelaunch(managerExePath) {
-  relaunchManagerNow(managerExePath);
 }

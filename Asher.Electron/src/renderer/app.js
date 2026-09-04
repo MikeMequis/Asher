@@ -1031,20 +1031,6 @@ installContinueButton.addEventListener('click', async () => {
     if (launchGame.errorMessage) {
       showActionBanner('error', launchGame.errorMessage);
     }
-  }
-
-  const gameFolderPath = shell.applicationState?.settings?.gameFolderPath;
-  if (gameFolderPath) {
-    const transition = await client.transitionToInstalledManager(gameFolderPath);
-    if (transition?.transitioned) {
-      return;
-    }
-    if (transition?.reason === 'error' && transition.message) {
-      showActionBanner('error', transition.message);
-    }
-  }
-
-  if (shouldAutoLaunch) {
     await client.minimizeWindow();
   }
 });
@@ -1073,15 +1059,7 @@ cancelUninstallConfirmButton.addEventListener('click', () => {
 });
 cancelUninstallButton.addEventListener('click', () => uninstallation.cancelUninstall());
 uninstallContinueButton.addEventListener('click', async () => {
-  const gameFolderPath = shell.applicationState?.settings?.gameFolderPath;
   uninstallation.reset();
-
-  // When running from game/Asher/Asher.App, Host preserves that folder so we
-  // never delete the locked Asher.exe. Stay in-process and return to setup.
-  if (gameFolderPath) {
-    await client.scheduleSelfUninstallCleanup(gameFolderPath);
-  }
-
   await shell.refreshApplicationState();
   await shell.navigateTo(shell.applicationState?.recommendedScreen ?? 'welcome');
 });

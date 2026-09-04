@@ -38,7 +38,7 @@ npm run dist       # builds zip + syncs repo-root Distribution/
 npm run publish    # publishes GitHub Release (requires private/GH_TOKEN)
 ```
 
-Users extract the zip (or use `Distribution/`), run `Asher.exe`, install into the game folder, then Finish copies the manager into `game/Asher/Asher.App/` and relaunches from there.
+Users extract the zip (or use `Distribution/`), run `Asher.exe`, then install into the game folder. The manager stays in Distribution. The game folder gets runtime files plus `Asher/Uninstall-Asher.cmd` for emergency restore if Distribution is missing.
 
 Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 

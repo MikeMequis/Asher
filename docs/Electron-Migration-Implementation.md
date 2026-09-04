@@ -129,15 +129,14 @@ Game process (separate from manager):
 - Install payload: `Asher.Launcher`, `Asher.Runtime`, `Asher.SDK`, `0Harmony.dll`, 5 default mod DLLs
 - Localization, theme, toasts, Material Symbols shell
 - Zip + `Distribution/` packaging (`npm run dist`); GitHub publish (`npm run publish` + `private/GH_TOKEN`)
-- Packaged Finish deploys Electron manager into `game/Asher/Asher.App/` and relaunches from there
-- GitHub Releases update check / zip apply for the installed manager
+- Manager UI stays in Distribution; game install gets runtime + emergency `Asher/Uninstall-Asher.cmd`
+- GitHub Releases update check / zip apply for the Distribution app
 
 ### Deferred
 
 - Full install wizard stepper / welcome onboarding chrome
 - Content patcher UI (no backend)
 - Desktop shortcut after install
-- `CompleteInstall` aggregate as a Host contract method — deploy/relaunch lives in Electron main instead
 
 ### Next planned steps
 
@@ -152,21 +151,22 @@ Items above are optional polish or gated features, not unfinished migration work
 |---------|--------|
 | `Asher.App`, `Asher.UserInterface`, `Asher.Localization` | Replaced by Electron renderer |
 | `PrepareDistribution.ps1` | Replaced by `npm run dist` / `sync-distribution.mjs` |
-| `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` | WPF C# services; Electron main now owns deploy/relaunch |
+| `ManagerDeploy`, `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` | WPF C# services |
+| In-game Electron manager deploy / Finish relaunch | Reverted — UI is Distribution-only |
 | Prism / MaterialDesign in Core | Decoupled in Step 19 |
-| Portable primary packaging | Replaced by zip / Distribution folder (portable cannot auto-update) |
+| Portable primary packaging | Replaced by zip / Distribution folder |
 
 ---
 
-### Decision — Zip Distribution + in-game manager deploy
+### Decision — Zip Distribution + emergency in-game uninstall helper
 
-**Context:** Portable single-exe builds cannot apply electron-builder auto-updates. WPF used to copy the manager into `game/Asher/Asher.App/` and relaunch after install.
+**Context:** Deploying the full Electron manager into `game/Asher/Asher.App/` caused self-delete/lock issues on uninstall and an unwanted relaunch workflow.
 
-**Decision:** Ship an unpacked `Distribution/` folder (and GitHub zip). After install Finish in a packaged build, Electron main copies itself into `Asher/Asher.App/` and relaunches from there. Updates download the release zip and replace that installed folder. Publish uses local `private/GH_TOKEN` only (not embedded in the client).
+**Decision:** Keep the manager UI in `Distribution/` only. Game install stages runtime + mods + launcher swap, plus a minimal `Asher/Uninstall-Asher.cmd` (PowerShell) for emergency restore without the UI. Updates apply to the Distribution folder via GitHub zip. Publish uses local `private/GH_TOKEN` only.
 
-**Rationale:** Folder layout keeps `resources/asher-host` intact; updates target the stable in-game install path; no NSIS wizard.
+**Rationale:** Avoids locked-exe self-deletion; users who lose Distribution can still restore the game; packaging remains zip/dir without an installer wizard.
 
-**Consequences:** Deploy/relaunch and in-place update apply only when packaged. Dev (`npm start`) keeps in-process Finish behavior.
+**Consequences:** No Finish-time relaunch into the game folder. Emergency helper requires a restorable backup (`Asher.Backup` or `DustAET.real.exe`).
 
 ---
 
@@ -203,8 +203,7 @@ Preserve unless explicitly required to change:
 - **No UI/E2E tests:** Smoke tests exercise JSONL/host only, not Electron renderer DOM.
 - **No xUnit-style test project:** Validation is smoke/integration + manual game PC checks.
 - **Packaging:** `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign`; Developer Mode or elevated terminal workaround. Ship path is zip + `Distribution/` (not portable).
-- **Manager deploy:** Packaged Finish copies the Electron app into `game/Asher/Asher.App/` and relaunches; skipped under `npm start`.
-- **Updates:** GitHub zip apply requires running from the installed `Asher.App` folder; Distribution first-run uses manual download when not installed there.
+- **Updates:** Packaged Distribution builds can download/apply GitHub release zips; unpackaged `npm start` cannot.
 - **Patching builds:** May warn about XNA GAC / game HintPath on machines without the game installed.
 - **Cancellation:** Protocol-level cancel exists; services may not fully observe `CancellationToken` inside `Task.Run` install work.
 - **Sequential JSONL:** Long install blocks other host requests.

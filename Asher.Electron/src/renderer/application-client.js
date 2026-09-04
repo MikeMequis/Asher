@@ -103,34 +103,6 @@ export class ApplicationClient {
     return this.api.minimizeWindow();
   }
 
-  isPackaged() {
-    if (!this.api.isPackaged) {
-      return Promise.resolve(false);
-    }
-    return this.api.isPackaged();
-  }
-
-  isRunningFromManager(gameFolderPath) {
-    if (!this.api.isRunningFromManager) {
-      return Promise.resolve(false);
-    }
-    return this.api.isRunningFromManager(gameFolderPath);
-  }
-
-  transitionToInstalledManager(gameFolderPath) {
-    if (!this.api.transitionToInstalledManager) {
-      return Promise.resolve({ transitioned: false, reason: 'unavailable' });
-    }
-    return this.api.transitionToInstalledManager(gameFolderPath);
-  }
-
-  scheduleSelfUninstallCleanup(gameFolderPath) {
-    if (!this.api.scheduleSelfUninstallCleanup) {
-      return Promise.resolve({ scheduled: false, reason: 'unavailable' });
-    }
-    return this.api.scheduleSelfUninstallCleanup(gameFolderPath);
-  }
-
   checkForUpdates(options) {
     if (!this.api.checkForUpdates) {
       return Promise.resolve({ status: 'unavailable' });

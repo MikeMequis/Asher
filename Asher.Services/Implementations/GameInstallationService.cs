@@ -3,6 +3,7 @@ using Asher.Core.Models;
 using Asher.Services;
 using Asher.Services.Interfaces;
 using System.Reflection;
+using System.Text;
 
 namespace Asher.Services.Implementations
 {
@@ -127,6 +128,8 @@ namespace Asher.Services.Implementations
                     Message = "Estrutura de pastas criada",
                     Details = "Pastas Asher/, Mods/ e AsherLogs/ criadas"
                 });
+
+                await Task.Run(() => InstallEmergencyUninstallHelper(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
@@ -430,6 +433,89 @@ namespace Asher.Services.Implementations
             Directory.CreateDirectory(Path.Combine(asherFolder, LogsFolderName));
         }
 
+        /// <summary>
+        /// Writes a double-clickable emergency uninstall helper into Asher/.
+        /// Used when the Distribution manager UI is unavailable.
+        /// </summary>
+        private static void InstallEmergencyUninstallHelper(string gamePath)
+        {
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
+            Directory.CreateDirectory(asherFolder);
+
+            var ps1Path = Path.Combine(asherFolder, AsherPaths.EmergencyUninstallPowerShellName);
+            var cmdPath = Path.Combine(asherFolder, AsherPaths.EmergencyUninstallScriptName);
+
+            File.WriteAllText(ps1Path, BuildEmergencyUninstallPowerShell(), Encoding.UTF8);
+            File.WriteAllText(cmdPath, BuildEmergencyUninstallCmd(), Encoding.ASCII);
+        }
+
+        private static string BuildEmergencyUninstallCmd() =>
+            "@echo off\r\n" +
+            "setlocal\r\n" +
+            "cd /d \"%~dp0\"\r\n" +
+            "echo Asher emergency uninstall\r\n" +
+            "echo This restores DustAET.exe and removes the Asher folder.\r\n" +
+            "echo.\r\n" +
+            "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"%~dp0" +
+            AsherPaths.EmergencyUninstallPowerShellName +
+            "\"\r\n" +
+            "exit /b %ERRORLEVEL%\r\n";
+
+        private static string BuildEmergencyUninstallPowerShell()
+        {
+            // Script lives in <game>\Asher\. Parent is the game folder.
+            // Cleanup script is written at runtime with concrete paths (no nested C# interpolation).
+            return """
+$ErrorActionPreference = 'Stop'
+$asherDir = $PSScriptRoot
+$gameDir = Split-Path -Parent $asherDir
+$gameExe = Join-Path $gameDir 'DustAET.exe'
+$realExe = Join-Path $gameDir 'DustAET.real.exe'
+$backupExe = Join-Path $asherDir 'Asher.Backup\DustAET.exe'
+
+Write-Host 'Asher emergency uninstall'
+Write-Host "Game folder: $gameDir"
+$confirm = Read-Host 'Remove Asher and restore the original DustAET.exe? (Y/N)'
+if ($confirm -notmatch '^[Yy]') { Write-Host 'Cancelled.'; exit 1 }
+
+if (-not (Test-Path -LiteralPath $backupExe) -and -not (Test-Path -LiteralPath $realExe)) {
+  Write-Host 'ERROR: No restorable backup found (Asher.Backup\DustAET.exe or DustAET.real.exe).'
+  Read-Host 'Press Enter to close'
+  exit 1
+}
+
+if (Test-Path -LiteralPath $gameExe) { Remove-Item -LiteralPath $gameExe -Force }
+$configPath = $gameExe + '.config'
+if (Test-Path -LiteralPath $configPath) { Remove-Item -LiteralPath $configPath -Force }
+
+if (Test-Path -LiteralPath $backupExe) {
+  Copy-Item -LiteralPath $backupExe -Destination $gameExe -Force
+} else {
+  Move-Item -LiteralPath $realExe -Destination $gameExe -Force
+}
+
+if (Test-Path -LiteralPath $realExe) { Remove-Item -LiteralPath $realExe -Force }
+
+# Delete Asher\ after this process exits (script files are locked while running).
+$asherEsc = $asherDir.Replace("'", "''")
+$cleanup = Join-Path $env:TEMP ("asher-emergency-cleanup-{0}.ps1" -f [guid]::NewGuid().ToString('N'))
+$cleanupEsc = $cleanup.Replace("'", "''")
+@(
+  'Start-Sleep -Seconds 1'
+  "Remove-Item -LiteralPath '$asherEsc' -Recurse -Force -ErrorAction SilentlyContinue"
+  "Remove-Item -LiteralPath '$cleanupEsc' -Force -ErrorAction SilentlyContinue"
+) | Set-Content -LiteralPath $cleanup -Encoding UTF8
+
+Start-Process -FilePath powershell.exe -ArgumentList @(
+  '-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File', $cleanup
+) -WindowStyle Hidden
+
+Write-Host 'Asher removed and original DustAET.exe restored.'
+Read-Host 'Press Enter to close'
+exit 0
+""";
+        }
+
         private void CopyRuntimeFiles(string gamePath)
         {
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
@@ -659,13 +745,12 @@ namespace Asher.Services.Implementations
         }
 
         /// <summary>
-        /// Subfolders kept across uninstall so the in-game manager can stay running
-        /// and the user can reinstall without deleting a locked Asher.exe.
+        /// Subfolders kept across UI uninstall (backup for safety, logs for diagnostics).
+        /// The manager UI is Distribution-only — do not keep Asher.App.
         /// </summary>
         private static bool ShouldPreserveAsherSubfolder(string directoryName) =>
             directoryName.Equals(BackupFolderName, StringComparison.OrdinalIgnoreCase)
-            || directoryName.Equals(LogsFolderName, StringComparison.OrdinalIgnoreCase)
-            || directoryName.Equals(AsherPaths.ManagerFolderName, StringComparison.OrdinalIgnoreCase);
+            || directoryName.Equals(LogsFolderName, StringComparison.OrdinalIgnoreCase);
 
         private static void CleanRuntimeFiles(string gameFolderPath)
         {

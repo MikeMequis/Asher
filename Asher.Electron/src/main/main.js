@@ -10,11 +10,6 @@ import {
 import { resolveGameFolderFromSettings } from './log-path-resolver.js';
 import { HostManager } from './host-manager.js';
 import {
-  scheduleSelfUninstallCleanup,
-  transitionToInstalledManager
-} from './manager-deploy.js';
-import { isRunningFromGameManager } from './manager-paths.js';
-import {
   checkForUpdates,
   downloadAndApplyUpdate,
   initAutoUpdater,
@@ -112,26 +107,6 @@ hostManager.on('status-changed', () => {
 ipcMain.handle('asher:get-log-path', () => getDiagnosticLogPath());
 
 ipcMain.handle('app:get-version', () => app.getVersion());
-
-ipcMain.handle('app:is-packaged', () => app.isPackaged);
-
-ipcMain.handle('app:is-running-from-manager', (_event, gameFolderPath) =>
-  isRunningFromGameManager(gameFolderPath)
-);
-
-ipcMain.handle('app:transition-to-installed-manager', async (_event, gameFolderPath) => {
-  try {
-    return await transitionToInstalledManager(gameFolderPath);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    writeDiagnosticLog('error', 'deploy', 'transition failed', { message });
-    return { transitioned: false, reason: 'error', message };
-  }
-});
-
-ipcMain.handle('app:schedule-self-uninstall-cleanup', (_event, gameFolderPath) =>
-  scheduleSelfUninstallCleanup(gameFolderPath)
-);
 
 ipcMain.handle('updater:check', (_event, options) => checkForUpdates(options ?? {}));
 
