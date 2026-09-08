@@ -188,10 +188,8 @@ export class ApplicationShell {
 
     try {
       const state = await fetchApplicationState(this.client);
-      if (state.settings?.gameFolderPath) {
-        await this.#relocateLogs(state.settings.gameFolderPath);
-      }
       this.#applicationState = state;
+      await refreshDiagnosticLogFooter(this.client);
 
       logDiagnostic('info', 'shell', 'loadApplicationState fetched', {
         mode: state.mode,
@@ -235,16 +233,6 @@ export class ApplicationShell {
     }
 
     await this.#loadApplicationState({ reenterScreen: false });
-  }
-
-  async #relocateLogs(gameFolderPath) {
-    if (!gameFolderPath?.trim()) {
-      return;
-    }
-
-    const logPath = await this.client.relocateLogs(gameFolderPath);
-    await refreshDiagnosticLogFooter(this.client);
-    logDiagnostic('info', 'shell', 'relocateLogs', { gameFolderPath, logPath });
   }
 
   /**

@@ -340,13 +340,7 @@ namespace Asher.Services.Implementations
             var realExePath = Path.Combine(gameFolderPath, BackupExeName);
             var hasRealExe = File.Exists(realExePath);
             var hasRuntime = HasActiveRuntime(gameFolderPath);
-            var installed = hasRealExe && hasRuntime;
-
-            InstallFlowTrace.Log(
-                "IsInstalled",
-                $"path={gameFolderPath} realExe={hasRealExe} runtime={hasRuntime} => {installed}");
-
-            return installed;
+            return hasRealExe && hasRuntime;
         }
 
         public string DescribeInstallState(string gameFolderPath) =>

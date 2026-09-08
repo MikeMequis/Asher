@@ -339,9 +339,11 @@ async function runInstall() {
 
   await shell.refreshApplicationState();
 
+  const appState = shell.applicationState;
+  const folder = appState?.folder ?? null;
   const savedPath =
-    shell.applicationState?.settings?.gameFolderPath?.trim() ||
-    shell.applicationState?.folder?.path ||
+    appState?.settings?.gameFolderPath?.trim() ||
+    folder?.path ||
     '';
 
   if (!savedPath) {
@@ -349,16 +351,12 @@ async function runInstall() {
     return;
   }
 
-  const { result: folder } = await client.invoke('getGameFolderInfo', { folderPath: savedPath });
-  const { result: installed } = await client.invoke('isGameInstalled', { gameFolderPath: savedPath });
-
   logDiagnostic('info', 'install', 'runInstall preflight', {
     path: savedPath,
     folderValid: folder?.isValid,
-    hostReportsInstalled: installed?.installed,
-    markers: installed?.markers,
-    shellMode: shell.applicationState?.mode,
-    settingsIsInstalled: shell.applicationState?.settings?.isInstalled
+    hostReportsInstalled: appState?.mode === 'manager',
+    shellMode: appState?.mode,
+    settingsIsInstalled: appState?.settings?.isInstalled
   });
 
   if (!folder?.isValid) {
@@ -392,12 +390,10 @@ async function runUninstall() {
   const appState = shell.applicationState;
   const gameFolderPath = appState?.folder?.path ?? appState?.settings?.gameFolderPath ?? '';
 
-  const { result: installed } = await client.invoke('isGameInstalled', { gameFolderPath });
   logDiagnostic('info', 'uninstall', 'runUninstall preflight', {
     path: gameFolderPath,
     canUninstall: appState?.canUninstall,
-    hostReportsInstalled: installed?.installed,
-    markers: installed?.markers,
+    hostReportsInstalled: appState?.mode === 'manager',
     settingsIsInstalled: appState?.settings?.isInstalled
   });
 

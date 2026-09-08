@@ -54,12 +54,12 @@ export class ApplicationClient {
     return this.api.getLogPath();
   }
 
-  relocateLogs(gameFolderPath) {
+  relocateLogs() {
     if (!this.api.relocateLogs) {
       return Promise.resolve(null);
     }
 
-    return this.api.relocateLogs(gameFolderPath);
+    return this.api.relocateLogs();
   }
 
   /**

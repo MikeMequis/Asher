@@ -44,8 +44,7 @@ function broadcastHostStatus() {
 const LOG_RELOCATE_METHODS = new Set([
   'saveSettings',
   'markInstalled',
-  'markUninstalled',
-  'getSettings'
+  'markUninstalled'
 ]);
 
 async function relocateLogsFromHost() {
@@ -193,6 +192,7 @@ ipcMain.handle('host:get-status', () => ({
 
 ipcMain.handle('host:start', async () => {
   if (hostManager.status === 'ready') {
+    await relocateLogsFromHost();
     return { status: hostManager.status, message: hostManager.statusMessage };
   }
 

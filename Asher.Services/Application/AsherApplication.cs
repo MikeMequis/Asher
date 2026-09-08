@@ -30,13 +30,7 @@ namespace Asher.Services.Application
             var candidate = settings.GameFolderPath;
             var installed = !string.IsNullOrWhiteSpace(candidate)
                             && _services.Installation.IsInstalled(candidate);
-            var mode = installed ? ApplicationMode.Manager : ApplicationMode.InstallWizard;
-
-            InstallFlowTrace.Log(
-                "GetApplicationMode",
-                $"path={candidate ?? "(none)"} settings.IsInstalled={settings.IsInstalled} diskInstalled={installed} => {mode}");
-
-            return mode;
+            return installed ? ApplicationMode.Manager : ApplicationMode.InstallWizard;
         }
 
         public GameFolderDto DetectGameFolder() =>
@@ -65,14 +59,7 @@ namespace Asher.Services.Application
         public bool IsGameInstalled(string? gameFolderPath = null)
         {
             var path = gameFolderPath ?? ResolveGameFolderPath();
-            var installed = !string.IsNullOrWhiteSpace(path) && _services.Installation.IsInstalled(path);
-            var markers = !string.IsNullOrWhiteSpace(path)
-                ? _services.Installation.DescribeInstallState(path)
-                : "(no path)";
-
-            InstallFlowTrace.Log("IsGameInstalled", $"path={path ?? "(none)"} => {installed} | {markers}");
-
-            return installed;
+            return !string.IsNullOrWhiteSpace(path) && _services.Installation.IsInstalled(path);
         }
 
         public bool HasRestorableBackup(string? gameFolderPath = null)

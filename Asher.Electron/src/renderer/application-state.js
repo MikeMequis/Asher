@@ -37,19 +37,13 @@ export async function fetchApplicationState(client) {
 
   const isConfigured = Boolean(folder?.isValid);
   const needsInstallation = isConfigured && mode === 'installWizard';
+  const hostReportsInstalled = mode === 'manager';
+  const canLaunchGame = isConfigured && hostReportsInstalled;
 
   let canUninstall = false;
-  let canLaunchGame = false;
-  let hostReportsInstalled = false;
-  if (savedPath && mode === 'manager') {
-    const { result: installed } = await client.invoke('isGameInstalled', { gameFolderPath: savedPath });
-    hostReportsInstalled = Boolean(installed?.installed);
-    canLaunchGame = isConfigured && hostReportsInstalled;
-
-    if (hostReportsInstalled) {
-      const { result: backup } = await client.invoke('hasRestorableBackup', { gameFolderPath: savedPath });
-      canUninstall = Boolean(backup?.hasBackup);
-    }
+  if (savedPath && hostReportsInstalled) {
+    const { result: backup } = await client.invoke('hasRestorableBackup', { gameFolderPath: savedPath });
+    canUninstall = Boolean(backup?.hasBackup);
   }
 
   const recommendedScreen =
