@@ -48,8 +48,3 @@ export async function refreshDiagnosticLogFooter(client) {
     return null;
   }
 }
-
-/** @deprecated Use refreshDiagnosticLogFooter */
-export async function showDiagnosticLogPath(client) {
-  return refreshDiagnosticLogFooter(client);
-}

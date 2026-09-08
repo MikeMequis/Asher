@@ -35,6 +35,7 @@ alwaysApply: false
 
 ## Rules
 
+- Game-folder detection and the manager log directory come from Host (`getManagerLogDirectory`). Main process does not read `settings.json` or decide `{game}/Asher/AsherLogs` itself.
 - Renderer code must not use Node.js or Electron APIs directly; use `window.asher.*` from preload.
 - All backend calls go through `ApplicationClient.invoke()` which routes to `window.asher.invoke()`.
 - Keep UI state in renderer controllers; do not store application state in main process beyond host status.

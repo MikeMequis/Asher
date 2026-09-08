@@ -47,6 +47,21 @@ namespace Asher.Services.Application
 
         public string? ResolveGameFolderPath() => _services.Launch.ResolveGameFolderPath();
 
+        public ManagerLogDirectoryDto GetManagerLogDirectory()
+        {
+            var gameFolder = _services.Settings.Load().GameFolderPath?.Trim();
+            if (string.IsNullOrWhiteSpace(gameFolder) || !Directory.Exists(gameFolder))
+            {
+                return new ManagerLogDirectoryDto();
+            }
+
+            return new ManagerLogDirectoryDto
+            {
+                GameFolderPath = gameFolder,
+                LogsDirectory = AsherPaths.GetLogsFolderPath(gameFolder)
+            };
+        }
+
         public bool IsGameInstalled(string? gameFolderPath = null)
         {
             var path = gameFolderPath ?? ResolveGameFolderPath();

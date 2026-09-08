@@ -30,7 +30,9 @@ Electron spawns `Asher.Host --jsonl` as a child process. Communication is line-d
 
 ## Available methods
 
-`getSettings`, `saveSettings`, `getApplicationMode`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`
+`getSettings`, `saveSettings`, `getManagerLogDirectory`, `getApplicationMode`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`
+
+`getManagerLogDirectory` returns `{ gameFolderPath, logsDirectory }`. `logsDirectory` is `{game}/Asher/AsherLogs` when settings name an existing folder, otherwise both fields are null. This is not `resolveGameFolderPath` (that one requires an installed Asher layout).
 
 ## Error codes
 

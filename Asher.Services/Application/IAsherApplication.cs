@@ -12,6 +12,8 @@ namespace Asher.Services.Application
 
         ApplicationMode GetApplicationMode();
 
+        ManagerLogDirectoryDto GetManagerLogDirectory();
+
         GameFolderDto DetectGameFolder();
         GameFolderDto GetGameFolderInfo(string folderPath);
         string? ResolveGameFolderPath();

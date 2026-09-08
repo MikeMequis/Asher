@@ -128,6 +128,10 @@ namespace Asher.Host.Jsonl
                     await WriteResponseAsync(request.RequestId, true, _application.GetSettings(), null);
                     return;
 
+                case JsonlProtocol.Methods.GetManagerLogDirectory:
+                    await WriteResponseAsync(request.RequestId, true, _application.GetManagerLogDirectory(), null);
+                    return;
+
                 case JsonlProtocol.Methods.SaveSettings:
                 {
                     if (request.Params.ValueKind != JsonValueKind.Object)

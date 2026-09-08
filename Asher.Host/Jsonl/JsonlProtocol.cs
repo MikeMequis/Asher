@@ -25,6 +25,7 @@ namespace Asher.Host.Jsonl
         public static class Methods
         {
             public const string GetSettings = "getSettings";
+            public const string GetManagerLogDirectory = "getManagerLogDirectory";
             public const string SaveSettings = "saveSettings";
             public const string GetApplicationMode = "getApplicationMode";
             public const string DetectGameFolder = "detectGameFolder";

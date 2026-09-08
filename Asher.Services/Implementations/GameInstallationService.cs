@@ -14,7 +14,7 @@ namespace Asher.Services.Implementations
         private const string LauncherExeName = AsherPaths.LauncherExecutableName;
         private const string BackupFolderName = AsherPaths.BackupFolderName;
         private const string AsherFolderName = AsherPaths.RuntimeFolderName;
-        private const string LogsFolderName = "AsherLogs";
+        private const string LogsFolderName = AsherPaths.LogsFolderName;
 
         private readonly ISettingsService _settingsService;
 
@@ -409,7 +409,7 @@ namespace Asher.Services.Implementations
             var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
             Directory.CreateDirectory(asherFolder);
             Directory.CreateDirectory(AsherPaths.GetModsFolderPath(gamePath));
-            Directory.CreateDirectory(Path.Combine(asherFolder, LogsFolderName));
+            Directory.CreateDirectory(AsherPaths.GetLogsFolderPath(gamePath));
         }
 
         /// <summary>

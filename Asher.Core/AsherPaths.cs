@@ -11,6 +11,7 @@ namespace Asher.Core
         public const string DefaultModsFolderName = "DefaultMods";
         public const string InstallPayloadFolderName = "InstallPayload";
         public const string HostInstallPayloadFolderName = "install-payload";
+        public const string LogsFolderName = "AsherLogs";
         public const string ModsFolderName = "Mods";
         public const string DisabledModsFolderName = "disabled";
         public const string SettingsFileName = "settings.json";
@@ -44,6 +45,9 @@ namespace Asher.Core
 
         public static string GetPatchesFolderPath(string gameFolderPath) =>
             Path.Combine(GetRuntimeFolderPath(gameFolderPath), PatchesFolderName);
+
+        public static string GetLogsFolderPath(string gameFolderPath) =>
+            Path.Combine(GetRuntimeFolderPath(gameFolderPath), LogsFolderName);
 
         public static string GetModsFolderPath(string gameFolderPath) =>
             Path.Combine(GetRuntimeFolderPath(gameFolderPath), ModsFolderName);
