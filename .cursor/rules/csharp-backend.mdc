@@ -17,7 +17,7 @@ alwaysApply: false
 | `Asher.SDK` | Patching API for mod DLLs |
 | `Asher.Launcher` | Game executable replacement; loads runtime |
 | `Asher.Runtime` | In-game Harmony bootstrap |
-| `Asher.Patching.*` | Individual mod assemblies (5 canonical mods) |
+| `Patches/Asher.Patching.*` | Individual mod assemblies (5 canonical mods) |
 
 ## Rules
 

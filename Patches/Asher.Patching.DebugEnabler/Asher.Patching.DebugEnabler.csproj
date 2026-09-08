@@ -59,7 +59,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Asher.SDK\Asher.SDK.csproj">
+    <ProjectReference Include="..\..\Asher.SDK\Asher.SDK.csproj">
       <Project>{f1599195-1c95-49ff-8f40-a2493526c428}</Project>
       <Name>Asher.SDK</Name>
     </ProjectReference>

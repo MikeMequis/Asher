@@ -17,7 +17,7 @@ alwaysApply: true
 | **SDK** | `Asher.SDK` | Patching API consumed by mod DLLs |
 | **Launcher** | `Asher.Launcher` | Replaces `DustAET.exe`; loads runtime |
 | **Runtime** | `Asher.Runtime` | Bootstraps Harmony patches + lifecycle modules in-game |
-| **Patching** | `Asher.Patching.*` | Individual mod assemblies |
+| **Patching** | `Patches/Asher.Patching.*` | Individual mod assemblies |
 
 ## Rules
 
