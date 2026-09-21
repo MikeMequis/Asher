@@ -68,8 +68,7 @@ namespace Asher.Runtime.Bootstrap
             var game1Type = GetGame1Type();
             if (game1Type == null) return;
 
-            var initMethod = game1Type.GetMethod("Initialize",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var initMethod = HarmonyTargetResolver.ResolveDeclared(game1Type, "Initialize");
 
             if (initMethod != null)
             {
@@ -89,8 +88,7 @@ namespace Asher.Runtime.Bootstrap
             var game1Type = GetGame1Type();
             if (game1Type == null) return;
 
-            var loadContentMethod = game1Type.GetMethod("LoadContent",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var loadContentMethod = HarmonyTargetResolver.ResolveDeclared(game1Type, "LoadContent");
 
             if (loadContentMethod != null)
             {

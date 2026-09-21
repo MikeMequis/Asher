@@ -1,25 +1,20 @@
+using Asher.Runtime.Bootstrap;
 using Asher.Runtime.Core;
-using Asher.Runtime.Diagnostics;
 using System;
 using System.IO;
-using System.Reflection;
 
 namespace Asher.Runtime
 {
     /// <summary>
-    /// Native-facing entry point for hosts that attach to an already-running Mono runtime
-    /// (for example the Linux DustAET process). It builds a default <see cref="RuntimeContext"/>
-    /// and initializes the real Asher runtime through <see cref="RuntimeEntry.Init"/>.
+    /// Native-facing entry point for the Linux Dust process.
     ///
-    /// It also contains the optional, environment-gated load step for the isolated Harmony PoC
-    /// assembly. This type has no compile-time reference to 0Harmony or Asher.HarmonyPoc; the PoC
-    /// assembly is loaded by reflection only after Asher.Runtime has fully initialized.
+    /// It initializes the real Asher runtime and then runs the same generic bootstrap sequence as
+    /// the Windows launcher: load mod assemblies, run PreInit modules, apply patch modules through
+    /// Harmony. Patch implementations remain in their own Asher.Patching.* assemblies; this type
+    /// contains no patch-specific logic.
     /// </summary>
     public static class RuntimeBootstrap
     {
-        private const string HarmonyPocTypeName = "Asher.HarmonyPoc.HarmonyPocBootstrap";
-        private const string HarmonyPocMethodName = "Initialize";
-
         public static void Initialize()
         {
             string gamePath = AppDomain.CurrentDomain.BaseDirectory;
@@ -43,85 +38,13 @@ namespace Asher.Runtime
             var context = new RuntimeContext(gamePath, modsPath, profileName, logPath);
 
             RuntimeEntry.Init(context);
-
             Console.WriteLine("[Asher] Runtime initialized");
 
-            string introspect = Environment.GetEnvironmentVariable("ASHER_INTROSPECT");
-            if (string.IsNullOrEmpty(introspect) || introspect != "0")
-            {
-                DustAssemblyProbe.Run();
-                Console.WriteLine("[Asher] Dust assembly introspection completed successfully");
-            }
+            AssemblyLoader.LoadAssembliesFrom(context.ModsPath);
+            PreInitBootstrap.ExecutePreInitModules();
+            PatchModuleLoader.Load();
 
-            string harmonyPoc = Environment.GetEnvironmentVariable("ASHER_HARMONY_POC");
-            if (harmonyPoc == "1")
-            {
-                LoadAndRunHarmonyPoc();
-            }
-        }
-
-        private static void LoadAndRunHarmonyPoc()
-        {
-            string assemblyPath = Environment.GetEnvironmentVariable("ASHER_HARMONY_POC_ASSEMBLY");
-            if (string.IsNullOrEmpty(assemblyPath))
-            {
-                Console.WriteLine("[Asher] Harmony PoC assembly path not configured");
-                return;
-            }
-
-            Assembly pocAssembly;
-            try
-            {
-                pocAssembly = Assembly.LoadFrom(assemblyPath);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[Asher] Harmony PoC assembly load failed");
-                Console.WriteLine($"[Asher] {ex}");
-                return;
-            }
-
-            Console.WriteLine("[Asher] Harmony PoC assembly loaded");
-
-            MethodInfo entryPoint;
-            try
-            {
-                var type = pocAssembly.GetType(HarmonyPocTypeName, throwOnError: false);
-                if (type == null)
-                {
-                    Console.WriteLine(
-                        $"[Asher] Harmony PoC entry point type not found: {HarmonyPocTypeName}");
-                    return;
-                }
-
-                entryPoint = type.GetMethod(
-                    HarmonyPocMethodName,
-                    BindingFlags.Public | BindingFlags.Static);
-
-                if (entryPoint == null)
-                {
-                    Console.WriteLine(
-                        $"[Asher] Harmony PoC entry point method not found: " +
-                        $"{HarmonyPocTypeName}.{HarmonyPocMethodName}");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[Asher] Harmony PoC entry point resolution failed");
-                Console.WriteLine($"[Asher] {ex}");
-                return;
-            }
-
-            try
-            {
-                entryPoint.Invoke(null, null);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[Asher] Harmony PoC initialization failed");
-                Console.WriteLine($"[Asher] {ex}");
-            }
+            Console.WriteLine("[Asher] Bootstrap completed");
         }
     }
 }

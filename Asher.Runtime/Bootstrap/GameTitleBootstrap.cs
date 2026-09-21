@@ -18,9 +18,7 @@ namespace Asher.Runtime.Bootstrap
                 return;
             }
 
-            var initializeMethod = game1Type.GetMethod(
-                "Initialize",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var initializeMethod = HarmonyTargetResolver.ResolveDeclared(game1Type, "Initialize");
 
             if (initializeMethod == null)
             {

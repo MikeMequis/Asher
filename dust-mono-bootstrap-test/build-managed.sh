@@ -10,10 +10,9 @@
 # not; in that case build the assemblies on Windows instead (see README) and copy
 # the resulting AnyCPU DLLs into ./prebuilt.
 #
-# Asher.Runtime is built in its Harmony-free variant: the Windows-only Harmony
-# bootstrap subsystem (GameTitleBootstrap, HarmonyLifecycleBootstrap,
-# PatchModuleLoader) is excluded so the assembly has no 0Harmony AssemblyRef.
-# Harmony lives only in Asher.HarmonyPoc.
+# Asher.Runtime is built in full (it owns the generic Harmony orchestration:
+# AssemblyLoader, PreInitBootstrap, PatchModuleLoader). Patch implementations stay
+# in their own projects (currently Asher.Patching.DebugEnabler).
 #
 # Environment:
 #   CSC          C# compiler command (default: csc)
@@ -46,15 +45,6 @@ collect() {
     find "$1" -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' -print
 }
 
-# Asher.Runtime without the Windows-only Harmony bootstrap subsystem.
-collect_runtime() {
-    find "$repo_root/Asher.Runtime" -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' \
-        ! -name 'GameTitleBootstrap.cs' \
-        ! -name 'HarmonyLifecycleBootstrap.cs' \
-        ! -name 'PatchModuleLoader.cs' \
-        -print
-}
-
 common_flags=(
     -nologo
     -target:library
@@ -71,27 +61,18 @@ echo "[build-managed] Asher.SDK.dll"
     -r:"$harmony" \
     $(collect "$repo_root/Asher.SDK")
 
-echo "[build-managed] Asher.Runtime.dll (Harmony-free)"
+echo "[build-managed] Asher.Runtime.dll"
 "$CSC" "${common_flags[@]}" \
     -out:"$prebuilt/Asher.Runtime.dll" \
     -r:"$harmony" \
     -r:"$prebuilt/Asher.SDK.dll" \
-    $(collect_runtime)
+    $(collect "$repo_root/Asher.Runtime")
 
-echo "[build-managed] Asher.Patching.DebugEnabler.dll (real DebugEnabler patch)"
+echo "[build-managed] Asher.Patching.DebugEnabler.dll"
 "$CSC" "${common_flags[@]}" \
     -out:"$prebuilt/Asher.Patching.DebugEnabler.dll" \
     -r:"$harmony" \
     -r:"$prebuilt/Asher.SDK.dll" \
     $(collect "$repo_root/Patches/Asher.Patching.DebugEnabler")
-
-echo "[build-managed] Asher.HarmonyPoc.dll"
-"$CSC" "${common_flags[@]}" \
-    -out:"$prebuilt/Asher.HarmonyPoc.dll" \
-    -r:"$harmony" \
-    -r:"$prebuilt/Asher.SDK.dll" \
-    -r:"$prebuilt/Asher.Runtime.dll" \
-    -r:"$prebuilt/Asher.Patching.DebugEnabler.dll" \
-    $(collect "$repo_root/Asher.HarmonyPoc")
 
 echo "[build-managed] Done."
