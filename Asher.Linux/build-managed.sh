@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 #
-# Regenerate the managed assemblies staged by build.sh into ./prebuilt.
+# Build the managed assemblies (Asher.SDK, Asher.Runtime, Asher.Patching.DebugEnabler)
+# into ./out. build.sh calls this automatically when the assemblies are missing.
 #
 #   ./build-managed.sh
 #
-# Asher.Runtime uses C# 9 features (nullable annotations on unconstrained generic
-# type parameters), so the compiler must support -langversion:9.0 or newer.
-# Mono 6.12 ships Roslyn 3.9 which supports C# 9. Older Mono (6.8 and below) does
-# not; in that case build the assemblies on Windows instead (see README) and copy
-# the resulting AnyCPU DLLs into ./prebuilt.
-#
-# Asher.Runtime is built in full (it owns the generic Harmony orchestration:
-# AssemblyLoader, PreInitBootstrap, PatchModuleLoader). Patch implementations stay
-# in their own projects (currently Asher.Patching.DebugEnabler).
+# Asher.Runtime uses C# 9 features (nullable annotations, target-typed new, unconstrained
+# T?), so a Roslyn-based compiler is required. Mono's legacy mcs/mono-csc (C# 7.x) will
+# NOT work. Use one of:
+#   - csc (Mono 6.12+ / Roslyn), or
+#   - set CSC to a compiler command, e.g. CSC="dotnet exec /path/to/csc.dll"
 #
 # Environment:
 #   CSC          C# compiler command (default: csc)
@@ -22,14 +19,15 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$here/.." && pwd)"
-prebuilt="$here/prebuilt"
+out="$here/out"
 
 CSC="${CSC:-csc}"
 LANGVERSION="${LANGVERSION:-9.0}"
 
-if ! command -v "$CSC" >/dev/null 2>&1; then
+if ! command -v "${CSC%% *}" >/dev/null 2>&1; then
     echo "[build-managed] ERROR: '$CSC' not found." >&2
-    echo "[build-managed] Install mono-devel (Mono 6.12+) or build on Windows; see README." >&2
+    echo "[build-managed] A Roslyn C# 9+ compiler is required (Mono 6.12+ ships csc)." >&2
+    echo "[build-managed] Alternatively set CSC, e.g. CSC=\"dotnet exec /path/csc.dll\"." >&2
     exit 1
 fi
 
@@ -39,11 +37,14 @@ if [ ! -f "$harmony" ]; then
     exit 1
 fi
 
-mkdir -p "$prebuilt"
+mkdir -p "$out"
 
 collect() {
     find "$1" -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' -print
 }
+
+# shellcheck disable=SC2206
+csc_cmd=($CSC)
 
 common_flags=(
     -nologo
@@ -56,23 +57,23 @@ common_flags=(
 )
 
 echo "[build-managed] Asher.SDK.dll"
-"$CSC" "${common_flags[@]}" \
-    -out:"$prebuilt/Asher.SDK.dll" \
+"${csc_cmd[@]}" "${common_flags[@]}" \
+    -out:"$out/Asher.SDK.dll" \
     -r:"$harmony" \
     $(collect "$repo_root/Asher.SDK")
 
 echo "[build-managed] Asher.Runtime.dll"
-"$CSC" "${common_flags[@]}" \
-    -out:"$prebuilt/Asher.Runtime.dll" \
+"${csc_cmd[@]}" "${common_flags[@]}" \
+    -out:"$out/Asher.Runtime.dll" \
     -r:"$harmony" \
-    -r:"$prebuilt/Asher.SDK.dll" \
+    -r:"$out/Asher.SDK.dll" \
     $(collect "$repo_root/Asher.Runtime")
 
 echo "[build-managed] Asher.Patching.DebugEnabler.dll"
-"$CSC" "${common_flags[@]}" \
-    -out:"$prebuilt/Asher.Patching.DebugEnabler.dll" \
+"${csc_cmd[@]}" "${common_flags[@]}" \
+    -out:"$out/Asher.Patching.DebugEnabler.dll" \
     -r:"$harmony" \
-    -r:"$prebuilt/Asher.SDK.dll" \
+    -r:"$out/Asher.SDK.dll" \
     $(collect "$repo_root/Patches/Asher.Patching.DebugEnabler")
 
-echo "[build-managed] Done."
+echo "[build-managed] Done. Assemblies in $out"

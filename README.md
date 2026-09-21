@@ -64,5 +64,5 @@ Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 
 - [Manager UI architecture](docs/Manager-UI-Architecture.md) — WPF vs Electron
 - [Electron migration](docs/Electron-Migration-Implementation.md) — decisions and status
-- [Linux bootstrap (embedded Mono)](dust-mono-bootstrap-test/README.md) — native LD_PRELOAD entry + patch orchestration
+- [Linux bootstrap (embedded Mono)](Asher.Linux/README.md) — native LD_PRELOAD entry + patch orchestration
 - User docs: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)

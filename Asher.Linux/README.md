@@ -22,22 +22,23 @@ patch-specific logic.
 ## Layout
 
 ```text
-dust-mono-bootstrap-test/
-├── native/bootstrap.c        native LD_PRELOAD library
-├── prebuilt/                 AnyCPU managed assemblies staged by build.sh
-│   ├── Asher.Runtime.dll
-│   ├── Asher.SDK.dll
-│   └── Asher.Patching.DebugEnabler.dll
-├── build.sh                  native build + managed staging
-├── build-managed.sh          regenerate prebuilt/ from the repo sources
+Asher.Linux/
+├── Native/bootstrap.c        native LD_PRELOAD library
+├── build.sh                  native build + local managed build + staging
+├── build-managed.sh          builds the managed assemblies into out/
 └── README.md
 ```
+
+No DLLs are committed. `build.sh` builds everything into `out/`; the managed assemblies are
+compiled locally from the repository sources.
 
 ## Requirements
 
 - A C compiler (`gcc`).
+- A Roslyn C# 9 compiler for the managed assemblies: `csc` (Mono 6.12+) or any compiler command
+  provided via the `CSC` environment variable (e.g. `CSC="dotnet exec /path/to/csc.dll"`). Mono's
+  legacy `mcs`/`mono-csc` (C# 7.x) will not work.
 - The Linux VM with Dust installed.
-- The managed assemblies are shipped prebuilt, so no C# compiler is required on the VM.
 
 > Match the architecture of DustAET for the native library (the shipped build is 64-bit; use
 > `EXTRA_CFLAGS=-m32` for a 32-bit game). The managed DLLs are AnyCPU IL.
@@ -45,12 +46,13 @@ dust-mono-bootstrap-test/
 ## Build
 
 ```bash
-cd dust-mono-bootstrap-test
+cd Asher.Linux
 chmod +x build.sh build-managed.sh
 ./build.sh
 ```
 
-Output in `out/`:
+`build.sh` builds the native library, then calls `build-managed.sh` if the managed assemblies are
+not already present in `out/`. Output in `out/`:
 
 ```text
 libasher_bootstrap.so
@@ -60,9 +62,11 @@ Asher.SDK.dll
 Mods/Asher.Patching.DebugEnabler.dll
 ```
 
-`prebuilt/` is regenerated from the real repository sources (`Asher.SDK/`, `Asher.Runtime/`,
-`Patches/Asher.Patching.DebugEnabler/`) with `./build-managed.sh`. That needs a C# 9 compiler
-(Mono 6.12+/Roslyn 3.9); otherwise build the AnyCPU DLLs on Windows and copy them into `prebuilt/`.
+The managed assemblies are compiled from `Asher.SDK/`, `Asher.Runtime/` and
+`Patches/Asher.Patching.DebugEnabler/`; `0Harmony.dll` is taken from the vendored
+`packages/Lib.Harmony.2.4.2` package. If the managed compiler is not on the build machine, build
+them elsewhere with the same compiler and drop the three DLLs into `out/` before running the native
+part of `build.sh`.
 
 ## Run
 
