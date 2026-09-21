@@ -1,8 +1,13 @@
 /*
- * Asher PoC - minimal native bootstrap for the Mono runtime embedded in DustAET (Linux).
+ * Asher - native bootstrap for the Mono runtime embedded in DustAET (Linux).
  *
- * Goal: prove that native code loaded into the running Dust process can reach the
- * already-initialized Mono runtime and execute an external managed assembly.
+ * Phase 2: instead of the artificial BootstrapTest.dll, this loads the real
+ * Asher.Runtime managed assembly and invokes its static initialization entry point.
+ *
+ * Flow:
+ *   native .so -> existing Dust Mono runtime -> mono_get_root_domain()
+ *              -> mono_thread_attach() -> Asher.Runtime.dll
+ *              -> Asher.Runtime.RuntimeBootstrap.Initialize() -> "[Asher] Runtime initialized"
  *
  * This file does NOT create a Mono runtime, does NOT patch the game and does NOT
  * reverse engineer anything. It only resolves the public Mono embedding API that the
@@ -12,10 +17,10 @@
  * Load : LD_PRELOAD=/abs/path/libasher_bootstrap.so ./DustAET
  *
  * Optional environment variables:
- *   ASHER_BOOTSTRAP_ASSEMBLY   absolute/relative path to the managed DLL
- *                              (default: BootstrapTest.dll next to this .so, then cwd)
- *   ASHER_BOOTSTRAP_NAMESPACE  default "AsherBootstrapTest"
- *   ASHER_BOOTSTRAP_CLASS      default "Bootstrap"
+ *   ASHER_BOOTSTRAP_ASSEMBLY   path to the managed DLL
+ *                              (default: Asher.Runtime.dll next to this .so, then cwd)
+ *   ASHER_BOOTSTRAP_NAMESPACE  default "Asher.Runtime"
+ *   ASHER_BOOTSTRAP_CLASS      default "RuntimeBootstrap"
  *   ASHER_BOOTSTRAP_METHOD     default "Initialize"
  *   ASHER_BOOTSTRAP_AUTORUN    "0" disables the automatic background bootstrap
  *   ASHER_BOOTSTRAP_TIMEOUT_MS max wait for the runtime (0 = wait forever), default 60000
@@ -42,6 +47,7 @@ typedef void MonoImage;
 typedef void MonoClass;
 typedef void MonoMethod;
 typedef void MonoObject;
+typedef void MonoString;
 typedef int MonoImageOpenStatus;
 
 typedef MonoDomain *(*fn_get_root_domain)(void);
@@ -53,6 +59,10 @@ typedef MonoClass *(*fn_class_from_name)(MonoImage *image, const char *name_spac
 typedef MonoMethod *(*fn_class_get_method_from_name)(MonoClass *klass, const char *name, int param_count);
 typedef MonoObject *(*fn_runtime_invoke)(MonoMethod *method, void *obj, void **params, MonoObject **exc);
 
+/* Optional helpers, used only to render a managed exception when invocation throws. */
+typedef MonoString *(*fn_object_to_string)(MonoObject *obj, MonoObject **exc);
+typedef char *(*fn_string_to_utf8)(MonoString *str);
+
 typedef struct {
     fn_get_root_domain get_root_domain;
     fn_thread_attach thread_attach;
@@ -62,6 +72,10 @@ typedef struct {
     fn_class_from_name class_from_name;
     fn_class_get_method_from_name class_get_method_from_name;
     fn_runtime_invoke runtime_invoke;
+
+    /* Optional diagnostics (may stay NULL). */
+    fn_object_to_string object_to_string;
+    fn_string_to_utf8 string_to_utf8;
 } MonoApi;
 
 /* ------------------------------------------------------------------ */
@@ -105,8 +119,8 @@ static void log_dlerror(const char *what)
  * process. The Dust executable already exports the Mono embedding API, so no
  * hardcoded addresses, dlopen of libmono, or /proc tricks are used.
  *
- * Returns 0 while any symbol is still missing (the caller retries), 1 once all
- * symbols resolved.
+ * Returns 0 while any required symbol is still missing (the caller retries),
+ * 1 once all required symbols resolved.
  */
 static int resolve_mono_api(MonoApi *api)
 {
@@ -127,6 +141,11 @@ static int resolve_mono_api(MonoApi *api)
         !api->class_get_method_from_name || !api->runtime_invoke) {
         return 0;
     }
+
+    /* Not required for the bootstrap itself: best-effort exception rendering. */
+    api->object_to_string = (fn_object_to_string)dlsym(RTLD_DEFAULT, "mono_object_to_string");
+    api->string_to_utf8 = (fn_string_to_utf8)dlsym(RTLD_DEFAULT, "mono_string_to_utf8");
+
     return 1;
 }
 
@@ -135,7 +154,7 @@ static int resolve_mono_api(MonoApi *api)
 /* ------------------------------------------------------------------ */
 
 /*
- * When ASHER_BOOTSTRAP_ASSEMBLY is not set, look for BootstrapTest.dll next to
+ * When ASHER_BOOTSTRAP_ASSEMBLY is not set, look for Asher.Runtime.dll next to
  * this shared object. This only uses dladdr (no /proc, no memory scanning).
  */
 static void default_assembly_path(char *buffer, size_t size)
@@ -145,21 +164,41 @@ static void default_assembly_path(char *buffer, size_t size)
         const char *slash = strrchr(info.dli_fname, '/');
         if (slash) {
             size_t dir_len = (size_t)(slash - info.dli_fname);
-            if (dir_len + 1 + strlen("BootstrapTest.dll") + 1 <= size) {
+            if (dir_len + 1 + strlen("Asher.Runtime.dll") + 1 <= size) {
                 memcpy(buffer, info.dli_fname, dir_len);
                 buffer[dir_len] = '/';
-                strcpy(buffer + dir_len + 1, "BootstrapTest.dll");
+                strcpy(buffer + dir_len + 1, "Asher.Runtime.dll");
                 return;
             }
         }
     }
-    snprintf(buffer, size, "%s", "BootstrapTest.dll");
+    snprintf(buffer, size, "%s", "Asher.Runtime.dll");
 }
 
 static const char *env_or(const char *name, const char *fallback)
 {
     const char *value = getenv(name);
     return (value && value[0]) ? value : fallback;
+}
+
+/* ------------------------------------------------------------------ */
+/* Managed exception diagnostics                                       */
+/* ------------------------------------------------------------------ */
+
+static void report_managed_exception(MonoApi *api, MonoObject *exception)
+{
+    if (exception && api->object_to_string) {
+        MonoObject *string_exc = NULL;
+        MonoString *text = api->object_to_string(exception, &string_exc);
+        if (text && api->string_to_utf8) {
+            char *utf8 = api->string_to_utf8(text);
+            if (utf8) {
+                log_fail("Method invocation threw a managed exception:\n%s", utf8);
+                return;
+            }
+        }
+    }
+    log_fail("Method invocation threw a managed exception (details unavailable)");
 }
 
 /* ------------------------------------------------------------------ */
@@ -179,8 +218,8 @@ static void run_bootstrap(void)
     MonoImageOpenStatus status = 0;
 
     const char *assembly_path;
-    const char *the_namespace = env_or("ASHER_BOOTSTRAP_NAMESPACE", "AsherBootstrapTest");
-    const char *class_name = env_or("ASHER_BOOTSTRAP_CLASS", "Bootstrap");
+    const char *the_namespace = env_or("ASHER_BOOTSTRAP_NAMESPACE", "Asher.Runtime");
+    const char *class_name = env_or("ASHER_BOOTSTRAP_CLASS", "RuntimeBootstrap");
     const char *method_name = env_or("ASHER_BOOTSTRAP_METHOD", "Initialize");
     char default_path[4096];
     long timeout_ms = atol(env_or("ASHER_BOOTSTRAP_TIMEOUT_MS", "60000"));
@@ -228,11 +267,12 @@ static void run_bootstrap(void)
 
     assembly = api.assembly_open(assembly_path, &status);
     if (!assembly) {
-        log_fail("Assembly loading failed (mono_assembly_open '%s', status=%d)", assembly_path, status);
+        log_fail("Asher.Runtime assembly loading failed (mono_assembly_open '%s', status=%d)",
+                 assembly_path, status);
         api.thread_detach(thread);
         return;
     }
-    log_stage("Assembly loaded");
+    log_stage("Asher.Runtime assembly loaded");
 
     image = api.assembly_get_image(assembly);
     if (!image) {
@@ -241,33 +281,34 @@ static void run_bootstrap(void)
         return;
     }
 
-    /* Stage 5: find the test class. */
+    /* Stage 5: find the entry point class. */
     klass = api.class_from_name(image, the_namespace, class_name);
     if (!klass) {
-        log_fail("Class resolution failed (%s.%s)", the_namespace, class_name);
+        log_fail("Entry point class resolution failed (%s.%s)", the_namespace, class_name);
         api.thread_detach(thread);
         return;
     }
 
-    /* Stage 6: find the test method (static, zero parameters). */
+    /* Stage 6: find the entry point method (static, zero parameters). */
     method = api.class_get_method_from_name(klass, method_name, 0);
     if (!method) {
-        log_fail("Method resolution failed (%s.%s.%s)", the_namespace, class_name, method_name);
+        log_fail("Asher.Runtime entry point method resolution failed (%s.%s.%s)",
+                 the_namespace, class_name, method_name);
         api.thread_detach(thread);
         return;
     }
-    log_stage("Method resolved");
+    log_stage("Asher.Runtime entry point resolved");
 
     /* Stage 7: invoke. obj=NULL selects the static method. */
     api.runtime_invoke(method, NULL, NULL, &exception);
     if (exception) {
-        log_fail("Method invocation threw a managed exception");
+        report_managed_exception(&api, exception);
         api.thread_detach(thread);
         return;
     }
 
     api.thread_detach(thread);
-    log_stage("Bootstrap completed successfully");
+    log_stage("Asher.Runtime bootstrap completed successfully");
 }
 
 static pthread_once_t g_run_once = PTHREAD_ONCE_INIT;

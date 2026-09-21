@@ -479,3 +479,7 @@ bootstrap_static_ctor.log
 *.test.output
 
 /private
+
+## Asher bootstrap PoC: managed assemblies in prebuilt/ are staged by build.sh
+!dust-mono-bootstrap-test/prebuilt/*.dll
+dust-mono-bootstrap-test/out/
