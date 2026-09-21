@@ -59,13 +59,13 @@ namespace Asher.Patching.OverheatDisabler
                     return;
 
                 var statsType = stats.GetType();
-                var isSpinningField = statsType.GetField("isSpinning");
-                var overHeatingField = statsType.GetField("overHeating");
+                var overHeatingField = statsType.GetField(
+                    "overHeating",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                if (isSpinningField == null || overHeatingField == null)
+                if (overHeatingField == null || !TryGetIsSpinning(statsType, stats, out bool isSpinning))
                     return;
 
-                bool isSpinning = (bool)isSpinningField.GetValue(stats)!;
                 float overHeating = (float)overHeatingField.GetValue(stats)!;
                 float frameTime = (float)game1Type.GetField(
                         "FrameTime",
@@ -79,6 +79,41 @@ namespace Asher.Patching.OverheatDisabler
             {
                 AsherLog.Error($"[OverheatDisabler] Erro durante execução: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Reads the spin flag. The Windows build exposes it as the field "isSpinning";
+        /// the Linux/FNA build exposes it as the property "isSpinning" (backing field
+        /// "_isSpinning"). Tries all three so the patch works on both runtimes.
+        /// </summary>
+        private static bool TryGetIsSpinning(Type statsType, object stats, out bool isSpinning)
+        {
+            isSpinning = false;
+
+            var field = statsType.GetField(
+                            "isSpinning",
+                            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                        ?? statsType.GetField(
+                            "_isSpinning",
+                            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (field != null)
+            {
+                isSpinning = (bool)field.GetValue(stats)!;
+                return true;
+            }
+
+            var property = statsType.GetProperty(
+                "isSpinning",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (property != null && property.CanRead)
+            {
+                isSpinning = (bool)property.GetValue(stats)!;
+                return true;
+            }
+
+            return false;
         }
 
         private static Type? GetGame1Type()

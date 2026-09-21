@@ -38,6 +38,9 @@ compiled locally from the repository sources.
 - A Roslyn C# 9 compiler for the managed assemblies: `csc` (Mono 6.12+) or any compiler command
   provided via the `CSC` environment variable (e.g. `CSC="dotnet exec /path/to/csc.dll"`). Mono's
   legacy `mcs`/`mono-csc` (C# 7.x) will not work.
+- `FNA_DLL=/path/to/game/FNA.dll` to build `GraphicsDeprofiler` (it references
+  `Microsoft.Xna.Framework.Graphics.GraphicsAdapter` at compile time). Without it the other patches
+  still build.
 - The Linux VM with Dust installed.
 
 > Match the architecture of DustAET for the native library (the shipped build is 64-bit; use
@@ -60,13 +63,16 @@ Asher.Runtime.dll
 Asher.SDK.dll
 0Harmony.dll
 Mods/Asher.Patching.DebugEnabler.dll
+Mods/Asher.Patching.IntroSkipper.dll
+Mods/Asher.Patching.MuteVoiceActing.dll
+Mods/Asher.Patching.OverheatDisabler.dll
+Mods/Asher.Patching.GraphicsDeprofiler.dll   (only if FNA_DLL is set)
 ```
 
-The managed assemblies are compiled from `Asher.SDK/`, `Asher.Runtime/` and
-`Patches/Asher.Patching.DebugEnabler/`; `0Harmony.dll` is taken from the vendored
-`packages/Lib.Harmony.2.4.2` package. If the managed compiler is not on the build machine, build
-them elsewhere with the same compiler and drop the three DLLs into `out/` before running the native
-part of `build.sh`.
+The managed assemblies are compiled from `Asher.SDK/`, `Asher.Runtime/` and `Patches/*`; `0Harmony.dll`
+is taken from the vendored `packages/Lib.Harmony.2.4.2` package. If the managed compiler is not on
+the build machine, build them elsewhere with the same compiler and copy the DLLs into `out/` and
+`out/Mods/` before running the native part of `build.sh`.
 
 ## Run
 
