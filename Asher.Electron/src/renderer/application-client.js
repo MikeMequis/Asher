@@ -50,6 +50,35 @@ export class ApplicationClient {
     return this.api.getHostStatus();
   }
 
+  /**
+   * Platform descriptor from the backend (Windows/Linux capability flags).
+   * @returns {Promise<import('./platform.js').PlatformInfo | null>}
+   */
+  async getPlatformInfo() {
+    try {
+      const { result } = await this.invoke('getPlatformInfo');
+      return result ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Explicit install-state/capabilities from the backend.
+   * @param {string | null | undefined} gameFolderPath
+   * @returns {Promise<import('./application-state.js').InstallState | null>}
+   */
+  async getInstallState(gameFolderPath) {
+    try {
+      const { result } = await this.invoke('getInstallState', {
+        gameFolderPath: gameFolderPath ?? undefined
+      });
+      return result ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   getLogPath() {
     return this.api.getLogPath();
   }

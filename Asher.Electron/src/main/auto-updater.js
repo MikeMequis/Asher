@@ -12,6 +12,16 @@ import { scheduleReplaceAndRelaunch } from './post-quit-helper.js';
 const GITHUB_OWNER = 'MikeMequis';
 const GITHUB_REPO = 'Asher';
 const RELEASES_LATEST = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
+const UPDATER_UNSUPPORTED_MESSAGE =
+  'Updates are only available in the Windows build. Download the latest release manually.';
+
+/**
+ * In-place updates rely on Windows-specific helpers (PowerShell extraction, post-quit replace).
+ * Other platforms report the limitation instead of a fake implementation.
+ */
+function isUpdaterSupported() {
+  return process.platform === 'win32';
+}
 
 /** @type {((channel: string, payload: unknown) => boolean) | null} */
 let broadcast = null;
@@ -21,6 +31,13 @@ let broadcast = null;
  */
 export function initAutoUpdater(broadcastFn) {
   broadcast = broadcastFn;
+
+  if (!isUpdaterSupported()) {
+    writeDiagnosticLog('info', 'updater', 'disabled (unsupported platform)', {
+      platform: process.platform
+    });
+    return;
+  }
 
   if (!app.isPackaged) {
     writeDiagnosticLog('info', 'updater', 'disabled (unpackaged)');
@@ -152,6 +169,10 @@ function resolveUnpackedAppDir(extractRoot) {
 export async function checkForUpdates(options = {}) {
   const silent = Boolean(options.silent);
 
+  if (!isUpdaterSupported()) {
+    return emit('unavailable', { message: UPDATER_UNSUPPORTED_MESSAGE, silent });
+  }
+
   if (!app.isPackaged) {
     return emit('unavailable', { message: 'Updates are only available in packaged builds.', silent });
   }
@@ -203,6 +224,10 @@ export async function checkForUpdates(options = {}) {
  */
 export async function downloadAndApplyUpdate(params) {
   const { downloadUrl } = params;
+
+  if (!isUpdaterSupported()) {
+    return emit('error', { message: UPDATER_UNSUPPORTED_MESSAGE });
+  }
 
   if (!app.isPackaged) {
     return emit('error', { message: 'Updates are only available in packaged builds.' });

@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PlatformTarget>x86</PlatformTarget>
     <Platforms>AnyCPU;x86</Platforms>
+    <PlatformTarget Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)' == 'x86'">x86</PlatformTarget>
     <AssemblyName>Asher.Host</AssemblyName>
     <RootNamespace>Asher.Host</RootNamespace>
   </PropertyGroup>
@@ -16,6 +16,6 @@
     <ProjectReference Include="..\Asher.Services\Asher.Services.csproj" />
   </ItemGroup>
 
-  <Import Project="InstallPayload.targets" />
+  <Import Project="InstallPayload.targets" Condition="'$(OS)' == 'Windows_NT' AND '$(RuntimeIdentifier)' == ''" />
 
 </Project>

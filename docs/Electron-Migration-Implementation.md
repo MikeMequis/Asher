@@ -181,7 +181,7 @@ Items above are optional polish or gated features, not unfinished migration work
 
 **Transport:** One JSON object per line. Requests: `{ requestId, method, params }`. Responses: `{ requestId, success, result?, error? }`. Events: `ready`, `progress`.
 
-**Methods:** `getSettings`, `saveSettings`, `getApplicationMode`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`.
+**Methods:** `getSettings`, `saveSettings`, `getManagerLogDirectory`, `getApplicationMode`, `getPlatformInfo`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getInstallState`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`.
 
 **Error codes:** `invalid_request`, `unknown_method`, `application_error`, `cancelled`, `not_found`, `internal_error`.
 

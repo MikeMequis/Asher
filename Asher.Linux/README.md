@@ -83,7 +83,7 @@ cp out/Mods/Asher.Patching.DebugEnabler.dll /tmp/asher-bootstrap/Mods/
 
 cd /path/to/dust
 ASHER_MODS_PATH=/tmp/asher-bootstrap/Mods \
-ASHER_LOG_PATH=/tmp/asher-bootstrap/Logs \
+ASHER_LOG_PATH=/tmp/asher-bootstrap/AsherLogs \
 LD_PRELOAD=/tmp/asher-bootstrap/libasher_bootstrap.so \
 MONO_PATH=/tmp/asher-bootstrap \
 ./DustAET
@@ -127,7 +127,7 @@ set `canDebug = true`. The game keeps running normally.
 | --- | --- | --- |
 | `ASHER_HOME` | `<game>/Asher` | Runtime home | 
 | `ASHER_MODS_PATH` | `<ASHER_HOME>/Mods` | Directory scanned for patch modules |
-| `ASHER_LOG_PATH` | `<ASHER_HOME>/Logs` | Runtime log directory |
+| `ASHER_LOG_PATH` | `<ASHER_HOME>/AsherLogs` | Runtime log directory |
 | `ASHER_PROFILE` | `default` | Profile name in the RuntimeContext |
 | `ASHER_BOOTSTRAP_ASSEMBLY` | `Asher.Runtime.dll` next to the `.so` | Managed entry assembly |
 | `ASHER_BOOTSTRAP_AUTORUN` | `1` | `0` disables the automatic background bootstrap |

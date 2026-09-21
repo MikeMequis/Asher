@@ -33,6 +33,9 @@ namespace Asher.Services.Application
             return installed ? ApplicationMode.Manager : ApplicationMode.InstallWizard;
         }
 
+        public PlatformInfoDto GetPlatformInfo() =>
+            ApplicationContractMapper.ToDto(_services.Platform.Info);
+
         public GameFolderDto DetectGameFolder() =>
             ApplicationContractMapper.ToDto(_services.GameFolders.DetectGameFolder());
 
@@ -75,6 +78,15 @@ namespace Asher.Services.Application
             return string.IsNullOrWhiteSpace(path)
                 ? "Nenhum caminho de jogo configurado."
                 : _services.Installation.DescribeInstallState(path);
+        }
+
+        public InstallStateDto GetInstallState(string? gameFolderPath = null)
+        {
+            var path = gameFolderPath ?? ResolveGameFolderPath();
+            if (string.IsNullOrWhiteSpace(path))
+                return ApplicationContractMapper.ToDto(new InstallStateInfo());
+
+            return ApplicationContractMapper.ToDto(_services.Installation.GetInstallState(path));
         }
 
         public async Task<IReadOnlyList<ManagedModDto>> GetModsAsync(CancellationToken cancellationToken = default)

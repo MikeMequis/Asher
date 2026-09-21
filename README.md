@@ -52,6 +52,17 @@ Users extract the zip (or use `Distribution/`), run `Asher.exe`, then install in
 
 Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 
+### Linux (x64)
+
+Run on a Linux host (AppImage requires Linux tooling):
+
+```bash
+cd Asher.Electron
+npm run dist:linux   # publish Host + build Asher.Linux + stage payload + AppImage/tar.gz
+```
+
+Artifacts land in `Asher.Electron/dist/`: `Asher-<version>-linux-x86_64.AppImage` and `Asher-<version>-linux-x64.tar.gz`. The manager binary is `Asher`; the game folder is left untouched (no launcher swap). Updates on Linux are manual GitHub release downloads. See `docs/Cross-Platform-Architecture.md`.
+
 ## Included mods
 
 - **Debug Menu Enabler** — Tab in pause menu opens debug menu
@@ -64,5 +75,6 @@ Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 
 - [Manager UI architecture](docs/Manager-UI-Architecture.md) — WPF vs Electron
 - [Electron migration](docs/Electron-Migration-Implementation.md) — decisions and status
+- [Cross-platform architecture](docs/Cross-Platform-Architecture.md) — platform abstraction contracts (Windows/Linux)
 - [Linux bootstrap (embedded Mono)](Asher.Linux/README.md) — native LD_PRELOAD entry + patch orchestration
 - User docs: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)

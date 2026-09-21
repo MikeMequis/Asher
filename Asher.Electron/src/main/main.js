@@ -149,6 +149,17 @@ ipcMain.handle('app:quit', () => {
  * @param {unknown} gameFolderPath
  */
 ipcMain.handle('app:run-emergency-uninstall', async (_event, gameFolderPath) => {
+  if (process.platform !== 'win32') {
+    writeDiagnosticLog('info', 'uninstall', 'emergency helper unsupported on this platform', {
+      platform: process.platform
+    });
+    return {
+      ok: false,
+      reason: 'unsupported',
+      message: 'Emergency uninstall is only available on Windows.'
+    };
+  }
+
   const folder = typeof gameFolderPath === 'string' ? gameFolderPath.trim() : '';
   if (!folder) {
     return { ok: false, reason: 'missing', message: 'Game folder path is required.' };

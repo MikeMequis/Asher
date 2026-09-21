@@ -159,6 +159,10 @@ namespace Asher.Host.Jsonl
                     }, null);
                     return;
 
+                case JsonlProtocol.Methods.GetPlatformInfo:
+                    await WriteResponseAsync(request.RequestId, true, _application.GetPlatformInfo(), null);
+                    return;
+
                 case JsonlProtocol.Methods.DetectGameFolder:
                     await WriteResponseAsync(request.RequestId, true, _application.DetectGameFolder(), null);
                     return;
@@ -221,6 +225,19 @@ namespace Asher.Host.Jsonl
                     {
                         hasBackup = _application.HasRestorableBackup(path)
                     }, null);
+                    return;
+                }
+
+                case JsonlProtocol.Methods.GetInstallState:
+                {
+                    string? path = null;
+                    if (request.Params.ValueKind == JsonValueKind.Object
+                        && request.Params.TryGetProperty("gameFolderPath", out var pathElement))
+                    {
+                        path = pathElement.GetString();
+                    }
+
+                    await WriteResponseAsync(request.RequestId, true, _application.GetInstallState(path), null);
                     return;
                 }
 

@@ -12,6 +12,7 @@ import {
   t
 } from './localization.js';
 import { ModManagerController } from './mod-manager.js';
+import { supportsRecoveryHelper } from './platform.js';
 import { SettingsController } from './settings-controller.js';
 import { applyTheme, applyThemeFromSettings } from './theme.js';
 import { UninstallationController } from './uninstallation-controller.js';
@@ -934,6 +935,12 @@ function renderSettings() {
   }
   settingsUninstallCard.hidden = !shell.canUninstall;
 
+  // "Total exclusion" launches the Windows-only Uninstall-Asher.cmd helper.
+  const totalExclusionOption = settingsTotalExclusionButton?.closest('.settings-removal-option');
+  if (totalExclusionOption) {
+    totalExclusionOption.hidden = !supportsRecoveryHelper(shell.platform);
+  }
+
   settingsError.hidden = settings.state !== 'error';
   settingsError.textContent = settings.errorMessage ?? '';
 
@@ -1053,6 +1060,10 @@ installBackSetupCancelledButton.addEventListener('click', () => {
 
 settingsSafeUninstallButton?.addEventListener('click', () => shell.navigateTo('uninstall'));
 settingsTotalExclusionButton?.addEventListener('click', async () => {
+  if (!supportsRecoveryHelper(shell.platform)) {
+    return;
+  }
+
   if (!window.confirm(t('settings.totalExclusionConfirm'))) {
     return;
   }

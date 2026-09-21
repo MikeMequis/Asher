@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const HOST_EXE = process.platform === 'win32' ? 'Asher.Host.exe' : 'Asher.Host';
+
 function getElectronApp() {
   try {
     return require('electron').app;
@@ -15,7 +17,8 @@ function getElectronApp() {
 }
 
 /**
- * Locate Asher.Host.exe for development or packaged builds.
+ * Locate the Asher.Host executable for development or packaged builds.
+ * Windows uses an .exe; other platforms run the apphost directly.
  * Override with ASHER_HOST_PATH environment variable.
  */
 export function resolveHostPath() {
@@ -29,18 +32,23 @@ export function resolveHostPath() {
 
   const app = getElectronApp();
   if (app?.isPackaged) {
-    const packagedHost = path.join(process.resourcesPath, 'asher-host', 'Asher.Host.exe');
+    const packagedHost = path.join(process.resourcesPath, 'asher-host', HOST_EXE);
     if (fs.existsSync(packagedHost)) {
       return packagedHost;
     }
   }
 
   const repoRoot = path.resolve(__dirname, '..', '..', '..');
-  const candidates = [
-    path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0-windows', 'Asher.Host.exe'),
-    path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Release', 'net8.0-windows', 'Asher.Host.exe'),
-    path.join(process.cwd(), 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0-windows', 'Asher.Host.exe')
+  const hostDirs = [
+    path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0'),
+    path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Release', 'net8.0'),
+    path.join(repoRoot, 'Asher.Host', 'bin', 'Debug', 'net8.0'),
+    path.join(repoRoot, 'Asher.Host', 'bin', 'Release', 'net8.0'),
+    path.join(process.cwd(), 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0'),
+    path.join(process.cwd(), 'Asher.Host', 'bin', 'Debug', 'net8.0')
   ];
+
+  const candidates = hostDirs.map((dir) => path.join(dir, HOST_EXE));
 
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) {
@@ -49,7 +57,7 @@ export function resolveHostPath() {
   }
 
   throw new Error(
-    'Could not locate Asher.Host.exe. Build with:\n' +
+    'Could not locate Asher.Host. Build with:\n' +
       '  dotnet build Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86\n' +
       'Or set ASHER_HOST_PATH to the executable path.'
   );

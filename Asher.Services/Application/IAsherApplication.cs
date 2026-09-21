@@ -12,6 +12,8 @@ namespace Asher.Services.Application
 
         ApplicationMode GetApplicationMode();
 
+        PlatformInfoDto GetPlatformInfo();
+
         ManagerLogDirectoryDto GetManagerLogDirectory();
 
         GameFolderDto DetectGameFolder();
@@ -20,6 +22,7 @@ namespace Asher.Services.Application
         bool IsGameInstalled(string? gameFolderPath = null);
         bool HasRestorableBackup(string? gameFolderPath = null);
         string DescribeInstallState(string? gameFolderPath = null);
+        InstallStateDto GetInstallState(string? gameFolderPath = null);
 
         Task<IReadOnlyList<ManagedModDto>> GetModsAsync(CancellationToken cancellationToken = default);
         Task<OperationResult> SetModEnabledAsync(

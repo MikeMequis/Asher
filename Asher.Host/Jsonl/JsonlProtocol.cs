@@ -28,11 +28,13 @@ namespace Asher.Host.Jsonl
             public const string GetManagerLogDirectory = "getManagerLogDirectory";
             public const string SaveSettings = "saveSettings";
             public const string GetApplicationMode = "getApplicationMode";
+            public const string GetPlatformInfo = "getPlatformInfo";
             public const string DetectGameFolder = "detectGameFolder";
             public const string GetGameFolderInfo = "getGameFolderInfo";
             public const string ResolveGameFolderPath = "resolveGameFolderPath";
             public const string IsGameInstalled = "isGameInstalled";
             public const string HasRestorableBackup = "hasRestorableBackup";
+            public const string GetInstallState = "getInstallState";
             public const string GetMods = "getMods";
             public const string SetModEnabled = "setModEnabled";
             public const string Install = "install";

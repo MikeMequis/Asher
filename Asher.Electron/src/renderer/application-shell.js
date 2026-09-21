@@ -44,6 +44,10 @@ export class ApplicationShell {
     return this.#applicationState;
   }
 
+  get platform() {
+    return this.#applicationState?.platform ?? null;
+  }
+
   get screen() {
     return this.#screen;
   }
@@ -70,6 +74,14 @@ export class ApplicationShell {
 
   get canUninstall() {
     return Boolean(this.#applicationState?.canUninstall);
+  }
+
+  get canRestore() {
+    return Boolean(this.#applicationState?.canRestore);
+  }
+
+  get installState() {
+    return this.#applicationState?.installState ?? null;
   }
 
   get isManagerMode() {

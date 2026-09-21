@@ -29,7 +29,7 @@ namespace Asher.Runtime
 
             string logPath = Environment.GetEnvironmentVariable("ASHER_LOG_PATH");
             if (string.IsNullOrEmpty(logPath))
-                logPath = Path.Combine(asherHome, "Logs");
+                logPath = Path.Combine(asherHome, "AsherLogs");
 
             string profileName = Environment.GetEnvironmentVariable("ASHER_PROFILE");
             if (string.IsNullOrEmpty(profileName))

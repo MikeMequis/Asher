@@ -13,6 +13,7 @@ alwaysApply: true
 | **Host / transport** | `Asher.Host` | JSONL protocol, spawns as child process of Electron |
 | **Application contract** | `IAsherApplication` in `Asher.Services` | Facade over all services; DTOs only |
 | **Services** | `Asher.Services/Implementations/` | Business logic: install, uninstall, patches, settings, launch |
+| **Platform abstraction** | `IPlatformInfo` (`Asher.Core/Platform`), `Asher.Services/Platform` | OS-specific discovery, executable layout, runtime deployment, process launch |
 | **Core** | `Asher.Core` | Models, paths (`AsherPaths`), constants |
 | **SDK** | `Asher.SDK` | Patching API consumed by mod DLLs |
 | **Launcher** | `Asher.Launcher` | Replaces `DustAET.exe`; loads runtime |
@@ -29,3 +30,4 @@ alwaysApply: true
 - Do not change the installation file layout (`DustAET.exe` swap, `Asher/` folder structure) without a concrete requirement.
 - Prefer behavioral preservation over architectural rewrites.
 - Prefer extending existing services/abstractions over creating competing ones.
+- OS-specific work goes behind `Asher.Services/Platform` contracts. Do not branch on the OS in `GameInstallationService`, `GameFolderService`, `GameLaunchService`, or the renderer. See `docs/Cross-Platform-Architecture.md`.

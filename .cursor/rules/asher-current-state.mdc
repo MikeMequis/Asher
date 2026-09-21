@@ -27,6 +27,24 @@ Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron*
 - Emergency uninstall helper installed as `Uninstall-Asher.cmd` (+ `.ps1`) beside `DustAET.exe` for recovery without the UI
 - Settings Removal: Safe uninstallation (in-app) and Total exclusion (launches game-folder `Uninstall-Asher.cmd`)
 - GitHub Releases update check / zip apply for the Distribution app (Settings → Check for updates)
+- Cross-platform platform abstraction: `IPlatformInfo` + `IGameFolderDiscovery` / `IGameExecutableLayout` / `IRuntimeDeployment` / `IGameProcessLauncher`, Windows implementations, Linux initial stubs (`Asher.Services/Platform`)
+- `getPlatformInfo` JSONL method + renderer `platform.js` capability gating (Windows-only removal UI hidden on Linux)
+- Host-side projects (`Asher.Core`, `Asher.Services`, `Asher.Host`) target `net8.0` (was `net8.0-windows`)
+- Cross-platform path/log baseline: canonical log folder `Asher/AsherLogs` (managed `RuntimeBootstrap` default aligned), Linux settings under `$XDG_CONFIG_HOME/Asher` (fallback `~/.config/Asher`), Linux portable settings only with a `portable` marker
+- `Asher.Services.Tests` xUnit project for platform/path units
+- Linux game discovery: XDG Steam roots + multiple `libraryfolders.vdf` libraries, best-effort Heroic/Lutris (verified paths only), shared `SteamLibraryVdf` parser; Windows discovery behavior unchanged
+- Explicit install-state contract: `InstallStateDto` (`state`/`canUninstall`/`canRestore`/`marker`) via `getInstallState`; renderer uses it instead of inferring from `hasRestorableBackup`; platform-aware `AsherPaths` overloads take `IPlatformInfo`
+- Linux runtime deployment: bootstrap + managed runtime + default mods into `Asher/`, `install.json` manifest (schema/version/ELF arch incl. mismatch warning), idempotent deploy, `Mods`/`DefaultMods` payload reconciliation; Linux `HasRestorableBackup = false`; uninstall removes Asher files without touching `DustAET`
+- Linux launch: `LinuxGameProcessLauncher` starts `<game>/DustAET` with `UseShellExecute=false`, preserved parent env, `LD_PRELOAD`/`MONO_PATH` prepend + `ASHER_HOME`/`ASHER_MODS_PATH`/`ASHER_LOG_PATH`/`ASHER_PROFILE`; `IProcessStarter` + `IEnvironmentProvider` abstractions (fakeable); incomplete install rejected; Windows shell launch unchanged
+- Electron lifecycle uses `getInstallState` + `platform` capabilities (no `hasRestorableBackup` derivation); Windows-only recovery/updater paths gated (`supportsRecoveryHelper`, `process.platform`); `manager-paths.js` platform-aware executable name; updater reports `unavailable` off Windows; `npm run smoke:platform` added
+- Linux build/packaging (x64): conditional `PlatformTarget` (x86 only when `Platform == x86`; keying on `RuntimeIdentifier` mis-built `Asher.Services` as x86 and broke the x64 Host); `build:host:linux` self-contained publish with `-p:InvariantGlobalization=true` (no system libicu required); `stage-linux-payload.mjs` (fail-fast) staging `Asher.Linux/out` → `install-payload/DefaultMods`; electron-builder `linux` AppImage + tar.gz with `Asher` executable; `verify-linux-package.mjs`; Windows targets unchanged
+- WSL2 validation: Host runs on Linux; install/launch/uninstall/reinstall/partial-repair and Steam/XDG/manual discovery verified against the native Dust install
+- Linux launch stdout isolation: game `stdout`/`stderr` are redirected and pumped to the Host `stderr` (`[game-stdout]`/`[game-stderr]`), keeping the JSONL channel clean; Electron logs Host stderr to the manager diagnostic log; `AsherLogs/runtime_*.log` unaffected
+
+## Linux preparation (foundation only)
+
+- No Linux installer implementation yet; Linux platform contracts are initial stubs (`docs/Cross-Platform-Architecture.md`)
+- Deferred: Linux install flow/payload staging, `net8.0` host packaging on Linux, bootstrap timing fix, shell recovery helper
 
 ## Retired (do not recreate)
 

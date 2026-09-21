@@ -1,11 +1,24 @@
 using Asher.Core;
 using Asher.Core.Models;
+using Asher.Core.Platform;
 using Asher.Services.Application.Contracts;
 
 namespace Asher.Services.Application
 {
     internal static class ApplicationContractMapper
     {
+        public static PlatformInfoDto ToDto(IPlatformInfo platform) => new()
+        {
+            Kind = platform.Kind.ToString().ToLowerInvariant(),
+            GameExecutableName = platform.GameExecutableName,
+            RealGameExecutableName = platform.RealGameExecutableName,
+            LauncherExecutableName = platform.LauncherExecutableName,
+            BootstrapLibraryName = platform.BootstrapLibraryName,
+            UsesLauncherSwap = platform.UsesLauncherSwap,
+            SupportsRecoveryHelper = platform.SupportsRecoveryHelper,
+            DefaultGameFolderName = platform.DefaultGameFolderName
+        };
+
         public static ApplicationSettingsDto ToDto(AsherSettings settings) => new()
         {
             GameFolderPath = settings.GameFolderPath,
@@ -73,5 +86,16 @@ namespace Asher.Services.Application
             Message = progress.Message ?? string.Empty,
             Details = progress.Details ?? string.Empty
         };
+
+        public static InstallStateDto ToDto(InstallStateInfo info) => new()
+        {
+            State = ToCamelCase(info.State.ToString()),
+            CanUninstall = info.CanUninstall,
+            CanRestore = info.CanRestore,
+            Marker = info.Marker ?? string.Empty
+        };
+
+        private static string ToCamelCase(string value) =>
+            string.IsNullOrEmpty(value) ? value : char.ToLowerInvariant(value[0]) + value[1..];
     }
 }

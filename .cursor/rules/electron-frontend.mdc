@@ -43,3 +43,6 @@ alwaysApply: false
 - Do not duplicate backend business logic in JavaScript — delegate to C# via JSONL.
 - DOM updates for mod toggles use incremental patching (`updateModRow`), not full list rebuilds.
 - `app.js` is the composition root — wires controllers, renders views, attaches event listeners.
+- Installation capability comes from `getInstallState` (`state`/`canUninstall`/`canRestore`/`marker`), not from `hasRestorableBackup`. `application-state.js` is the single place that derives `canUninstall`/`canRestore`.
+- Renderer platform capabilities come from `platform.js` (`supportsRecoveryHelper`, `usesLauncherSwap`). Windows-only UI (Settings → Removal → Total exclusion, emergency `.cmd`) is gated on `supportsRecoveryHelper`; `main.js` also rejects `app:run-emergency-uninstall` off Windows.
+- Main process is Windows-only for updates (`auto-updater.js`) and post-quit replace (`post-quit-helper.js`). Off Windows the updater reports `unavailable`; do not add a fake Linux updater. `manager-paths.js` resolves the packaged binary name per platform (`Asher.exe` / `Asher`).

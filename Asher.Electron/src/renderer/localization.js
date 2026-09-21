@@ -145,7 +145,7 @@ const STRINGS = {
     'settings.pathInvalid': 'Invalid game folder.',
 
     'uninstall.title': 'Uninstalling Asher',
-    'uninstall.help': 'Remove Asher and restore original game files where possible. Without this app, use Uninstall-Asher.cmd in the game folder.',
+    'uninstall.help': 'Remove Asher and restore original game files where possible.',
     'uninstall.warning': 'Do not close the application during uninstall.',
     'uninstall.confirm': 'Are you sure you want to uninstall Asher from this game installation?',
     'uninstall.action': 'Uninstall',
@@ -323,7 +323,7 @@ const STRINGS = {
     'settings.pathInvalid': 'Pasta do jogo inválida.',
 
     'uninstall.title': 'Desinstalando Asher',
-    'uninstall.help': 'Remover o Asher e restaurar os arquivos originais do jogo quando possível. Sem este app, use Uninstall-Asher.cmd na pasta do jogo.',
+    'uninstall.help': 'Remover o Asher e restaurar os arquivos originais do jogo quando possível.',
     'uninstall.warning': 'Não feche o aplicativo durante a desinstalação.',
     'uninstall.confirm': 'Tem certeza de que deseja desinstalar o Asher desta instalação?',
     'uninstall.action': 'Desinstalar',
@@ -501,7 +501,7 @@ const STRINGS = {
     'settings.pathInvalid': 'Carpeta del juego no válida.',
 
     'uninstall.title': 'Desinstalando Asher',
-    'uninstall.help': 'Eliminar Asher y restaurar los archivos originales del juego cuando sea posible. Sin esta app, usa Uninstall-Asher.cmd en la carpeta del juego.',
+    'uninstall.help': 'Eliminar Asher y restaurar los archivos originales del juego cuando sea posible.',
     'uninstall.warning': 'No cierres la aplicación durante la desinstalación.',
     'uninstall.confirm': '¿Estás seguro de que deseas desinstalar Asher de esta instalación?',
     'uninstall.action': 'Desinstalar',
