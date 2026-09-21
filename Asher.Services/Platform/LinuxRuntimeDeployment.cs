@@ -25,28 +25,24 @@ namespace Asher.Services.Platform
             WriteIndented = true
         };
 
-        private readonly IPlatformInfo _platform;
-
-        public LinuxRuntimeDeployment(IPlatformInfo platform)
-        {
-            _platform = platform;
-            RequiredRuntimeFiles = new[]
-            {
-                "Asher.Runtime.dll",
-                "Asher.SDK.dll",
-                "0Harmony.dll",
-                platform.BootstrapLibraryName
-            };
-        }
-
-        public override IReadOnlyList<string> RequiredRuntimeFiles { get; }
-
-        public override IReadOnlyList<string> ManagedRuntimeFiles { get; } = new[]
+        private static readonly string[] ManagedFiles =
         {
             "Asher.Runtime.dll",
             "Asher.SDK.dll",
             "0Harmony.dll"
         };
+
+        private readonly IPlatformInfo _platform;
+
+        public LinuxRuntimeDeployment(IPlatformInfo platform)
+        {
+            _platform = platform;
+            RequiredRuntimeFiles = ManagedFiles.Append(platform.BootstrapLibraryName).ToArray();
+        }
+
+        public override IReadOnlyList<string> RequiredRuntimeFiles { get; }
+
+        public override IReadOnlyList<string> ManagedRuntimeFiles { get; } = ManagedFiles;
 
         public override IReadOnlyList<string> DefaultModFiles { get; } = new[]
         {

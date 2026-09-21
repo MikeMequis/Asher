@@ -1,5 +1,5 @@
 /**
- * Headless smoke test for launch game flow (no GUI).
+ * Headless smoke test for launch preconditions (no GUI).
  * Run: node scripts/launch-smoke-test.mjs
  */
 import { HostManager } from '../src/main/host-manager.js';
@@ -32,24 +32,36 @@ async function main() {
   }
 
   try {
-  let rejected = false;
-  try {
-    await client.request('launchGame');
-    fail('launchGame should fail without installed game');
-  } catch (err) {
-    rejected = true;
-    if (!err.message) {
-      fail('launchGame failure should include a message');
+    const resolved = await client.request('resolveGameFolderPath');
+    if (resolved && typeof resolved === 'object') {
+      pass(`resolveGameFolderPath contract (path=${resolved.path ?? 'none'})`);
     } else {
-      pass(`launchGame failure path (${err.message})`);
+      fail('resolveGameFolderPath contract');
     }
-  }
 
-  if (!rejected) {
-    fail('launchGame did not reject');
-  }
+    const installed = await client.request('isGameInstalled');
+    if (typeof installed?.installed !== 'boolean') {
+      fail('isGameInstalled contract');
+    } else {
+      pass('isGameInstalled contract');
+    }
+
+    if (installed?.installed) {
+      pass('launchGame not exercised (Asher installed)');
+    } else {
+      try {
+        await client.request('launchGame');
+        fail('launchGame should reject when no launchable game is configured');
+      } catch (err) {
+        if (!err.message) {
+          fail('launchGame failure should include a message');
+        } else {
+          pass(`launchGame failure path (${err.message})`);
+        }
+      }
+    }
   } catch (err) {
-    fail(`launchGame: ${err.message}`);
+    fail(`launch: ${err.message}`);
   }
 
   await host.stop();

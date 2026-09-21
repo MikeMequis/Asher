@@ -26,7 +26,7 @@ npm run smoke:manager    # getMods + setModEnabled failure path
 npm run smoke:shell      # Application shell lifecycle
 npm run smoke:install    # Install with invalid path (safe)
 npm run smoke:uninstall  # Uninstall with invalid path (safe)
-npm run smoke:launch     # Launch (expects no game on dev machine)
+npm run smoke:launch     # Launch preconditions + failure path
 npm run smoke:payload    # Verify install-payload contents
 npm run smoke:platform   # Platform capabilities + install-state contract
 ```
@@ -86,13 +86,12 @@ can be produced cross-platform. `build/` and `dist/` are gitignored.
 
 1. **Smallest scope first**: build the changed C# project, run the relevant smoke test.
 2. **Broader when needed**: `npm run smoke` for cross-cutting changes; `npm start` for UI verification.
-3. **Real-game validation**: required for changes to install, uninstall, launch, runtime patching, or manager deploy/relaunch. Must be done on a machine with Dust: An Elysian Tail installed.
+3. **Real-game validation**: required for changes to install, uninstall, launch, or runtime patching. Must be done on a machine with Dust: An Elysian Tail installed.
 4. **Packaged validation**: run `npm run dist`, launch `Distribution/Asher.exe`, install into a game folder, confirm Finish stays in Distribution and `Uninstall-Asher.cmd` exists beside `DustAET.exe`.
 
 ## Known limitations
 
 - Smoke tests use temp paths, not real game folders.
-- `smoke:launch` expects no game installed on dev machine — "expected false positive" on game PC.
 - Manager deploy/relaunch removed — UI is Distribution-only; game folder gets an emergency uninstall script instead.
 - `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign` (Developer Mode or elevated terminal).
 - Patching/runtime builds need XNA 4.0 GAC assemblies — install the redistributable per README *Addendum — XNA Framework* if the game is not on the machine.

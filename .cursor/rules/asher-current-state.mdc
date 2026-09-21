@@ -5,61 +5,34 @@ alwaysApply: true
 
 # Asher Project State
 
-Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron** app (`Asher.Electron`). The backend is a C# console process (`Asher.Host`) communicating over **JSONL on stdin/stdout**.
+Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron** app (`Asher.Electron`). The backend is a C# console process (`Asher.Host`) communicating over **JSONL on stdin/stdout**. Windows and Linux are supported; platform specifics live in `docs/Cross-Platform-Architecture.md`.
 
 ## Completed (do not reimplement)
 
-- Electron shell: sidebar, home hub, settings, patch manager, game setup
-- Install / uninstall / launch flows through JSONL contract
-- Localization (en-US, pt-BR, es) in renderer `localization.js`
-- Theme (Light / Dark) in renderer `theme.js`
-- Material Symbols Outlined icons (self-hosted font, `icons.js`)
-- Settings auto-save, preference-only reset, browse path
-- Install Finish UX with optional launch + minimize
-- Install always creates a game backup (`BackupEnabled` forced true; no Settings toggle)
-- `setModEnabled` validates mod existence in `PatchManagerService`
-- Incremental mod-list rendering (no full DOM rebuild on toggle)
-- Toast notifications (`action-banner.js`, top-right stack)
-- `markInstalled` / `markUninstalled` contract methods (replaced fragile settings merge)
-- Install payload bundled via MSBuild (`install-payload/` beside `Asher.Host.exe`)
-- Zip + unpacked Distribution packaging (`npm run dist` → `Distribution/`; GitHub publish via `npm run publish` + `private/GH_TOKEN`)
-- Manager UI runs from Distribution only (no deploy into `game/Asher/Asher.App/`)
-- Emergency uninstall helper installed as `Uninstall-Asher.cmd` (+ `.ps1`) beside `DustAET.exe` for recovery without the UI
-- Settings Removal: Safe uninstallation (in-app) and Total exclusion (launches game-folder `Uninstall-Asher.cmd`)
-- GitHub Releases update check / zip apply for the Distribution app (Settings → Check for updates)
-- Cross-platform platform abstraction: `IPlatformInfo` + `IGameFolderDiscovery` / `IGameExecutableLayout` / `IRuntimeDeployment` / `IGameProcessLauncher`, Windows implementations, Linux initial stubs (`Asher.Services/Platform`)
-- `getPlatformInfo` JSONL method + renderer `platform.js` capability gating (Windows-only removal UI hidden on Linux)
-- Host-side projects (`Asher.Core`, `Asher.Services`, `Asher.Host`) target `net8.0` (was `net8.0-windows`)
-- Cross-platform path/log baseline: canonical log folder `Asher/AsherLogs` (managed `RuntimeBootstrap` default aligned), Linux settings under `$XDG_CONFIG_HOME/Asher` (fallback `~/.config/Asher`), Linux portable settings only with a `portable` marker
-- `Asher.Services.Tests` xUnit project for platform/path units
-- Linux game discovery: XDG Steam roots + multiple `libraryfolders.vdf` libraries, best-effort Heroic/Lutris (verified paths only), shared `SteamLibraryVdf` parser; Windows discovery behavior unchanged
-- Explicit install-state contract: `InstallStateDto` (`state`/`canUninstall`/`canRestore`/`marker`) via `getInstallState`; renderer uses it instead of inferring from `hasRestorableBackup`; platform-aware `AsherPaths` overloads take `IPlatformInfo`
-- Linux runtime deployment: bootstrap + managed runtime + default mods into `Asher/`, `install.json` manifest (schema/version/ELF arch incl. mismatch warning), idempotent deploy, `Mods`/`DefaultMods` payload reconciliation; Linux `HasRestorableBackup = false`; uninstall removes Asher files without touching `DustAET`
-- Linux launch: `LinuxGameProcessLauncher` starts `<game>/DustAET` with `UseShellExecute=false`, preserved parent env, `LD_PRELOAD`/`MONO_PATH` prepend + `ASHER_HOME`/`ASHER_MODS_PATH`/`ASHER_LOG_PATH`/`ASHER_PROFILE`; `IProcessStarter` + `IEnvironmentProvider` abstractions (fakeable); incomplete install rejected; Windows shell launch unchanged
-- Electron lifecycle uses `getInstallState` + `platform` capabilities (no `hasRestorableBackup` derivation); Windows-only recovery/updater paths gated (`supportsRecoveryHelper`, `process.platform`); `manager-paths.js` platform-aware executable name; updater reports `unavailable` off Windows; `npm run smoke:platform` added
-- Linux build/packaging (x64): conditional `PlatformTarget` (x86 only when `Platform == x86`; keying on `RuntimeIdentifier` mis-built `Asher.Services` as x86 and broke the x64 Host); `build:host:linux` self-contained publish with `-p:InvariantGlobalization=true` (no system libicu required); `stage-linux-payload.mjs` (fail-fast) staging `Asher.Linux/out` → `install-payload/DefaultMods`; electron-builder `linux` AppImage + tar.gz with `Asher` executable; `verify-linux-package.mjs`; Windows targets unchanged
-- WSL2 validation: Host runs on Linux; install/launch/uninstall/reinstall/partial-repair and Steam/XDG/manual discovery verified against the native Dust install
-- Linux launch stdout isolation: game `stdout`/`stderr` are redirected and pumped to the Host `stderr` (`[game-stdout]`/`[game-stderr]`), keeping the JSONL channel clean; Electron logs Host stderr to the manager diagnostic log; `AsherLogs/runtime_*.log` unaffected
-
-## Linux preparation (foundation only)
-
-- No Linux installer implementation yet; Linux platform contracts are initial stubs (`docs/Cross-Platform-Architecture.md`)
-- Deferred: Linux install flow/payload staging, `net8.0` host packaging on Linux, bootstrap timing fix, shell recovery helper
+- Electron shell: sidebar, home hub, settings, patch manager, game setup; localization (en-US/pt-BR/es), Light/Dark theme, Material Symbols, toasts, install Finish UX
+- Install / uninstall / launch / mod-toggle flows through the JSONL contract (`IAsherApplication`); install always creates a game backup; `setModEnabled` validates existence; incremental mod-list rendering
+- Install payload bundled beside the Host (`install-payload/`); Windows zip + `Distribution/` packaging (`npm run dist` / `npm run publish`)
+- Windows: launcher swap (`DustAET.exe` → `DustAET.real.exe`), emergency `Uninstall-Asher.cmd` (+ `.ps1`), Settings Removal (Safe uninstall / Total exclusion), GitHub Releases update check
+- Platform abstraction (`IPlatformInfo` + discovery / executable-layout / runtime-deployment / process-launch contracts) with Windows and Linux implementations
+- `getPlatformInfo` + explicit `getInstallState` (`state` / `canUninstall` / `canRestore` / `marker`); the renderer derives capabilities from them, not from `hasRestorableBackup`
+- Linux: XDG/Steam discovery, bootstrap + managed runtime deployment (`install.json`), native `LD_PRELOAD` launch with game stdout/stderr kept off the JSONL channel, AppImage + tar.gz packaging
+- `Asher.Services.Tests` (xUnit); Host-side projects (`Asher.Core`, `Asher.Services`, `Asher.Host`) target `net8.0`
 
 ## Retired (do not recreate)
 
-- WPF UI: `Asher.App`, `Asher.UserInterface`, `Asher.Localization` — deleted
-- WPF-only services: `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` (manager deploy/relaunch restored in Electron main, not those C# services)
-- `PrepareDistribution.ps1` — WPF-era packaging script
+- WPF UI: `Asher.App`, `Asher.UserInterface`, `Asher.Localization`
+- WPF-only services: `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`
+- `PrepareDistribution.ps1`
 - Prism / MaterialDesign / WPF dependencies in `Asher.Core`
-- Portable-as-primary packaging (replaced by zip / Distribution folder)
+- Portable-as-primary packaging (replaced by zip / `Distribution/`)
 
 ## Deferred
 
 - Full install wizard stepper chrome
 - Content patcher UI (no backend exists)
 - Desktop shortcut creation after install
+- Linux: external Steam/desktop launch, in-app updater, `.deb`; `mono_thread_attach` timing fix
 
-## Documentation caveat
+## Documentation
 
-`docs/Electron-Migration-Implementation.md` is a compact migration record (not a task list). See `.cursor/rules/asher-documentation.mdc` for doc maintenance.
+Canonical locations: platform contracts and Linux build/packaging → `docs/Cross-Platform-Architecture.md`; JSONL protocol → `.cursor/rules/jsonl-protocol.mdc`; build/test commands → `.cursor/rules/testing-validation.mdc`; native bootstrap → `Asher.Linux/README.md`.

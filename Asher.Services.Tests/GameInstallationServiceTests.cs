@@ -8,7 +8,6 @@ namespace Asher.Services.Tests;
 public class WindowsInstallStateTests
 {
     private static GameInstallationService Create() => new(
-        new SettingsService(),
         new WindowsGameExecutableLayout(),
         new WindowsRuntimeDeployment(),
         new WindowsPlatformInfo());
@@ -80,7 +79,6 @@ public class LinuxInstallStateTests
     {
         var platform = new LinuxPlatformInfo();
         return new GameInstallationService(
-            new SettingsService(),
             new LinuxGameExecutableLayout(platform),
             new LinuxRuntimeDeployment(platform),
             platform);

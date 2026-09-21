@@ -20,8 +20,10 @@ It is not a diary of every implementation action. Prefer updating existing secti
 | Architecture boundaries | `.cursor/rules/asher-architecture.mdc` |
 | JSONL protocol details | `.cursor/rules/jsonl-protocol.mdc` |
 | Validation commands | `.cursor/rules/testing-validation.mdc` |
-| Migration record (decisions, milestones, compatibility) | `docs/Electron-Migration-Implementation.md` |
-| WPF vs Electron manager UI | `docs/Manager-UI-Architecture.md` |
+| Electron manager architecture + decisions | `docs/Electron-Migration-Implementation.md` |
+| Electron manager structure + compatibility | `docs/Manager-UI-Architecture.md` |
+| Platform contracts, Linux layout/build/packaging | `docs/Cross-Platform-Architecture.md` |
+| Native Linux bootstrap | `Asher.Linux/README.md` |
 
 Do not duplicate protocol method lists or smoke-test commands across multiple docs — link or reference the canonical location.
 
@@ -65,4 +67,4 @@ For architectural decisions:
 - Mark historical context explicitly; do not present retired architecture as current.
 - Prefer the **source code** over docs when they disagree for current-state descriptions.
 - After significant changes, update `asher-current-state.mdc` if completed/deferred/retired lists change.
-- Keep `Electron-Migration-Implementation.md` compact — add milestones and decisions, not step-by-step implementation logs.
+- Keep `Electron-Migration-Implementation.md` compact — decisions and compatibility, not development history.

@@ -16,18 +16,15 @@ namespace Asher.Services.Implementations
         private static string OriginalExeName => AsherPaths.GameExecutableName;
         private static string BackupExeName => AsherPaths.RealGameExecutableName;
 
-        private readonly ISettingsService _settingsService;
         private readonly IGameExecutableLayout _layout;
         private readonly IRuntimeDeployment _deployment;
         private readonly IPlatformInfo _platform;
 
         public GameInstallationService(
-            ISettingsService settingsService,
             IGameExecutableLayout layout,
             IRuntimeDeployment deployment,
             IPlatformInfo platform)
         {
-            _settingsService = settingsService;
             _layout = layout;
             _deployment = deployment;
             _platform = platform;
@@ -94,6 +91,7 @@ namespace Asher.Services.Implementations
                 });
 
                 await Task.Run(() => CreateFolderStructure(gamePath));
+                await Task.Run(() => WriteReadme(gamePath));
 
                 progress?.Report(new InstallationProgress
                 {
@@ -454,6 +452,56 @@ namespace Asher.Services.Implementations
             Directory.CreateDirectory(AsherPaths.GetModsFolderPath(gamePath));
             Directory.CreateDirectory(AsherPaths.GetLogsFolderPath(gamePath));
         }
+
+        private void WriteReadme(string gamePath)
+        {
+            var asherFolder = AsherPaths.GetRuntimeFolderPath(gamePath);
+            var content = _platform.UsesLauncherSwap ? WindowsReadme : LinuxReadme;
+            File.WriteAllText(Path.Combine(asherFolder, "LEIA-ME.txt"), content);
+        }
+
+        private const string WindowsReadme = """
+ASHER - MOD MANAGER PARA DUST: AN ELYSIAN TAIL
+================================================
+
+Arquivo gerado automaticamente na instalacao.
+
+COMO DESINSTALAR
+- Pelo gerenciador: Configuracoes > Remocao > Desinstalacao segura.
+- Sem o gerenciador: execute Uninstall-Asher.cmd na pasta do jogo.
+
+ESTRUTURA INSTALADA
+DustAET.exe        Asher Launcher
+DustAET.real.exe   executavel original (backup)
+Asher.Backup/      backup do executavel original
+Asher/             runtime, mods e logs
+
+LOGS
+Asher/AsherLogs/
+""";
+
+        private const string LinuxReadme = """
+ASHER - MOD MANAGER PARA DUST: AN ELYSIAN TAIL
+================================================
+
+Arquivo gerado automaticamente na instalacao.
+
+COMO DESINSTALAR
+- Pelo gerenciador: Configuracoes > Remocao > Desinstalacao segura.
+- O jogo (DustAET) nao e modificado; remover Asher/ restaura o estado original.
+
+ESTRUTURA INSTALADA
+DustAET            inalterado
+Asher/
+  libasher_bootstrap.so
+  Asher.Runtime.dll / Asher.SDK.dll / 0Harmony.dll
+  Mods/            mods ativos
+  AsherLogs/       logs do runtime
+  install.json     manifesto da instalacao
+
+LOGS
+Asher/AsherLogs/
+""";
 
         private void VerifyInstallation(string gamePath)
         {

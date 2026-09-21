@@ -7,8 +7,8 @@ alwaysApply: true
 
 ## Before proposing changes
 
-1. **Check current implementation first.** The Electron migration (Steps 1–20) is complete. Inspect source code before suggesting a migration step — it is likely already done.
-2. **Read the actual code, not just docs.** `docs/Electron-Migration-Implementation.md` is a migration record, not a to-do list. Follow `.cursor/rules/asher-documentation.mdc` when updating docs.
+1. **Check current implementation first.** The WPF → Electron migration is complete. Inspect source code before suggesting work — it is likely already done.
+2. **Read the actual code, not just docs.** `docs/Electron-Migration-Implementation.md` records architecture decisions, not a to-do list. Follow `.cursor/rules/asher-documentation.mdc` when updating docs.
 3. **Identify the current owner.** Before modifying architecture, determine which existing component handles the responsibility.
 
 ## Do not

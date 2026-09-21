@@ -460,6 +460,9 @@ MigrationBackup/
 
 Distribution/
 
+## Generated manager readme and installed game-folder readme
+LEIA-ME.txt
+
 ## Asher Logs (created at runtime in game folder)
 AsherLogs/
 asher_fatal.log

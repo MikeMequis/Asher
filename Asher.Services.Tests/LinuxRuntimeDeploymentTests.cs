@@ -12,7 +12,7 @@ public class LinuxRuntimeDeploymentTests
     private static GameInstallationService CreateService(
         LinuxPlatformInfo platform,
         LinuxRuntimeDeployment deployment) =>
-        new(new SettingsService(), new LinuxGameExecutableLayout(platform), deployment, platform);
+        new(new LinuxGameExecutableLayout(platform), deployment, platform);
 
     private static string CreatePayload(
         TempDirectory temp,

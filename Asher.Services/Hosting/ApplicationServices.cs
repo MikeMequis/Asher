@@ -39,7 +39,6 @@ namespace Asher.Services.Hosting
 
             var settings = new SettingsService();
             var installation = new GameInstallationService(
-                settings,
                 platform.ExecutableLayout,
                 platform.RuntimeDeployment,
                 platform.Info);

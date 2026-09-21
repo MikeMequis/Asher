@@ -42,8 +42,6 @@ namespace Asher.Core
 
         public static string BootstrapLibraryName => PlatformInfo.Current.BootstrapLibraryName;
 
-        public static IPlatformInfo Platform => PlatformInfo.Current;
-
         public static string GetAppBaseDirectory() =>
             AppDomain.CurrentDomain.BaseDirectory;
 
@@ -76,9 +74,6 @@ namespace Asher.Core
             Path.Combine(GetRuntimeFolderPath(gameFolderPath), InstallPayloadFolderName);
 
         /// <summary>Native bootstrap library inside the game's Asher/ folder (Linux).</summary>
-        public static string GetBootstrapLibraryPath(string gameFolderPath) =>
-            GetBootstrapLibraryPath(gameFolderPath, PlatformInfo.Current);
-
         public static string GetBootstrapLibraryPath(string gameFolderPath, IPlatformInfo platform) =>
             Path.Combine(GetRuntimeFolderPath(gameFolderPath), platform.BootstrapLibraryName);
 
