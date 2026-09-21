@@ -12,6 +12,7 @@ import {
   t
 } from './localization.js';
 import { ModManagerController } from './mod-manager.js';
+import { supportsRecoveryHelper } from './platform.js';
 import { SettingsController } from './settings-controller.js';
 import { applyTheme, applyThemeFromSettings } from './theme.js';
 import { UninstallationController } from './uninstallation-controller.js';
@@ -339,9 +340,11 @@ async function runInstall() {
 
   await shell.refreshApplicationState();
 
+  const appState = shell.applicationState;
+  const folder = appState?.folder ?? null;
   const savedPath =
-    shell.applicationState?.settings?.gameFolderPath?.trim() ||
-    shell.applicationState?.folder?.path ||
+    appState?.settings?.gameFolderPath?.trim() ||
+    folder?.path ||
     '';
 
   if (!savedPath) {
@@ -349,16 +352,12 @@ async function runInstall() {
     return;
   }
 
-  const { result: folder } = await client.invoke('getGameFolderInfo', { folderPath: savedPath });
-  const { result: installed } = await client.invoke('isGameInstalled', { gameFolderPath: savedPath });
-
   logDiagnostic('info', 'install', 'runInstall preflight', {
     path: savedPath,
     folderValid: folder?.isValid,
-    hostReportsInstalled: installed?.installed,
-    markers: installed?.markers,
-    shellMode: shell.applicationState?.mode,
-    settingsIsInstalled: shell.applicationState?.settings?.isInstalled
+    hostReportsInstalled: appState?.mode === 'manager',
+    shellMode: appState?.mode,
+    settingsIsInstalled: appState?.settings?.isInstalled
   });
 
   if (!folder?.isValid) {
@@ -392,12 +391,10 @@ async function runUninstall() {
   const appState = shell.applicationState;
   const gameFolderPath = appState?.folder?.path ?? appState?.settings?.gameFolderPath ?? '';
 
-  const { result: installed } = await client.invoke('isGameInstalled', { gameFolderPath });
   logDiagnostic('info', 'uninstall', 'runUninstall preflight', {
     path: gameFolderPath,
     canUninstall: appState?.canUninstall,
-    hostReportsInstalled: installed?.installed,
-    markers: installed?.markers,
+    hostReportsInstalled: appState?.mode === 'manager',
     settingsIsInstalled: appState?.settings?.isInstalled
   });
 
@@ -938,6 +935,12 @@ function renderSettings() {
   }
   settingsUninstallCard.hidden = !shell.canUninstall;
 
+  // "Total exclusion" launches the Windows-only Uninstall-Asher.cmd helper.
+  const totalExclusionOption = settingsTotalExclusionButton?.closest('.settings-removal-option');
+  if (totalExclusionOption) {
+    totalExclusionOption.hidden = !supportsRecoveryHelper(shell.platform);
+  }
+
   settingsError.hidden = settings.state !== 'error';
   settingsError.textContent = settings.errorMessage ?? '';
 
@@ -1057,6 +1060,10 @@ installBackSetupCancelledButton.addEventListener('click', () => {
 
 settingsSafeUninstallButton?.addEventListener('click', () => shell.navigateTo('uninstall'));
 settingsTotalExclusionButton?.addEventListener('click', async () => {
+  if (!supportsRecoveryHelper(shell.platform)) {
+    return;
+  }
+
   if (!window.confirm(t('settings.totalExclusionConfirm'))) {
     return;
   }

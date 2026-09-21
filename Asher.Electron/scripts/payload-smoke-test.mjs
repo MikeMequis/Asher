@@ -18,8 +18,8 @@ const DEFAULT_MOD_FILES = [
 ];
 
 const hostDirs = [
-  path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0-windows'),
-  path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Release', 'net8.0-windows')
+  path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0'),
+  path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Release', 'net8.0')
 ];
 
 /** @type {string | null} */

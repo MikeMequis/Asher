@@ -460,6 +460,9 @@ MigrationBackup/
 
 Distribution/
 
+## Generated manager readme and installed game-folder readme
+LEIA-ME.txt
+
 ## Asher Logs (created at runtime in game folder)
 AsherLogs/
 asher_fatal.log
@@ -479,3 +482,6 @@ bootstrap_static_ctor.log
 *.test.output
 
 /private
+
+## Asher Linux bootstrap build output (built locally by build.sh, never committed)
+Asher.Linux/out/

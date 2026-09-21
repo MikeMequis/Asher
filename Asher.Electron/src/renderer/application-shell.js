@@ -44,6 +44,10 @@ export class ApplicationShell {
     return this.#applicationState;
   }
 
+  get platform() {
+    return this.#applicationState?.platform ?? null;
+  }
+
   get screen() {
     return this.#screen;
   }
@@ -70,6 +74,14 @@ export class ApplicationShell {
 
   get canUninstall() {
     return Boolean(this.#applicationState?.canUninstall);
+  }
+
+  get canRestore() {
+    return Boolean(this.#applicationState?.canRestore);
+  }
+
+  get installState() {
+    return this.#applicationState?.installState ?? null;
   }
 
   get isManagerMode() {
@@ -188,10 +200,8 @@ export class ApplicationShell {
 
     try {
       const state = await fetchApplicationState(this.client);
-      if (state.settings?.gameFolderPath) {
-        await this.#relocateLogs(state.settings.gameFolderPath);
-      }
       this.#applicationState = state;
+      await refreshDiagnosticLogFooter(this.client);
 
       logDiagnostic('info', 'shell', 'loadApplicationState fetched', {
         mode: state.mode,
@@ -235,16 +245,6 @@ export class ApplicationShell {
     }
 
     await this.#loadApplicationState({ reenterScreen: false });
-  }
-
-  async #relocateLogs(gameFolderPath) {
-    if (!gameFolderPath?.trim()) {
-      return;
-    }
-
-    const logPath = await this.client.relocateLogs(gameFolderPath);
-    await refreshDiagnosticLogFooter(this.client);
-    logDiagnostic('info', 'shell', 'relocateLogs', { gameFolderPath, logPath });
   }
 
   /**

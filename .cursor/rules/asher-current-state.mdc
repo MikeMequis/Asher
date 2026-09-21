@@ -5,43 +5,34 @@ alwaysApply: true
 
 # Asher Project State
 
-Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron** app (`Asher.Electron`). The backend is a C# console process (`Asher.Host`) communicating over **JSONL on stdin/stdout**.
+Asher is a mod manager for Dust: An Elysian Tail. The frontend is an **Electron** app (`Asher.Electron`). The backend is a C# console process (`Asher.Host`) communicating over **JSONL on stdin/stdout**. Windows and Linux are supported; platform specifics live in `docs/Cross-Platform-Architecture.md`.
 
 ## Completed (do not reimplement)
 
-- Electron shell: sidebar, home hub, settings, patch manager, game setup
-- Install / uninstall / launch flows through JSONL contract
-- Localization (en-US, pt-BR, es) in renderer `localization.js`
-- Theme (Light / Dark) in renderer `theme.js`
-- Material Symbols Outlined icons (self-hosted font, `icons.js`)
-- Settings auto-save, preference-only reset, browse path
-- Install Finish UX with optional launch + minimize
-- Install always creates a game backup (`BackupEnabled` forced true; no Settings toggle)
-- `setModEnabled` validates mod existence in `PatchManagerService`
-- Incremental mod-list rendering (no full DOM rebuild on toggle)
-- Toast notifications (`action-banner.js`, top-right stack)
-- `markInstalled` / `markUninstalled` contract methods (replaced fragile settings merge)
-- Install payload bundled via MSBuild (`install-payload/` beside `Asher.Host.exe`)
-- Zip + unpacked Distribution packaging (`npm run dist` → `Distribution/`; GitHub publish via `npm run publish` + `private/GH_TOKEN`)
-- Manager UI runs from Distribution only (no deploy into `game/Asher/Asher.App/`)
-- Emergency uninstall helper installed as `Uninstall-Asher.cmd` (+ `.ps1`) beside `DustAET.exe` for recovery without the UI
-- Settings Removal: Safe uninstallation (in-app) and Total exclusion (launches game-folder `Uninstall-Asher.cmd`)
-- GitHub Releases update check / zip apply for the Distribution app (Settings → Check for updates)
+- Electron shell: sidebar, home hub, settings, patch manager, game setup; localization (en-US/pt-BR/es), Light/Dark theme, Material Symbols, toasts, install Finish UX
+- Install / uninstall / launch / mod-toggle flows through the JSONL contract (`IAsherApplication`); install always creates a game backup; `setModEnabled` validates existence; incremental mod-list rendering
+- Install payload bundled beside the Host (`install-payload/`); Windows zip + `Distribution/` packaging (`npm run dist` / `npm run publish`)
+- Windows: launcher swap (`DustAET.exe` → `DustAET.real.exe`), emergency `Uninstall-Asher.cmd` (+ `.ps1`), Settings Removal (Safe uninstall / Total exclusion), GitHub Releases update check
+- Platform abstraction (`IPlatformInfo` + discovery / executable-layout / runtime-deployment / process-launch contracts) with Windows and Linux implementations
+- `getPlatformInfo` + explicit `getInstallState` (`state` / `canUninstall` / `canRestore` / `marker`); the renderer derives capabilities from them, not from `hasRestorableBackup`
+- Linux: XDG/Steam discovery, bootstrap + managed runtime deployment (`install.json`), native `LD_PRELOAD` launch with game stdout/stderr kept off the JSONL channel, AppImage + tar.gz packaging
+- `Asher.Services.Tests` (xUnit); Host-side projects (`Asher.Core`, `Asher.Services`, `Asher.Host`) target `net8.0`
 
 ## Retired (do not recreate)
 
-- WPF UI: `Asher.App`, `Asher.UserInterface`, `Asher.Localization` — deleted
-- WPF-only services: `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager` (manager deploy/relaunch restored in Electron main, not those C# services)
-- `PrepareDistribution.ps1` — WPF-era packaging script
+- WPF UI: `Asher.App`, `Asher.UserInterface`, `Asher.Localization`
+- WPF-only services: `ManagerLaunch`, `Shortcut`, `InstallationState`, `NavigationItemsManager`
+- `PrepareDistribution.ps1`
 - Prism / MaterialDesign / WPF dependencies in `Asher.Core`
-- Portable-as-primary packaging (replaced by zip / Distribution folder)
+- Portable-as-primary packaging (replaced by zip / `Distribution/`)
 
 ## Deferred
 
 - Full install wizard stepper chrome
 - Content patcher UI (no backend exists)
 - Desktop shortcut creation after install
+- Linux: external Steam/desktop launch, in-app updater, `.deb`; `mono_thread_attach` timing fix
 
-## Documentation caveat
+## Documentation
 
-`docs/Electron-Migration-Implementation.md` is a compact migration record (not a task list). See `.cursor/rules/asher-documentation.mdc` for doc maintenance.
+Canonical locations: platform contracts and Linux build/packaging → `docs/Cross-Platform-Architecture.md`; JSONL protocol → `.cursor/rules/jsonl-protocol.mdc`; build/test commands → `.cursor/rules/testing-validation.mdc`; native bootstrap → `Asher.Linux/README.md`.

@@ -53,6 +53,7 @@ namespace Asher.Host.TestClient
             failures += TestGetSettings(writer, reader);
             failures += TestMarkInstalledUninstalled(writer, reader);
             failures += TestDetectGameFolder(writer, reader);
+            failures += TestGetInstallState(writer, reader);
             failures += TestGetMods(writer, reader);
             failures += TestInvalidRequest(writer, reader);
                 failures += TestInstallProgress(writer, reader);
@@ -136,6 +137,21 @@ namespace Asher.Host.TestClient
             WriteRequest(writer, "2", "detectGameFolder");
             var response = ReadResponse(reader, "2");
             return response.Success ? 0 : 1;
+        }
+
+        private static int TestGetInstallState(StreamWriter writer, StreamReader reader)
+        {
+            var probePath = Path.Combine(Path.GetTempPath(), "asher-jsonl-state-" + Guid.NewGuid().ToString("N"));
+
+            WriteRequest(writer, "install-state", "getInstallState", new { gameFolderPath = probePath });
+            if (!ReadResponse(reader, "install-state").Success)
+            {
+                Console.Error.WriteLine("[FAIL] getInstallState");
+                return 1;
+            }
+
+            Console.Error.WriteLine("[OK] getInstallState");
+            return 0;
         }
 
         private static int TestGetMods(StreamWriter writer, StreamReader reader)
@@ -329,8 +345,8 @@ namespace Asher.Host.TestClient
             var baseDir = AppContext.BaseDirectory;
             var candidates = new[]
             {
-                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "Asher.Host", "bin", "x86", "Debug", "net8.0-windows", "Asher.Host.exe")),
-                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "Asher.Host", "bin", "x86", "Debug", "net8.0-windows", "Asher.Host.exe")),
+                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "Asher.Host", "bin", "x86", "Debug", "net8.0", "Asher.Host.exe")),
+                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "Asher.Host", "bin", "x86", "Debug", "net8.0", "Asher.Host.exe")),
                 Path.GetFullPath(Path.Combine(baseDir, "Asher.Host.exe"))
             };
 

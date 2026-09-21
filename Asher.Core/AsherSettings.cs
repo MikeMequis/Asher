@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Asher.Core.Platform;
+using Newtonsoft.Json;
 using System.IO;
 
 namespace Asher.Core
@@ -9,8 +10,7 @@ namespace Asher.Core
     public class AsherSettings
     {
         private static readonly string AppDataSettingsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Asher",
+            PlatformInfo.Current.UserSettingsDirectory,
             AsherPaths.SettingsFileName
         );
 
@@ -42,8 +42,19 @@ namespace Asher.Core
             SaveToPath(AppDataSettingsPath);
 
             var localPath = AsherPaths.GetLocalSettingsPath();
-            if (!string.Equals(localPath, AppDataSettingsPath, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(localPath, AppDataSettingsPath, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (ShouldWritePortableSettings(PlatformInfo.Current, AsherPaths.GetAppBaseDirectory()))
                 SaveToPath(localPath);
+        }
+
+        internal static bool ShouldWritePortableSettings(IPlatformInfo platform, string appBaseDirectory)
+        {
+            if (platform.WritesPortableSettings)
+                return true;
+
+            return File.Exists(Path.Combine(appBaseDirectory, AsherPaths.PortableMarkerFileName));
         }
 
         public void MarkAsInstalled(string gameFolderPath, string gameVersion)

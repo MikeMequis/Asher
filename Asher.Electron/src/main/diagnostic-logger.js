@@ -1,9 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  buildManagerLogFilePath,
-  resolveGameLogsDir
-} from './log-path-resolver.js';
 
 /** @type {string | null} */
 let logFilePath = null;
@@ -76,12 +72,23 @@ export function getDiagnosticLogPath() {
 }
 
 /**
- * Point file logging at the game's Asher/AsherLogs folder.
- * @param {string | null | undefined} gameFolderPath
+ * @param {string} logsDir
+ * @returns {string}
+ */
+function buildManagerLogFilePath(logsDir) {
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, '0');
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  return path.join(logsDir, `manager_${stamp}.log`);
+}
+
+/**
+ * Point file logging at a logs directory returned by Host.
+ * @param {string | null | undefined} logsDirectory
  * @returns {string | null}
  */
-export function relocateDiagnosticLogger(gameFolderPath) {
-  const logsDir = resolveGameLogsDir(gameFolderPath);
+export function relocateDiagnosticLogger(logsDirectory) {
+  const logsDir = typeof logsDirectory === 'string' ? logsDirectory.trim() : '';
   if (!logsDir) {
     return logFilePath;
   }
@@ -106,15 +113,10 @@ export function relocateDiagnosticLogger(gameFolderPath) {
 }
 
 /**
- * Initialize manager logging under the configured game folder when available.
+ * Console-only until Host reports a configured game folder.
  * @returns {string | null}
  */
 export function initDiagnosticLogger() {
-  const logPath = relocateDiagnosticLogger(null);
-  if (logPath) {
-    return logPath;
-  }
-
   writeDiagnosticLog(
     'warn',
     'main',

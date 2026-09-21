@@ -30,7 +30,13 @@ Electron spawns `Asher.Host --jsonl` as a child process. Communication is line-d
 
 ## Available methods
 
-`getSettings`, `saveSettings`, `getApplicationMode`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`
+`getSettings`, `saveSettings`, `getManagerLogDirectory`, `getApplicationMode`, `getPlatformInfo`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getInstallState`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`
+
+`getPlatformInfo` returns `PlatformInfoDto` (`kind`, executable/library names, `usesLauncherSwap`, `supportsRecoveryHelper`, `defaultGameFolderName`). Frontends adapt UI from this instead of branching on the OS.
+
+`getInstallState` (optional `params.gameFolderPath`) returns `InstallStateDto` (`state`: `notInstalled|installed|partial`, `canUninstall`, `canRestore`, `marker`). It is the authoritative install-status API; `hasRestorableBackup` is kept only for compatibility and must not be used to derive uninstall capability.
+
+`getManagerLogDirectory` returns `{ gameFolderPath, logsDirectory }`. `logsDirectory` is `{game}/Asher/AsherLogs` when settings name an existing folder, otherwise both fields are null. This is not `resolveGameFolderPath` (that one requires an installed Asher layout).
 
 ## Error codes
 

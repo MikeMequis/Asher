@@ -1,6 +1,5 @@
 using Asher.Core;
 using Asher.Services.Interfaces;
-using System.Diagnostics;
 
 namespace Asher.Services.Implementations
 {
@@ -8,11 +7,16 @@ namespace Asher.Services.Implementations
     {
         private readonly IGameFolderService _gameFolderService;
         private readonly IGameInstallationService _installationService;
+        private readonly IGameProcessLauncher _processLauncher;
 
-        public GameLaunchService(IGameFolderService gameFolderService, IGameInstallationService installationService)
+        public GameLaunchService(
+            IGameFolderService gameFolderService,
+            IGameInstallationService installationService,
+            IGameProcessLauncher processLauncher)
         {
             _gameFolderService = gameFolderService;
             _installationService = installationService;
+            _processLauncher = processLauncher;
         }
 
         public string? ResolveGameFolderPath()
@@ -48,23 +52,7 @@ namespace Asher.Services.Implementations
                 return false;
             }
 
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = executablePath,
-                    WorkingDirectory = gameFolder,
-                    UseShellExecute = true
-                });
-
-                errorMessage = null;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                errorMessage = $"Falha ao iniciar o jogo: {ex.Message}";
-                return false;
-            }
+            return _processLauncher.TryStart(executablePath, gameFolder, out errorMessage);
         }
     }
 }

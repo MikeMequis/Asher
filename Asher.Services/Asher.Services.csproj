@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PlatformTarget>x86</PlatformTarget>
     <Platforms>AnyCPU;x86</Platforms>
+    <PlatformTarget Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)' == 'x86'">x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

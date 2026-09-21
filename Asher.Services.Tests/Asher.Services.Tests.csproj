@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <Platforms>AnyCPU;x86</Platforms>
+    <PlatformTarget Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)' == 'x86'">x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Asher.Core\Asher.Core.csproj" />
+    <ProjectReference Include="..\Asher.Services\Asher.Services.csproj" />
+  </ItemGroup>
+
+</Project>

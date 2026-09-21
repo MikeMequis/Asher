@@ -55,11 +55,11 @@
 
     <!-- Canonical default mods only — matches GameInstallationService.DefaultModFiles -->
     <ItemGroup>
-      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.DebugEnabler\bin\x86\$(Configuration)\Asher.Patching.DebugEnabler.dll" />
-      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.IntroSkipper\bin\x86\$(Configuration)\Asher.Patching.IntroSkipper.dll" />
-      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.GraphicsDeprofiler\bin\x86\$(Configuration)\Asher.Patching.GraphicsDeprofiler.dll" />
-      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.MuteVoiceActing\bin\x86\$(Configuration)\Asher.Patching.MuteVoiceActing.dll" />
-      <_DefaultModDll Include="$(_RepoRoot)Asher.Patching.OverheatDisabler\bin\x86\$(Configuration)\Asher.Patching.OverheatDisabler.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Patches\Asher.Patching.DebugEnabler\bin\x86\$(Configuration)\Asher.Patching.DebugEnabler.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Patches\Asher.Patching.IntroSkipper\bin\x86\$(Configuration)\Asher.Patching.IntroSkipper.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Patches\Asher.Patching.GraphicsDeprofiler\bin\x86\$(Configuration)\Asher.Patching.GraphicsDeprofiler.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Patches\Asher.Patching.MuteVoiceActing\bin\x86\$(Configuration)\Asher.Patching.MuteVoiceActing.dll" />
+      <_DefaultModDll Include="$(_RepoRoot)Patches\Asher.Patching.OverheatDisabler\bin\x86\$(Configuration)\Asher.Patching.OverheatDisabler.dll" />
       <_ExistingDefaultModDll Include="@(_DefaultModDll)" Condition="Exists('%(Identity)')" />
     </ItemGroup>
 

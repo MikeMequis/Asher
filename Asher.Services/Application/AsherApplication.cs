@@ -30,14 +30,11 @@ namespace Asher.Services.Application
             var candidate = settings.GameFolderPath;
             var installed = !string.IsNullOrWhiteSpace(candidate)
                             && _services.Installation.IsInstalled(candidate);
-            var mode = installed ? ApplicationMode.Manager : ApplicationMode.InstallWizard;
-
-            InstallFlowTrace.Log(
-                "GetApplicationMode",
-                $"path={candidate ?? "(none)"} settings.IsInstalled={settings.IsInstalled} diskInstalled={installed} => {mode}");
-
-            return mode;
+            return installed ? ApplicationMode.Manager : ApplicationMode.InstallWizard;
         }
+
+        public PlatformInfoDto GetPlatformInfo() =>
+            ApplicationContractMapper.ToDto(_services.Platform.Info);
 
         public GameFolderDto DetectGameFolder() =>
             ApplicationContractMapper.ToDto(_services.GameFolders.DetectGameFolder());
@@ -47,17 +44,25 @@ namespace Asher.Services.Application
 
         public string? ResolveGameFolderPath() => _services.Launch.ResolveGameFolderPath();
 
+        public ManagerLogDirectoryDto GetManagerLogDirectory()
+        {
+            var gameFolder = _services.Settings.Load().GameFolderPath?.Trim();
+            if (string.IsNullOrWhiteSpace(gameFolder) || !Directory.Exists(gameFolder))
+            {
+                return new ManagerLogDirectoryDto();
+            }
+
+            return new ManagerLogDirectoryDto
+            {
+                GameFolderPath = gameFolder,
+                LogsDirectory = AsherPaths.GetLogsFolderPath(gameFolder)
+            };
+        }
+
         public bool IsGameInstalled(string? gameFolderPath = null)
         {
             var path = gameFolderPath ?? ResolveGameFolderPath();
-            var installed = !string.IsNullOrWhiteSpace(path) && _services.Installation.IsInstalled(path);
-            var markers = !string.IsNullOrWhiteSpace(path)
-                ? _services.Installation.DescribeInstallState(path)
-                : "(no path)";
-
-            InstallFlowTrace.Log("IsGameInstalled", $"path={path ?? "(none)"} => {installed} | {markers}");
-
-            return installed;
+            return !string.IsNullOrWhiteSpace(path) && _services.Installation.IsInstalled(path);
         }
 
         public bool HasRestorableBackup(string? gameFolderPath = null)
@@ -73,6 +78,15 @@ namespace Asher.Services.Application
             return string.IsNullOrWhiteSpace(path)
                 ? "Nenhum caminho de jogo configurado."
                 : _services.Installation.DescribeInstallState(path);
+        }
+
+        public InstallStateDto GetInstallState(string? gameFolderPath = null)
+        {
+            var path = gameFolderPath ?? ResolveGameFolderPath();
+            if (string.IsNullOrWhiteSpace(path))
+                return ApplicationContractMapper.ToDto(new InstallStateInfo());
+
+            return ApplicationContractMapper.ToDto(_services.Installation.GetInstallState(path));
         }
 
         public async Task<IReadOnlyList<ManagedModDto>> GetModsAsync(CancellationToken cancellationToken = default)

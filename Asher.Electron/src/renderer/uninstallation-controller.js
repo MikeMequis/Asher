@@ -123,7 +123,7 @@ export class UninstallationController {
 
     if (!canUninstall) {
       this.#errorMessage =
-        'Asher cannot be uninstalled. The game may not be installed or no restorable backup was found.';
+        'Asher cannot be uninstalled. It may not be installed, or it is not in a removable state.';
       this.#errorDetails = null;
       this.#setState('failed');
       return 'failed';

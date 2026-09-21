@@ -8,7 +8,6 @@ import {
   relocateDiagnosticLogger,
   writeDiagnosticLog
 } from './diagnostic-logger.js';
-import { resolveGameFolderFromSettings } from './log-path-resolver.js';
 import { HostManager } from './host-manager.js';
 import {
   checkForUpdates,
@@ -42,16 +41,33 @@ function broadcastHostStatus() {
   });
 }
 
-function tryRelocateLogsFromParams(params) {
-  const gameFolderPath =
-    typeof params?.gameFolderPath === 'string'
-      ? params.gameFolderPath
-      : typeof params?.path === 'string'
-        ? params.path
-        : null;
+const LOG_RELOCATE_METHODS = new Set([
+  'saveSettings',
+  'markInstalled',
+  'markUninstalled'
+]);
 
-  if (gameFolderPath) {
-    relocateDiagnosticLogger(gameFolderPath);
+async function relocateLogsFromHost() {
+  const client = hostManager.client;
+  if (!client || hostManager.status !== 'ready') {
+    return getDiagnosticLogPath();
+  }
+
+  try {
+    const result = await client.request('getManagerLogDirectory');
+    const logsDirectory = typeof result?.logsDirectory === 'string'
+      ? result.logsDirectory.trim()
+      : '';
+    if (!logsDirectory) {
+      return getDiagnosticLogPath();
+    }
+
+    return relocateDiagnosticLogger(logsDirectory);
+  } catch (err) {
+    writeDiagnosticLog('warn', 'main', 'manager log directory unavailable', {
+      error: err instanceof Error ? err.message : String(err)
+    });
+    return getDiagnosticLogPath();
   }
 }
 
@@ -133,6 +149,17 @@ ipcMain.handle('app:quit', () => {
  * @param {unknown} gameFolderPath
  */
 ipcMain.handle('app:run-emergency-uninstall', async (_event, gameFolderPath) => {
+  if (process.platform !== 'win32') {
+    writeDiagnosticLog('info', 'uninstall', 'emergency helper unsupported on this platform', {
+      platform: process.platform
+    });
+    return {
+      ok: false,
+      reason: 'unsupported',
+      message: 'Emergency uninstall is only available on Windows.'
+    };
+  }
+
   const folder = typeof gameFolderPath === 'string' ? gameFolderPath.trim() : '';
   if (!folder) {
     return { ok: false, reason: 'missing', message: 'Game folder path is required.' };
@@ -161,9 +188,7 @@ ipcMain.handle('app:run-emergency-uninstall', async (_event, gameFolderPath) => 
   }
 });
 
-ipcMain.handle('asher:relocate-logs', (_event, gameFolderPath) =>
-  relocateDiagnosticLogger(gameFolderPath)
-);
+ipcMain.handle('asher:relocate-logs', () => relocateLogsFromHost());
 
 ipcMain.handle('asher:log', (_event, { level, source, message, data }) => {
   const normalizedLevel = level === 'error' || level === 'warn' ? level : 'info';
@@ -178,11 +203,13 @@ ipcMain.handle('host:get-status', () => ({
 
 ipcMain.handle('host:start', async () => {
   if (hostManager.status === 'ready') {
+    await relocateLogsFromHost();
     return { status: hostManager.status, message: hostManager.statusMessage };
   }
 
   try {
     await hostManager.start();
+    await relocateLogsFromHost();
     return { status: hostManager.status, message: hostManager.statusMessage };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to start host';
@@ -205,10 +232,6 @@ ipcMain.handle('dialog:pick-folder', async () => {
 });
 
 ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, allowFailure }) => {
-  if (method === 'saveSettings' || method === 'markAsInstalled') {
-    tryRelocateLogsFromParams(params);
-  }
-
   const client = hostManager.client;
   if (!client || hostManager.status !== 'ready') {
     const error = new Error('Host is not available. Wait for connection or restart the application.');
@@ -233,12 +256,8 @@ ipcMain.handle('asher:invoke', async (_event, { method, params, trackProgress, a
         : undefined
     });
 
-    if (method === 'getSettings' && result?.gameFolderPath) {
-      relocateDiagnosticLogger(result.gameFolderPath);
-    }
-
-    if (method === 'markUninstalled') {
-      relocateDiagnosticLogger(resolveGameFolderFromSettings());
+    if (LOG_RELOCATE_METHODS.has(method)) {
+      await relocateLogsFromHost();
     }
 
     return { requestId, result };

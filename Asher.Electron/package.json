@@ -12,10 +12,14 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build:host": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.DebugEnabler/Asher.Patching.DebugEnabler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.IntroSkipper/Asher.Patching.IntroSkipper.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.GraphicsDeprofiler/Asher.Patching.GraphicsDeprofiler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.MuteVoiceActing/Asher.Patching.MuteVoiceActing.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Patching.OverheatDisabler/Asher.Patching.OverheatDisabler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Release -p:Platform=x86",
-    "build:host:debug": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.DebugEnabler/Asher.Patching.DebugEnabler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.IntroSkipper/Asher.Patching.IntroSkipper.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.GraphicsDeprofiler/Asher.Patching.GraphicsDeprofiler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.MuteVoiceActing/Asher.Patching.MuteVoiceActing.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Patching.OverheatDisabler/Asher.Patching.OverheatDisabler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86",
+    "build:host": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Release -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.DebugEnabler/Asher.Patching.DebugEnabler.csproj -c Release -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.IntroSkipper/Asher.Patching.IntroSkipper.csproj -c Release -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.GraphicsDeprofiler/Asher.Patching.GraphicsDeprofiler.csproj -c Release -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.MuteVoiceActing/Asher.Patching.MuteVoiceActing.csproj -c Release -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.OverheatDisabler/Asher.Patching.OverheatDisabler.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Release -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Release -p:Platform=x86",
+    "build:host:debug": "dotnet build ../Asher.SDK/Asher.SDK.csproj -c Debug -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.DebugEnabler/Asher.Patching.DebugEnabler.csproj -c Debug -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.IntroSkipper/Asher.Patching.IntroSkipper.csproj -c Debug -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.GraphicsDeprofiler/Asher.Patching.GraphicsDeprofiler.csproj -c Debug -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.MuteVoiceActing/Asher.Patching.MuteVoiceActing.csproj -c Debug -p:Platform=x86 && dotnet build ../Patches/Asher.Patching.OverheatDisabler/Asher.Patching.OverheatDisabler.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Runtime/Asher.Runtime.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Launcher/Asher.Launcher.csproj -c Debug -p:Platform=x86 && dotnet build ../Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86",
     "clean:dist": "node scripts/clean-dist.mjs",
     "sync:distribution": "node scripts/sync-distribution.mjs",
+    "build:host:linux": "dotnet publish ../Asher.Host/Asher.Host.csproj -c Release -r linux-x64 --self-contained true -p:Platform=AnyCPU -p:InvariantGlobalization=true -o build/linux-host",
+    "stage:linux-payload": "node scripts/stage-linux-payload.mjs",
+    "verify:linux": "node scripts/verify-linux-package.mjs",
+    "dist:linux": "bash scripts/build-linux.sh",
     "dist": "npm run clean:dist && npm run build:host && electron-builder --win dir zip --ia32 && npm run sync:distribution",
     "publish": "node scripts/load-gh-token.mjs npm run dist:publish",
     "dist:publish": "npm run clean:dist && npm run build:host && electron-builder --win dir zip --ia32 --publish always && npm run sync:distribution",
@@ -26,7 +30,8 @@
     "smoke:install": "node scripts/install-smoke-test.mjs",
     "smoke:uninstall": "node scripts/uninstall-smoke-test.mjs",
     "smoke:launch": "node scripts/launch-smoke-test.mjs",
-    "smoke:payload": "node scripts/payload-smoke-test.mjs"
+    "smoke:payload": "node scripts/payload-smoke-test.mjs",
+    "smoke:platform": "node scripts/platform-smoke-test.mjs"
   },
   "build": {
     "appId": "com.asher.manager",
@@ -38,21 +43,53 @@
       "src/**/*",
       "package.json"
     ],
-    "extraResources": [
-      {
-        "from": "../Asher.Host/bin/x86/Release/net8.0-windows",
-        "to": "asher-host",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
     "win": {
       "target": [
         "dir",
         "zip"
       ],
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "extraResources": [
+        {
+          "from": "../Asher.Host/bin/x86/Release/net8.0",
+          "to": "asher-host",
+          "filter": [
+            "**/*",
+            "!**/*.pdb",
+            "!**/settings.json"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "executableName": "Asher",
+      "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "build/linux-host",
+          "to": "asher-host",
+          "filter": [
+            "**/*",
+            "!**/*.pdb",
+            "!**/settings.json"
+          ]
+        }
+      ]
     },
     "publish": [
       {

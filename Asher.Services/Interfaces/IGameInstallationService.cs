@@ -12,5 +12,6 @@ namespace Asher.Services.Interfaces
         bool IsInstalled(string gameFolderPath);
         bool HasRestorableBackup(string gameFolderPath);
         string DescribeInstallState(string gameFolderPath);
+        InstallStateInfo GetInstallState(string gameFolderPath);
     }
 }

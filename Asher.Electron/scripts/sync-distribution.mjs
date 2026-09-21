@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeLeiaMe } from './write-leia-me.mjs';
 
 const electronRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(electronRoot, '..');
@@ -20,4 +21,5 @@ if (fs.existsSync(distributionDir)) {
 }
 
 fs.cpSync(unpackedDir, distributionDir, { recursive: true });
+writeLeiaMe(distributionDir);
 console.error(`[sync-distribution] synced ${unpackedDir} -> ${distributionDir}`);

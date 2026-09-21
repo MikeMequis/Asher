@@ -128,6 +128,10 @@ namespace Asher.Host.Jsonl
                     await WriteResponseAsync(request.RequestId, true, _application.GetSettings(), null);
                     return;
 
+                case JsonlProtocol.Methods.GetManagerLogDirectory:
+                    await WriteResponseAsync(request.RequestId, true, _application.GetManagerLogDirectory(), null);
+                    return;
+
                 case JsonlProtocol.Methods.SaveSettings:
                 {
                     if (request.Params.ValueKind != JsonValueKind.Object)
@@ -153,6 +157,10 @@ namespace Asher.Host.Jsonl
                     {
                         mode = _application.GetApplicationMode()
                     }, null);
+                    return;
+
+                case JsonlProtocol.Methods.GetPlatformInfo:
+                    await WriteResponseAsync(request.RequestId, true, _application.GetPlatformInfo(), null);
                     return;
 
                 case JsonlProtocol.Methods.DetectGameFolder:
@@ -217,6 +225,19 @@ namespace Asher.Host.Jsonl
                     {
                         hasBackup = _application.HasRestorableBackup(path)
                     }, null);
+                    return;
+                }
+
+                case JsonlProtocol.Methods.GetInstallState:
+                {
+                    string? path = null;
+                    if (request.Params.ValueKind == JsonValueKind.Object
+                        && request.Params.TryGetProperty("gameFolderPath", out var pathElement))
+                    {
+                        path = pathElement.GetString();
+                    }
+
+                    await WriteResponseAsync(request.RequestId, true, _application.GetInstallState(path), null);
                     return;
                 }
 

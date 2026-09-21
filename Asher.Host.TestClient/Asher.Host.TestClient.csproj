@@ -5,8 +5,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PlatformTarget>x86</PlatformTarget>
     <Platforms>AnyCPU;x86</Platforms>
+    <PlatformTarget Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)' == 'x86'">x86</PlatformTarget>
     <AssemblyName>Asher.Host.TestClient</AssemblyName>
     <RootNamespace>Asher.Host.TestClient</RootNamespace>
   </PropertyGroup>
