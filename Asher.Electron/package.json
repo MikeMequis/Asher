@@ -22,9 +22,9 @@
     "dist:linux": "bash scripts/build-linux.sh",
     "dist:linux:publish": "PUBLISH=always bash scripts/build-linux.sh",
     "publish:linux": "node scripts/load-gh-token.mjs npm run dist:linux:publish",
-    "dist": "npm run clean:dist && npm run build:host && electron-builder --win dir zip --ia32 && npm run sync:distribution",
+    "dist": "npm run clean:dist && npm run build:host && electron-builder --win dir zip nsis --ia32 && npm run sync:distribution",
     "publish": "node scripts/load-gh-token.mjs npm run dist:publish",
-    "dist:publish": "npm run clean:dist && npm run build:host && electron-builder --win dir zip --ia32 --publish always && npm run sync:distribution",
+    "dist:publish": "npm run clean:dist && npm run build:host && electron-builder --win dir zip nsis --ia32 --publish always && npm run sync:distribution",
     "smoke": "node scripts/smoke-test.mjs",
     "smoke:setup": "node scripts/setup-smoke-test.mjs",
     "smoke:manager": "node scripts/manager-smoke-test.mjs",
@@ -51,6 +51,7 @@
         "zip",
         "nsis"
       ],
+      "artifactName": "Asher-${version}-win32.${ext}",
       "signAndEditExecutable": false,
       "extraResources": [
         {
