@@ -55,7 +55,9 @@ Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
 
 ### Linux (x64)
 
-Run on a Linux host (AppImage requires Linux tooling):
+Run on a Linux host (AppImage requires Linux tooling). Prerequisites: .NET SDK 8, Node.js + npm, `gcc`, a
+Roslyn C# 9 compiler, and the Electron system libraries (NSS/NSPR/ALSA, GTK, plus FUSE for the AppImage).
+Full install commands (Debian/Ubuntu): [Linux dependencies](docs/Cross-Platform-Architecture.md#linux-dependencies).
 
 ```bash
 cd Asher.Electron

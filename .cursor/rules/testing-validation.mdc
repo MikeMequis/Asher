@@ -67,6 +67,10 @@ Outputs:
 
 ## Linux packaging (run on Linux)
 
+Prerequisites: .NET SDK 8, Node.js + npm, `gcc`, a Roslyn C# 9 compiler (`csc`/`CSC`); Electron needs
+NSS/NSPR/ALSA system libraries at runtime (`sudo apt-get install -y libnss3 libnspr4 libasound2t64` on
+Debian/Ubuntu). Full list: `docs/Cross-Platform-Architecture.md` → *Linux dependencies*.
+
 ```bash
 cd Asher.Electron
 npm run build:host:linux        # dotnet publish Asher.Host linux-x64 -> build/linux-host

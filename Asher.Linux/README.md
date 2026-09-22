@@ -36,12 +36,13 @@ locally from the repository sources.
 ## Requirements
 
 - A C compiler (`gcc`).
-- A Roslyn C# 9 compiler for the managed assemblies: `csc` (Mono 6.12+) or any compiler command via the
-  `CSC` environment variable (e.g. `CSC="dotnet exec /path/to/csc.dll"`). Mono's legacy `mcs`/`mono-csc`
-  (C# 7.x) will not work.
+- A Roslyn C# 9 compiler for the managed assemblies: `csc` (`mono-devel` provides it) or any command via
+  the `CSC` environment variable (e.g. `CSC="dotnet exec /path/to/csc.dll"`). Mono's legacy
+  `mcs`/`mono-csc` (C# 7.x) will not work.
 - `FNA_DLL=/path/to/game/FNA.dll` to build `GraphicsDeprofiler` (it references
   `Microsoft.Xna.Framework.Graphics.GraphicsAdapter` at compile time). Without it the other patches still build.
 - A Linux host with Dust installed.
+- Install commands for the toolchain and Electron runtime: `docs/Cross-Platform-Architecture.md` → *Linux dependencies*.
 
 > Match the architecture of `DustAET` for the native library (the shipped build is 64-bit; use
 > `EXTRA_CFLAGS=-m32` for a 32-bit game). The managed DLLs are AnyCPU IL.

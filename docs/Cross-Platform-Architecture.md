@@ -177,6 +177,44 @@ unchanged (Electron dialog → `getGameFolderInfo`).
 `SteamLibraryVdf`, Linux discovery with fake roots/injected environment, install states, and launch
 environment construction.
 
+## Linux dependencies
+
+Commands below target **Debian/Ubuntu** (the validated platform). On Ubuntu 24.04+ the `t64` package
+names apply; on older releases drop the `t64` suffix. For other distributions install the equivalents.
+
+### Build (packaging pipeline)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential curl nodejs npm mono-devel
+
+# .NET SDK 8 (distro repos may only ship a newer SDK; this is distro-agnostic)
+curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+bash /tmp/dotnet-install.sh --channel 8.0 --install-dir "$HOME/.dotnet"
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$HOME/.dotnet:$PATH"
+```
+
+- `build-essential` → `gcc` for `libasher_bootstrap.so`.
+- `nodejs` + `npm` → electron-builder and the repo scripts.
+- `mono-devel` → Roslyn C# 9 `csc` for the managed assemblies (alternative: `CSC="dotnet exec …/csc.dll"`).
+- `FNA_DLL` is optional and is a game file, not a package (only needed for `GraphicsDeprofiler`).
+
+### Runtime (manager / Electron)
+
+```bash
+sudo apt-get install -y libnss3 libnspr4 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 \
+  libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
+  libpango-1.0-0 libcairo2 libasound2t64 libatspi2.0-0t64 libgtk-3-0t64 \
+  libgdk-pixbuf-2.0-0 libxtst6 libxss1
+
+# To run the AppImage (FUSE2); otherwise extract with --appimage-extract
+sudo apt-get install -y libfuse2t64
+```
+
+The Host is self-contained and published with `InvariantGlobalization`, so no .NET runtime or `libicu`
+is required at runtime.
+
 ## Linux build and packaging
 
 Target: **Linux x64**, artifacts **AppImage + tar.gz** (no `.deb`). Run on a Linux host (AppImage cannot
