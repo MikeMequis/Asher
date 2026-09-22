@@ -9,12 +9,16 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..', '..');
 
-const DEFAULT_MOD_FILES = [
+const REQUIRED_MOD_FILES = [
   'Asher.Patching.DebugEnabler.dll',
   'Asher.Patching.IntroSkipper.dll',
-  'Asher.Patching.GraphicsDeprofiler.dll',
   'Asher.Patching.MuteVoiceActing.dll',
   'Asher.Patching.OverheatDisabler.dll'
+];
+
+// GraphicsDeprofiler needs the XNA 4.0 GAC assemblies at build time; it is optional.
+const OPTIONAL_MOD_FILES = [
+  'Asher.Patching.GraphicsDeprofiler.dll'
 ];
 
 const hostDirs = [
@@ -76,18 +80,28 @@ const defaultModsDir = path.join(payloadDir, 'DefaultMods');
 if (!fs.existsSync(defaultModsDir)) {
   fail('DefaultMods directory missing');
 } else {
+  const knownMods = [...REQUIRED_MOD_FILES, ...OPTIONAL_MOD_FILES];
   const stagedMods = fs.readdirSync(defaultModsDir).filter((name) => name.endsWith('.dll'));
-  const unexpected = stagedMods.filter((name) => !DEFAULT_MOD_FILES.includes(name));
+  const unexpected = stagedMods.filter((name) => !knownMods.includes(name));
   if (unexpected.length > 0) {
     fail(`unexpected mods in DefaultMods: ${unexpected.join(', ')}`);
   }
 
-  for (const fileName of DEFAULT_MOD_FILES) {
+  for (const fileName of REQUIRED_MOD_FILES) {
     const filePath = path.join(defaultModsDir, fileName);
     if (!fs.existsSync(filePath)) {
       fail(`missing default mod ${fileName}`);
     } else {
       pass(`DefaultMods/${fileName}`);
+    }
+  }
+
+  for (const fileName of OPTIONAL_MOD_FILES) {
+    const filePath = path.join(defaultModsDir, fileName);
+    if (fs.existsSync(filePath)) {
+      pass(`DefaultMods/${fileName}`);
+    } else {
+      console.error(`[WARN] optional mod not staged: ${fileName} (needs XNA 4.0 GAC)`);
     }
   }
 }

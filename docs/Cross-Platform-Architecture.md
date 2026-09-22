@@ -230,8 +230,9 @@ Pipeline (`npm run dist:linux` → `Asher.Electron/scripts/build-linux.sh`):
 5. `scripts/verify-linux-package.mjs` — asserts the artifacts contain the Host and payload
 
 Artifacts (`Asher.Electron/dist/`): `Asher-<version>-linux-x86_64.AppImage`,
-`Asher-<version>-linux-x64.tar.gz`, and `linux-unpacked/` (manager binary `Asher`). electron-builder names
-the AppImage arch `x86_64` and the tar.gz arch `x64`.
+`Asher-<version>-linux-x64.tar.gz`, `latest-linux.yml`, and `linux-unpacked/` (manager binary `Asher`).
+electron-builder names the AppImage arch `x86_64` and the tar.gz arch `x64`. `npm run publish:linux`
+uploads the artifacts plus update metadata (the Windows release uses the NSIS installer + `latest.yml`).
 
 Packaged layout:
 
@@ -258,5 +259,6 @@ Windows launcher payload. `build/` and `dist/` are gitignored; no generated bina
 - External Steam/desktop launch (manager launch is implemented).
 - Linux in-app updater (updater is Windows-only).
 - Linux `.deb`/other package formats.
-- Linux runtime-log bootstrap hang fix (racy `mono_thread_attach`; see `Asher.Linux/README.md`).
+- Linux `mono_thread_attach` timing: mitigated by `ASHER_BOOTSTRAP_SETTLE_MS` (default 1000 ms) after the
+  root domain appears; see `Asher.Linux/README.md`.
 - Shell-script recovery helper on Linux (normal installation stays app-driven).

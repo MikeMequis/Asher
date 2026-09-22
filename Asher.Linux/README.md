@@ -118,6 +118,7 @@ running normally.
 | `ASHER_BOOTSTRAP_ASSEMBLY` | `Asher.Runtime.dll` next to the `.so` | Managed entry assembly |
 | `ASHER_BOOTSTRAP_AUTORUN` | `1` | `0` disables the automatic background bootstrap |
 | `ASHER_BOOTSTRAP_TIMEOUT_MS` | `60000` | Max wait for runtime readiness (`0` = forever) |
+| `ASHER_BOOTSTRAP_SETTLE_MS` | `1000` | Delay after the root domain appears before `mono_thread_attach` |
 
 ## Embedded-Mono notes
 
@@ -135,6 +136,7 @@ running normally.
 
 ## Known limits
 
-- `mono_thread_attach` timing is racy on some launches; a rare run aborts with the `object.c:1938`
-  assertion before any managed code. A small settle delay after root-domain detection would make it deterministic.
+- `mono_thread_attach` is timing-sensitive: attaching too early aborts with the `object.c:1938`
+  assertion before any managed code. The bootstrap now waits `ASHER_BOOTSTRAP_SETTLE_MS` (default 1000 ms)
+  after the root domain appears; raise it if a rare abort still occurs.
 - `GameTitleBootstrap` is not invoked by the Linux entry point (it is only needed by the Windows launcher flow).

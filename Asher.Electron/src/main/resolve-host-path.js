@@ -44,8 +44,10 @@ export function resolveHostPath() {
     path.join(repoRoot, 'Asher.Host', 'bin', 'x86', 'Release', 'net8.0'),
     path.join(repoRoot, 'Asher.Host', 'bin', 'Debug', 'net8.0'),
     path.join(repoRoot, 'Asher.Host', 'bin', 'Release', 'net8.0'),
+    path.join(repoRoot, 'Asher.Electron', 'build', 'linux-host'),
     path.join(process.cwd(), 'Asher.Host', 'bin', 'x86', 'Debug', 'net8.0'),
-    path.join(process.cwd(), 'Asher.Host', 'bin', 'Debug', 'net8.0')
+    path.join(process.cwd(), 'Asher.Host', 'bin', 'Debug', 'net8.0'),
+    path.join(process.cwd(), 'build', 'linux-host')
   ];
 
   const candidates = hostDirs.map((dir) => path.join(dir, HOST_EXE));
@@ -58,7 +60,8 @@ export function resolveHostPath() {
 
   throw new Error(
     'Could not locate Asher.Host. Build with:\n' +
-      '  dotnet build Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86\n' +
+      '  Windows: dotnet build Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86\n' +
+      '  Linux:   npm run build:host:linux\n' +
       'Or set ASHER_HOST_PATH to the executable path.'
   );
 }

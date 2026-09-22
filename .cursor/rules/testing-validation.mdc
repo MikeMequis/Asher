@@ -55,14 +55,16 @@ cd Asher.Electron && npm start
 
 ```bash
 cd Asher.Electron
-npm run dist       # clean + build:host Release + electron-builder dir/zip (ia32) + sync Distribution/
-npm run publish    # same as dist, publishes GitHub Release (requires private/GH_TOKEN)
+npm run dist       # clean + build:host Release + electron-builder dir/zip/nsis (ia32) + latest.yml + sync Distribution/
+npm run publish    # same as dist, publishes GitHub Release (installer, zip, update metadata) — requires private/GH_TOKEN
 ```
 
 Outputs:
 
 - `Asher.Electron/dist/win-ia32-unpacked/` — builder intermediate
-- `Asher.Electron/dist/*.zip` — GitHub release asset
+- `Asher.Electron/dist/Asher-Setup-<version>.exe` — NSIS installer (fresh-install path)
+- `Asher.Electron/dist/*.zip` — portable zip asset
+- `Asher.Electron/dist/latest.yml` — Windows update metadata (NSIS)
 - Repo-root `Distribution/` — synced unpacked app for local use
 
 ## Linux packaging (run on Linux)
@@ -81,10 +83,11 @@ npm run verify:linux            # inspect dist/ artifacts
 npm run dist:linux              # bash scripts/build-linux.sh (publish + Asher.Linux + stage + package + verify)
 ```
 
-Outputs: `Asher.Electron/dist/Asher-<version>-linux-x86_64.AppImage` and
-`Asher-<version>-linux-x64.tar.gz`, plus `linux-unpacked/` (manager binary `Asher`). The AppImage arch
-is `x86_64`; the tar.gz arch is `x64`. AppImage requires Linux tooling; `tar.gz` and the `--dir` build
-can be produced cross-platform. `build/` and `dist/` are gitignored.
+Outputs: `Asher.Electron/dist/Asher-<version>-linux-x86_64.AppImage`,
+`Asher-<version>-linux-x64.tar.gz`, `latest-linux.yml`, plus `linux-unpacked/` (manager binary `Asher`).
+The AppImage arch is `x86_64`; the tar.gz arch is `x64`. `npm run publish:linux` additionally uploads the
+release assets/metadata. AppImage requires Linux tooling; `tar.gz` and the `--dir` build can be produced
+cross-platform. `build/` and `dist/` are gitignored.
 
 ## Validation strategy
 

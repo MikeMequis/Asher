@@ -24,6 +24,7 @@
  *   ASHER_BOOTSTRAP_METHOD     default "Initialize"
  *   ASHER_BOOTSTRAP_AUTORUN    "0" disables the automatic background bootstrap
  *   ASHER_BOOTSTRAP_TIMEOUT_MS max wait for the runtime (0 = wait forever), default 60000
+ *   ASHER_BOOTSTRAP_SETTLE_MS  delay after the root domain appears before attaching, default 1000
  */
 
 #define _GNU_SOURCE
@@ -249,6 +250,17 @@ static void run_bootstrap(void)
         waited_ms += 50;
     }
     log_stage("Root domain acquired");
+
+    /*
+     * The runtime is not immediately ready for a foreign thread: attaching right after the
+     * root domain appears aborts with `object.c:1938 'klass' not met`. Let it settle first.
+     */
+    {
+        long settle_ms = atol(env_or("ASHER_BOOTSTRAP_SETTLE_MS", "1000"));
+        if (settle_ms > 0) {
+            usleep((useconds_t)settle_ms * 1000);
+        }
+    }
 
     /* Stage 3: attach this native thread to the existing runtime. */
     thread = api.thread_attach(domain);

@@ -14,6 +14,9 @@
 #
 set -euo pipefail
 
+# The .NET CLI needs ICU; on minimal images (e.g. WSL) run it invariant. The published Host is invariant anyway.
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT="${DOTNET_SYSTEM_GLOBALIZATION_INVARIANT:-1}"
+
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 electron_root="$(cd "$here/.." && pwd)"
 repo_root="$(cd "$electron_root/.." && pwd)"
@@ -37,8 +40,9 @@ node "$electron_root/scripts/stage-linux-payload.mjs" \
     --source "$repo_root/Asher.Linux/out" \
     --dest "$payload_out"
 
-echo "[build-linux] electron-builder (AppImage, tar.gz; x64)"
-( cd "$electron_root" && npx electron-builder --linux AppImage tar.gz --x64 )
+publish="${PUBLISH:-never}"
+echo "[build-linux] electron-builder (AppImage, tar.gz; x64; publish=$publish)"
+( cd "$electron_root" && npx electron-builder --linux AppImage tar.gz --x64 --publish "$publish" )
 
 echo "[build-linux] verify artifacts"
 node "$electron_root/scripts/verify-linux-package.mjs"
