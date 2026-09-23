@@ -1,52 +1,14 @@
 ---
-description: JSONL protocol conventions between Electron and Asher.Host
+description: JSONL protocol between Electron and Asher.Host — canonical in the asher-jsonl-protocol skill
 globs: "{Asher.Host/Jsonl/**,Asher.Electron/src/main/jsonl-client.js,Asher.Electron/src/main/host-manager.js,Asher.Electron/src/renderer/application-client.js,Asher.Electron/src/preload/preload.cjs}"
 alwaysApply: false
 ---
 
 # JSONL Protocol
 
-Electron spawns `Asher.Host --jsonl` as a child process. Communication is line-delimited JSON on stdin (requests) and stdout (responses/events).
+Full protocol reference (message shapes, method list, DTO semantics, error codes, safe method-add
+procedure): `asher-jsonl-protocol` skill.
 
-## Request shape
-
-```json
-{ "requestId": "<uuid>", "method": "<method>", "params": { ... } }
-```
-
-## Response shape
-
-```json
-{ "requestId": "<id>", "success": true, "result": { ... } }
-{ "requestId": "<id>", "success": false, "error": { "code": "<code>", "message": "<msg>" } }
-```
-
-## Events (no requestId)
-
-```json
-{ "event": "ready" }
-{ "event": "progress", "requestId": "<id>", "progress": { ... } }
-```
-
-## Available methods
-
-`getSettings`, `saveSettings`, `getManagerLogDirectory`, `getApplicationMode`, `getPlatformInfo`, `detectGameFolder`, `getGameFolderInfo`, `resolveGameFolderPath`, `isGameInstalled`, `hasRestorableBackup`, `getInstallState`, `getMods`, `setModEnabled`, `install`, `uninstall`, `launchGame`, `markInstalled`, `markUninstalled`, `cancel`, `shutdown`
-
-`getPlatformInfo` returns `PlatformInfoDto` (`kind`, executable/library names, `usesLauncherSwap`, `supportsRecoveryHelper`, `defaultGameFolderName`). Frontends adapt UI from this instead of branching on the OS.
-
-`getInstallState` (optional `params.gameFolderPath`) returns `InstallStateDto` (`state`: `notInstalled|installed|partial`, `canUninstall`, `canRestore`, `marker`). It is the authoritative install-status API; `hasRestorableBackup` is kept only for compatibility and must not be used to derive uninstall capability.
-
-`getManagerLogDirectory` returns `{ gameFolderPath, logsDirectory }`. `logsDirectory` is `{game}/Asher/AsherLogs` when settings name an existing folder, otherwise both fields are null. This is not `resolveGameFolderPath` (that one requires an installed Asher layout).
-
-## Error codes
-
-`invalid_request`, `unknown_method`, `application_error`, `cancelled`, `not_found`, `internal_error`
-
-## Rules
-
-- Host stdout is exclusively for JSONL protocol traffic. Never write diagnostics to stdout.
-- Every request must include `requestId` and `method`.
-- Add new backend capabilities as new JSONL methods mapped through `IAsherApplication`, not ad-hoc channels.
-- Preserve existing message shapes; do not silently change field names or semantics.
-- Progress events reference the originating `requestId`.
-- Cancellation uses the `cancel` method with `{ targetRequestId }`.
+Cursor reminder: `Asher.Host` stdout is exclusively JSONL protocol traffic (diagnostics → stderr).
+Preserve existing message shapes; add capabilities as new methods mapped through
+`IAsherApplication`, not ad-hoc channels.

@@ -1,104 +1,13 @@
 ---
-description: Testing and validation commands for Asher
+description: Testing and validation commands for Asher — canonical in the asher-testing skill
 globs: "{Asher.Electron/scripts/**,Asher.Electron/package.json,Asher.Host.TestClient/**,Asher.Host/SmokeRunner.cs}"
 alwaysApply: false
 ---
 
 # Testing and Validation
 
-## Build
+Full command set and strategy: `asher-testing` skill.
 
-```bash
-# C# backend (from repo root)
-dotnet build Asher.Host/Asher.Host.csproj -c Debug -p:Platform=x86
-
-# All host deps including patching projects
-cd Asher.Electron && npm run build:host:debug
-```
-
-## Smoke tests (headless, no GUI)
-
-```bash
-cd Asher.Electron
-npm run smoke            # Full suite
-npm run smoke:setup      # Game folder detect/validate/save
-npm run smoke:manager    # getMods + setModEnabled failure path
-npm run smoke:shell      # Application shell lifecycle
-npm run smoke:install    # Install with invalid path (safe)
-npm run smoke:uninstall  # Uninstall with invalid path (safe)
-npm run smoke:launch     # Launch preconditions + failure path
-npm run smoke:payload    # Verify install-payload contents
-npm run smoke:platform   # Platform capabilities + install-state contract
-```
-
-## .NET test client (JSONL protocol validation)
-
-```bash
-dotnet run --project Asher.Host.TestClient -p:Platform=x86
-```
-
-## .NET unit tests (xUnit)
-
-```bash
-dotnet test Asher.Services.Tests/Asher.Services.Tests.csproj -c Debug
-```
-
-Covers platform descriptors and pure path resolution (no game or host required).
-
-## Dev run
-
-```bash
-cd Asher.Electron && npm start
-```
-
-## Packaging
-
-```bash
-cd Asher.Electron
-npm run dist       # clean + build:host Release + electron-builder dir/zip/nsis (ia32) + latest.yml + sync Distribution/
-npm run publish    # same as dist, publishes GitHub Release (installer, zip, update metadata) — requires private/GH_TOKEN
-```
-
-Outputs:
-
-- `Asher.Electron/dist/win-ia32-unpacked/` — builder intermediate
-- `Asher.Electron/dist/Asher-Setup-<version>.exe` — NSIS installer (fresh-install path)
-- `Asher.Electron/dist/*.zip` — portable zip asset
-- `Asher.Electron/dist/latest.yml` — Windows update metadata (NSIS)
-- Repo-root `Distribution/` — synced unpacked app for local use
-
-## Linux packaging (run on Linux)
-
-Prerequisites: .NET SDK 8, Node.js + npm, `gcc`, a Roslyn C# 9 compiler (`csc`/`CSC`); Electron needs
-NSS/NSPR/ALSA system libraries at runtime (`sudo apt-get install -y libnss3 libnspr4 libasound2t64` on
-Debian/Ubuntu). Full list: `docs/Cross-Platform-Architecture.md` → *Linux dependencies*.
-
-```bash
-cd Asher.Electron
-npm run build:host:linux        # dotnet publish Asher.Host linux-x64 -> build/linux-host
-npm run stage:linux-payload -- --source ../Asher.Linux/out --dest build/linux-host/install-payload
-npx electron-builder --linux AppImage tar.gz --x64
-npm run verify:linux            # inspect dist/ artifacts
-# or the one-shot wrapper:
-npm run dist:linux              # bash scripts/build-linux.sh (publish + Asher.Linux + stage + package + verify)
-```
-
-Outputs: `Asher.Electron/dist/Asher-<version>-linux-x86_64.AppImage`,
-`Asher-<version>-linux-x64.tar.gz`, `latest-linux.yml`, plus `linux-unpacked/` (manager binary `Asher`).
-The AppImage arch is `x86_64`; the tar.gz arch is `x64`. `npm run publish:linux` additionally uploads the
-release assets/metadata. AppImage requires Linux tooling; `tar.gz` and the `--dir` build can be produced
-cross-platform. `build/` and `dist/` are gitignored.
-
-## Validation strategy
-
-1. **Smallest scope first**: build the changed C# project, run the relevant smoke test.
-2. **Broader when needed**: `npm run smoke` for cross-cutting changes; `npm start` for UI verification.
-3. **Real-game validation**: required for changes to install, uninstall, launch, or runtime patching. Must be done on a machine with Dust: An Elysian Tail installed.
-4. **Packaged validation**: run `npm run dist`, launch `Distribution/Asher.exe`, install into a game folder, confirm Finish stays in Distribution and `Uninstall-Asher.cmd` exists beside `DustAET.exe`.
-
-## Known limitations
-
-- Smoke tests use temp paths, not real game folders.
-- Manager deploy/relaunch removed — UI is Distribution-only; game folder gets an emergency uninstall script instead.
-- `npm run dist` may fail on Windows without symlink privilege when electron-builder caches `winCodeSign` (Developer Mode or elevated terminal).
-- Patching/runtime builds need XNA 4.0 GAC assemblies — install the redistributable per README *Addendum — XNA Framework* if the game is not on the machine.
+Cursor reminder: smallest scope first (build the changed C# project, run the relevant smoke test);
+real-game validation is required for install, uninstall, launch, or runtime-patching changes. Do not
+claim success without running the required validation.

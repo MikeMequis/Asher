@@ -2,8 +2,10 @@
 
 The Asher manager UI is **Electron** (`Asher.Electron`); business logic stays in C# (`Asher.Services`,
 `Asher.Core`) behind the headless **Asher.Host** process over **JSONL on stdin/stdout**. The WPF
-manager was retired. Canonical rules: `.cursor/rules/` (`asher-architecture`, `jsonl-protocol`,
-`electron-frontend`, `testing-validation`); platform contracts: `docs/Cross-Platform-Architecture.md`.
+manager was retired. Persistent project rules: `AGENTS.md`. Specialized workflows:
+`.opencode/skills/` (`asher-jsonl-protocol`, `asher-electron`, `asher-testing`); platform contracts:
+`docs/Cross-Platform-Architecture.md`. (`.cursor/rules/` remains as a temporary Cursor compatibility
+layer, not the source of truth.)
 
 ## Current architecture
 

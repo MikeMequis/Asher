@@ -1,70 +1,15 @@
 ---
-description: Documentation practices — when and how to update Asher project docs
+description: Documentation practices for Asher docs
 globs: docs/**
 alwaysApply: false
 ---
 
 # Asher Documentation
 
-## Purpose
+Generic documentation principles (when to document, change/decision entry format, avoiding
+duplication, keeping docs aligned with implementation) live in the global `AGENTS.md`.
 
-Documentation answers: **what do I need to know to work on this project now?**
+Asher-specific canonical locations live in the project `AGENTS.md` → *Canonical locations*. Do not
+duplicate protocol method lists or smoke-test commands across docs — link the canonical location.
 
-It is not a diary of every implementation action. Prefer updating existing sections over appending duplicates.
-
-## Where information lives
-
-| Topic | Primary location |
-|-------|------------------|
-| Current project state (completed / retired / deferred) | `.cursor/rules/asher-current-state.mdc` |
-| Architecture boundaries | `.cursor/rules/asher-architecture.mdc` |
-| JSONL protocol details | `.cursor/rules/jsonl-protocol.mdc` |
-| Validation commands | `.cursor/rules/testing-validation.mdc` |
-| Electron manager architecture + decisions | `docs/Electron-Migration-Implementation.md` |
-| Electron manager structure + compatibility | `docs/Manager-UI-Architecture.md` |
-| Platform contracts, Linux layout/build/packaging | `docs/Cross-Platform-Architecture.md` |
-| Native Linux bootstrap | `Asher.Linux/README.md` |
-
-Do not duplicate protocol method lists or smoke-test commands across multiple docs — link or reference the canonical location.
-
-## When to document
-
-Document meaningful changes: architecture, contracts/protocol, install/launch/runtime behavior, packaging, significant migration milestones, decisions future developers might misunderstand, known limitations.
-
-Skip documentation for: obvious bug fixes, formatting, minor CSS with no behavioral impact, refactors that do not change external behavior.
-
-## Change entry format
-
-```md
-### YYYY-MM-DD — Short Title
-
-**Change:** What changed.
-
-**Reason:** Why it was necessary.
-
-**Impact:** Behavior, architecture, contract, or workflow affected.
-
-**Notes:** Compatibility, limitations, or follow-up (optional).
-```
-
-For architectural decisions:
-
-```md
-### Decision — Short Title
-
-**Context:** Problem or constraint.
-
-**Decision:** What was chosen.
-
-**Rationale:** Why.
-
-**Consequences:** Trade-offs or limitations.
-```
-
-## Maintenance rules
-
-- Remove or compress obsolete content when superseded.
-- Mark historical context explicitly; do not present retired architecture as current.
-- Prefer the **source code** over docs when they disagree for current-state descriptions.
-- After significant changes, update `asher-current-state.mdc` if completed/deferred/retired lists change.
-- Keep `Electron-Migration-Implementation.md` compact — decisions and compatibility, not development history.
+After significant changes, update the retired/deferred lists in `AGENTS.md` if they change.
