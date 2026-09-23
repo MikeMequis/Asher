@@ -65,7 +65,7 @@ Users run the NSIS installer (`Asher-Setup-<version>.exe`) or extract the portab
 Linux is packaged on a Linux host: `npm run dist:linux` / `npm run publish:linux` produce `Asher-<version>-linux-x86_64.AppImage`, `Asher-<version>-linux-x64.tar.gz`, and `latest-linux.yml`. Linux updates are manual GitHub release downloads.
 
 ## AI-assisted development
-Asher is built with heavy AI assistance, primarily through **OpenCode**. AI helps with implementation, investigation, refactoring, testing, debugging, and documentation. Architecture, technical direction, scope, validation, and the final call on what ships stay human-directed. Check [\[\[❓ FAQ\]\]](https://mikesstash.com.br/asher/faq/) for a more detailed answer.
+Asher is built with heavy AI assistance, primarily through **OpenCode**. AI helps with implementation, investigation, refactoring, testing, debugging, and documentation. Architecture, technical direction, scope, validation, and the final call on what ships stay human-directed. Check [❓ FAQ](https://mikesstash.com.br/asher/faq/) for a more detailed answer.
 
 ## Documentation
 

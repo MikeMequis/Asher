@@ -66,7 +66,7 @@ O Linux é empacotado em um host Linux: `npm run dist:linux` / `npm run publish:
 
 ## Desenvolvimento assistido por IA
 
-O Asher é desenvolvido com forte apoio de IA, principalmente via OpenCode. A IA ajuda na implementação, investigação, refatoração, testes, depuração e documentação. Arquitetura, direção técnica, escopo, validação e a decisão final sobre o que entra continuam sendo humanas. Consulte [\[\[❓ FAQ\]\]](https://mikesstash.com.br/asher/faq/) para uma resposta mais completa.
+O Asher é desenvolvido com forte apoio de IA, principalmente via OpenCode. A IA ajuda na implementação, investigação, refatoração, testes, depuração e documentação. Arquitetura, direção técnica, escopo, validação e a decisão final sobre o que entra continuam sendo humanas. Consulte [❓ FAQ](https://mikesstash.com.br/asher/faq/) para uma resposta mais completa.
 
 ## Documentação
 
