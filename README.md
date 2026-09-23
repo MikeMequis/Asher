@@ -1,28 +1,22 @@
-﻿# 🧱 Asher Modding Platform
+﻿**English** | [Português (Brasil)](README.pt-BR.md)
 
-**Asher** is a launcher-based modding platform for [*Dust: An Elysian Tail*](https://store.steampowered.com/app/236090/Dust_An_Elysian_Tail/), designed to support **runtime code patching** and **content replacement** in a safe, modular, and reversible way.
+# 🧱 Asher Modding Platform
 
-Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit initialization order, runtime lifecycle control, and clean debugging — deliberately avoiding fragile early-injection patterns.
+**Asher** is a launcher-based modding platform for [*Dust: An Elysian Tail*](https://store.steampowered.com/app/236090/Dust_An_Elysian_Tail/). It applies **runtime code patches** (Harmony) and is designed to replace content without editing the game's files — safe, modular, and reversible.
+
+Inspired by mod loaders such as **SMAPI**, Asher favors explicit initialization order, runtime lifecycle control, and clean debugging over fragile early-injection.
 
 ## What it includes
 
-- **Custom launcher (Windows)** — wraps the game executable and controls startup order (`DustAET.exe` → original `DustAET.real.exe`)
-- **Runtime mod loader** — Harmony-based patching with PreInit, Patch, and Lifecycle stages
-- **Electron manager** (`Asher.Electron` + `Asher.Host`) — installer and mod manager UI with Patch Manager, settings, and game launch
+- **Windows launcher** — replaces `DustAET.exe` and controls startup order (the original is kept as `DustAET.real.exe`)
+- **Linux bootstrap** — the native `DustAET` attaches through `libasher_bootstrap.so` (`LD_PRELOAD`); no launcher swap
+- **Runtime mod loader** — Harmony-based patching with PreInit → Patch → Lifecycle stages
+- **Electron manager** (`Asher.Electron` + `Asher.Host`) — installer, Patch Manager, settings, and game launch
 - **Mod SDK** — interfaces for building external mods loaded from `Asher/Mods/`
-- **Linux support** — native `libasher_bootstrap.so` `LD_PRELOAD` entry (no launcher swap), XDG/Steam discovery, and AppImage/tar.gz packaging
 
-## Goals
+## Running Start
 
-- Runtime code patching using **Harmony**
-- Asset replacement without modifying `.xnb` files
-- Modular and reversible mod loading
-- UI-based patch selection and configuration
-- Full compatibility with **Steam**; **XNA**/**Mono** and **.NET Framework** on Windows, **FNA**/**Mono** on Linux
-
-## Quick start
-
-1. From `Asher.Electron/`, build the host and start the app:
+1. From `Asher.Electron/`, build the host and start the manager:
    ```bash
    npm install
    npm run build:host:debug   # Windows
@@ -30,57 +24,51 @@ Inspired by mature mod loaders such as **SMAPI**, Asher prioritizes explicit ini
    npm start
    ```
    On Linux, Electron also needs its system libraries (NSS/NSPR/ALSA, GTK, and FUSE for the AppImage) — see [Linux dependencies](docs/Cross-Platform-Architecture.md#linux-dependencies).
-2. Use **Setup** to detect and save your game folder, then **Install**
-3. Launch the game via **Steam** or the manager's **Launch Game** button (on Linux, launch through the manager; external Steam/desktop launch is not implemented yet)
+2. Use **Setup** to detect and save your game folder, then **Install**.
+3. Launch the game via **Steam** or the manager's **Launch Game** button (on Linux, launch through the manager; external Steam/desktop launch is not implemented yet).
 
 ### Addendum — XNA Framework (build dependency)
 
-`Asher.Runtime` and several patching projects reference **Microsoft XNA Framework 4.0** assemblies from the GAC (same runtime Dust uses). Without them, `npm run build:host` / patching builds fail or warn about missing `Microsoft.Xna.Framework*`.
+`Asher.Runtime` and the patching projects reference **Microsoft XNA Framework 4.0** assemblies from the GAC on Windows (the same runtime Dust uses). Without them, `npm run build:host` / patching builds fail or warn about missing `Microsoft.Xna.Framework*`.
 
 1. Install **[Microsoft XNA Framework Redistributable 4.0](https://www.microsoft.com/en-us/download/details.aspx?id=20914)** (or the [4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598)).
 2. Prefer the **x86** redistributable — Asher targets `Platform=x86`.
 3. Rebuild: `cd Asher.Electron && npm run build:host:debug`.
 
-Steam installs of Dust often already place these assemblies on the machine; use the redistributable when building on a PC that does not have the game (or XNA) installed.
+Steam installs of Dust often already place these assemblies on the machine. Linux uses **Mono/FNA** instead; the GAC requirement is Windows-only.
 
-## Packaged distribution
+## Included Patches
 
-```bash
-cd Asher.Electron
-npm run dist       # NSIS installer + zip + latest.yml + syncs repo-root Distribution/
-npm run publish    # publishes GitHub Release (installer, zip, update metadata) — requires private/GH_TOKEN
-```
+Five patch modules ship by default. Each is an external mod loaded at runtime from `Asher/Mods/`:
 
-Users run the NSIS installer (`Asher-Setup-<version>.exe`) or extract the zip (or use `Distribution/`), then install into the game folder. The manager stays in Distribution. The game folder gets runtime files plus `Uninstall-Asher.cmd` (next to `DustAET.exe`) for emergency restore if Distribution is missing, and an `Asher/LEIA-ME.txt` written during install. `Distribution/LEIA-ME.txt` is generated by `npm run dist`.
+- **Debug Menu Enabler** — `Tab` in the pause menu opens the debug menu
+- **Intro Skipper** — skips the ESRB rating, splash screens, and startup videos
+- **Graphics Deprofiler** — bypasses HiDef GPU profile restrictions
+- **Mute Voice Acting** — mutes voice acting while keeping other SFX
+- **Dust Storm Overheat Disabler** — prevents Dust Storm from overheating
 
-Each release includes the update metadata: `latest.yml` (Windows, NSIS) and `latest-linux.yml` (Linux, AppImage). Publish requires a GitHub token at repo-root `private/GH_TOKEN` (gitignored).
+## Build & Distribution
 
-### Linux (x64)
-
-Run on a Linux host (AppImage requires Linux tooling). Prerequisites: .NET SDK 8, Node.js + npm, `gcc`, a
-Roslyn C# 9 compiler, and the Electron system libraries (NSS/NSPR/ALSA, GTK, plus FUSE for the AppImage).
-Full install commands (Debian/Ubuntu): [Linux dependencies](docs/Cross-Platform-Architecture.md#linux-dependencies).
+Summary only; the website's **Build & Distribution** page is the full reference.
 
 ```bash
 cd Asher.Electron
-npm run dist:linux           # publish Host + build Asher.Linux + stage payload + AppImage/tar.gz + latest-linux.yml
-npm run publish:linux        # same, plus uploads the release assets/metadata (requires private/GH_TOKEN)
+npm run build:host         # Release backend (Host + runtime + patches)
+npm run build:host:debug   # Debug backend for local UI work
+npm start                  # run the manager in development
+npm run dist               # NSIS installer + portable zip + latest.yml + sync Distribution/
+npm run publish            # publish a GitHub Release (requires private/GH_TOKEN)
 ```
 
-Artifacts land in `Asher.Electron/dist/`: `Asher-<version>-linux-x86_64.AppImage`, `Asher-<version>-linux-x64.tar.gz`, and `latest-linux.yml`. The manager binary is `Asher`; the game folder is left untouched (no launcher swap). Updates on Linux are manual GitHub release downloads. See `docs/Cross-Platform-Architecture.md`.
+Users run the NSIS installer (`Asher-Setup-<version>.exe`) or extract the portable zip (or use `Distribution/`), then install into the game folder. The manager stays in `Distribution`; the game folder gets runtime files plus `Uninstall-Asher.cmd` beside `DustAET.exe` for emergency restore.
 
-## Included mods
+Linux is packaged on a Linux host: `npm run dist:linux` / `npm run publish:linux` produce `Asher-<version>-linux-x86_64.AppImage`, `Asher-<version>-linux-x64.tar.gz`, and `latest-linux.yml`. Linux updates are manual GitHub release downloads.
 
-- **Debug Menu Enabler** — Tab in pause menu opens debug menu
-- **Intro Skipper** — Skips ESRB rating, splash screens, and startup videos
-- **Graphics Deprofiler** — Bypasses HiDef GPU profile restrictions
-- **Mute Voice Acting** — Mutes the voice acting from character dialogues
-- **Dust Storm Overheat Disabler** — Prevents Dust Storm from overheating
+## AI-assisted development
+Asher is built with heavy AI assistance, primarily through **OpenCode**. AI helps with implementation, investigation, refactoring, testing, debugging, and documentation. Architecture, technical direction, scope, validation, and the final call on what ships stay human-directed. Check [\[\[❓ FAQ\]\]](https://mikesstash.com.br/asher/faq/) for a more detailed answer.
 
 ## Documentation
 
-- [Manager UI architecture](docs/Manager-UI-Architecture.md) — current Electron manager structure
-- [Electron migration](docs/Electron-Migration-Implementation.md) — architecture decisions and retired WPF notes
+- **Website** — https://mikesstash.com.br/asher/ (user guide, architecture, status, FAQ)
 - [Cross-platform architecture](docs/Cross-Platform-Architecture.md) — platform contracts, Linux layout/build/packaging
-- [Linux bootstrap (embedded Mono)](Asher.Linux/README.md) — native LD_PRELOAD entry + patch orchestration
-- User docs: [mikesstash.com.br/asher/](https://mikesstash.com.br/asher/)
+- [Linux bootstrap](Asher.Linux/README.md) — native `LD_PRELOAD` entry + patch orchestration

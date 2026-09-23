@@ -7,7 +7,7 @@ alwaysApply: true
 
 Hard rules and the retired/deferred lists live in `AGENTS.md`. Apply them before proposing changes.
 
-Cursor reminder: the WPF → Electron migration is complete. Inspect the source before suggesting
-work; `docs/Electron-Migration-Implementation.md` records decisions, not a to-do list. Do not
+Cursor reminder: the manager is Electron (`Asher.Electron`) + `Asher.Host`; the WPF manager is
+retired. Inspect the source before suggesting work; completed work is not a to-do list. Do not
 recreate retired functionality, duplicate existing logic, or change JSONL shapes / file layouts /
 the launcher chain without a concrete requirement.

@@ -14,14 +14,15 @@ restate it.
 
 | Destination | Owns |
 |-------------|------|
-| `docs/` | Authoritative Asher technical reference (platform contracts, Electron architecture, Linux build/packaging) |
+| Website (Obsidian Digital Garden) | User-facing and project-level documentation: overview, architecture, manager, runtime, status, FAQ |
+| `docs/` | Repository-level technical reference kept close to the code (platform contracts, Linux build/packaging) |
 | `AGENTS.md` | Concise current project contract only |
 | `.opencode/skills/` | Operational/specialized agent knowledge (`asher-jsonl-protocol`, `asher-electron`, `asher-testing`) |
 | Digital Garden | Durable conceptual knowledge: discoveries, reasoning, relationships, learning |
 
 Canonical-source principle: when information already has a home, **link or reference it** rather
-than duplicating large blocks. The Garden is not a mirror of the repository, and a Vault note does
-not replace repository documentation.
+than duplicating large blocks. Detailed user/project documentation lives on the website; repository
+`docs/` stays close to the code.
 
 ## Classify before writing
 

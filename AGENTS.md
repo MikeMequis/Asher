@@ -58,9 +58,9 @@ Windows uses the launcher-swap model; Linux keeps the native `DustAET` and attac
 |-------|----------|
 | Persistent project contract | `AGENTS.md` (this file) |
 | Specialized workflows | `.opencode/skills/` |
+| User & project documentation | website — https://mikesstash.com.br/asher/ |
 | Platform contracts, Linux layout/build/packaging | `docs/Cross-Platform-Architecture.md` |
-| Electron manager architecture + decisions | `docs/Electron-Migration-Implementation.md` |
-| Electron structure + compatibility | `docs/Manager-UI-Architecture.md` |
+| Electron manager structure + JSONL contract | `.opencode/skills/asher-electron`, `.opencode/skills/asher-jsonl-protocol` |
 | Native Linux bootstrap | `Asher.Linux/README.md` |
 | Cursor compatibility layer | `.cursor/rules/` (temporary; not the source of truth) |
 

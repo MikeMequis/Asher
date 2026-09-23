@@ -7,5 +7,5 @@ alwaysApply: true
 
 Current state lives in `AGENTS.md` → *Do not recreate (retired)* and *Deferred / out of scope*.
 
-Cursor reminder: the WPF → Electron migration is complete. Do not recreate retired WPF/Prism/
-MaterialDesign code or WPF-only services. Treat completed work as done, not as a to-do list.
+Cursor reminder: the manager is Electron (`Asher.Electron`) + `Asher.Host`. Do not recreate retired
+WPF/Prism/MaterialDesign code or WPF-only services. Treat completed work as done, not as a to-do list.
